@@ -11,28 +11,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const INITIAL_PROJECTS = [
-  {
-    id: "p1",
-    name: "인바운드 웹사이트 디자인 QA 1차",
-    platform: "Web (반응형)",
-    status: "진행중",
-    issuesCount: 45,
-    completedCount: 15,
-    screensCount: 32,
-    lastUpdated: "2023-10-15",
-  },
-  {
-    id: "p2",
-    name: "동호회 앱 배포 전 최종 QA",
-    platform: "App (iOS/Android)",
-    status: "QA 완료",
-    issuesCount: 12,
-    completedCount: 12,
-    screensCount: 8,
-    lastUpdated: "2023-10-16",
-  }
-];
+const INITIAL_PROJECTS: Array<{
+  id: string;
+  name: string;
+  platform: string;
+  status: string;
+  issuesCount: number;
+  completedCount: number;
+  screensCount: number;
+  lastUpdated: string;
+}> = [];
 
 export default function Dashboard() {
   const [projects, setProjects] = useState(INITIAL_PROJECTS);
@@ -287,7 +275,14 @@ export default function Dashboard() {
            filter === "unresolved" ? "미해결 이슈가 있는 프로젝트" : "최근 해결된 프로젝트"}
         </h2>
         <div className="grid gap-6 md:grid-cols-2">
-          {filteredProjects.map((project) => {
+          {filteredProjects.length === 0 ? (
+            <div className="col-span-1 md:col-span-2 py-20 flex flex-col items-center justify-center bg-white rounded-xl border border-dashed border-slate-200">
+              <Layout className="w-12 h-12 text-slate-200 mb-4" />
+              <p className="text-slate-500 font-bold mb-2">아직 등록된 프로젝트가 없습니다.</p>
+              <p className="text-sm text-slate-400">우측 상단의 '새 프로젝트 생성' 버튼을 눌러 QA를 시작해보세요.</p>
+            </div>
+          ) : (
+            filteredProjects.map((project) => {
             const progress = Math.round((project.completedCount / project.issuesCount) * 100) || 0;
             const getPlatformColor = (platform: string) => {
               if (platform.includes("Web")) return "bg-blue-50 text-blue-700 border border-blue-100";
@@ -336,7 +331,8 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             )
-          })}
+          })
+          )}
         </div>
       </main>
     </div>
