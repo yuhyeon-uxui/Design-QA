@@ -194,6 +194,7 @@ export default function Dashboard() {
                       onChange={(e) => setNewProjectDueDate(e.target.value)}
                       className="h-11 w-full"
                     />
+                    <p className="text-[11px] text-slate-400 mt-1.5 font-medium tracking-tight">※ 미설정 시 오늘 날짜로 지정됩니다.</p>
                   </div>
                 </div>
               </div>
