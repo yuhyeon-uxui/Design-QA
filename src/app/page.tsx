@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart3, CheckCircle2, Layout, LayoutGrid, ListTodo, Plus } from "lucide-react";
@@ -24,6 +24,24 @@ const INITIAL_PROJECTS: Array<{
 
 export default function Dashboard() {
   const [projects, setProjects] = useState(INITIAL_PROJECTS);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    const saved = localStorage.getItem("design_qa_projects");
+    if (saved) {
+      try {
+        setProjects(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      localStorage.setItem("design_qa_projects", JSON.stringify(projects));
+    }
+  }, [projects, isMounted]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectPlatform, setNewProjectPlatform] = useState("");

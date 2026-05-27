@@ -77,6 +77,25 @@ export default function QABoardPage() {
   const params = useParams();
   const isAppProject = params.id === "p2";
   const [screens, setScreens] = useState(INITIAL_SCREENS);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    if (!params.id) return;
+    const saved = localStorage.getItem(`design_qa_screens_${params.id}`);
+    if (saved) {
+      try {
+        setScreens(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, [params.id]);
+
+  useEffect(() => {
+    if (isMounted && params.id) {
+      localStorage.setItem(`design_qa_screens_${params.id}`, JSON.stringify(screens));
+    }
+  }, [screens, params.id, isMounted]);
+
   const [activeScreenId, setActiveScreenId] = useState("s1");
   const [currentMemberId, setCurrentMemberId] = useState("");
   const [authorSearch, setAuthorSearch] = useState("");
