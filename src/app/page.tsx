@@ -84,9 +84,7 @@ export default function Dashboard() {
           </a>
           <div className="flex items-center gap-4">
             <Dialog>
-              <DialogTrigger asChild>
-                <span className="text-sm font-medium text-slate-500 hover:text-slate-800 cursor-pointer transition-colors px-2 py-1">도움말</span>
-              </DialogTrigger>
+              <DialogTrigger render={<span className="text-sm font-medium text-slate-500 hover:text-slate-800 cursor-pointer transition-colors px-2 py-1">도움말</span>} />
               <DialogContent className="sm:max-w-[600px] p-8">
                 <DialogHeader className="mb-4">
                   <DialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -139,11 +137,11 @@ export default function Dashboard() {
             <p className="text-slate-500 mt-2 text-sm">전체 QA 프로젝트의 진행 상황과 지표를 확인합니다.</p>
           </div>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger render={
               <Button className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 h-12 px-6 rounded-xl text-base font-bold shadow-sm">
                 <Plus className="w-5 h-5 mr-2" /> 새 프로젝트 생성
               </Button>
-            </DialogTrigger>
+            } />
             <DialogContent className="sm:max-w-[500px] p-8">
               <DialogHeader className="mb-2">
                 <DialogTitle className="text-xl font-bold text-slate-900">새 프로젝트 생성</DialogTitle>

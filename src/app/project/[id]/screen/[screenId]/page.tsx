@@ -678,7 +678,7 @@ export default function QABoardPage() {
                   <div className="grid grid-cols-2 gap-5">
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">우선순위</Label>
-                      <Select value={priority} onValueChange={setPriority}>
+                      <Select value={priority} onValueChange={(val) => val && setPriority(val)}>
                         <SelectTrigger className="h-10 text-sm bg-white font-medium">
                           <div className="flex items-center gap-2">
                             {priority === "High (크리티컬)" && <span className="w-1 h-1 rounded-full bg-rose-500 shrink-0"></span>}
