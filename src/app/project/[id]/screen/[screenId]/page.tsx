@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, MouseEvent } from "react";
+import { useState, MouseEvent, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare } from "lucide-react";
+import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Comment {
   id: number;
@@ -22,39 +22,178 @@ interface Pin {
   id: number;
   x: number;
   y: number;
+  width?: number;
+  height?: number;
   comments: Comment[];
 }
+const PRESET_MEMBERS = [
+  { id: "d1", name: "안유현 대리", role: "Design" },
+  { id: "d2", name: "고승신 대리", role: "Design" },
+  { id: "d3", name: "이한비 대리", role: "Design" },
+  { id: "d4", name: "채수림 이사", role: "Design" },
+  { id: "v1", name: "김나현 대리", role: "Dev" },
+  { id: "v2", name: "이보원 대리", role: "Dev" },
+  { id: "v3", name: "유호준 차장", role: "Dev" },
+  { id: "v4", name: "윤서진 과장", role: "Dev" },
+  { id: "v5", name: "김성호 과장", role: "Dev" },
+  { id: "v6", name: "박현주 주임", role: "Dev" },
+  { id: "v7", name: "배은덕 부장", role: "Dev" },
+  { id: "v8", name: "정시영 과장", role: "Dev" },
+];
 
-const mockScreens = Array.from({ length: 30 }).map((_, i) => ({
-  id: `s${i + 1}`,
-  name: i === 0 ? "메인 홈 화면" : `상세 화면 ${i}`,
-  issueCount: i % 5 === 0 ? 0 : Math.floor(Math.random() * 5) + 1,
-}));
+interface ScreenDeviceState {
+  actualImage: string | null;
+  figmaUrl: string;
+  figmaImageUrl: string | null;
+  pins: Pin[];
+  activePinId: number | null;
+}
+
+interface ScreenData {
+  id: string;
+  name: string;
+  issueCount: number;
+  PC: ScreenDeviceState;
+  Mobile: ScreenDeviceState;
+}
+
+const emptyDeviceState: ScreenDeviceState = {
+  actualImage: null,
+  figmaUrl: "",
+  figmaImageUrl: null,
+  pins: [],
+  activePinId: null
+};
+
+const INITIAL_SCREENS: ScreenData[] = [{
+  id: `s1`,
+  name: "새로운 화면",
+  issueCount: -1,
+  PC: { ...emptyDeviceState },
+  Mobile: { ...emptyDeviceState }
+}];
 
 export default function QABoardPage() {
+  const params = useParams();
+  const isAppProject = params.id === "p2";
+  const [screens, setScreens] = useState(INITIAL_SCREENS);
   const [activeScreenId, setActiveScreenId] = useState("s1");
-  const [pins, setPins] = useState<Pin[]>([
-    { id: 1, x: 30, y: 40, comments: [{ id: 1, author: "김철수", role: "Frontend", text: "이 부분 패딩값이 피그마랑 다른가요?", createdAt: "방금 전" }] },
-    { id: 2, x: 60, y: 70, comments: [] },
-  ]);
-  const [activePinId, setActivePinId] = useState<number | null>(1);
-  const [newComment, setNewComment] = useState("");
+  const [currentMemberId, setCurrentMemberId] = useState("");
+  const [authorSearch, setAuthorSearch] = useState("");
+  const [isAuthorDropdownOpen, setIsAuthorDropdownOpen] = useState(false);
+  const filteredMembers = PRESET_MEMBERS.filter(m => m.name.includes(authorSearch) || m.role.toLowerCase().includes(authorSearch.toLowerCase()));
+  type Device = "PC" | "Mobile";
+  const [device, setDevice] = useState<Device>("PC");
 
-  const [figmaUrl, setFigmaUrl] = useState("");
-  const [figmaImageUrl, setFigmaImageUrl] = useState<string | null>(null);
+  const activeScreenIndex = screens.findIndex(s => s.id === activeScreenId);
+  const activeScreen = activeScreenIndex >= 0 ? screens[activeScreenIndex] : screens[0];
+  const activeDeviceState = activeScreen[device];
+
+  const updateActiveDeviceState = (updates: Partial<ScreenDeviceState>) => {
+    setScreens(prev => prev.map(s => 
+      s.id === activeScreenId 
+        ? { ...s, [device]: { ...s[device], ...updates } } 
+        : s
+    ));
+  };
+
+  const actualImage = activeDeviceState.actualImage;
+  const setActualImage = (url: string | null) => updateActiveDeviceState({ actualImage: url });
+
+  const figmaUrl = activeDeviceState.figmaUrl;
+  const setFigmaUrl = (url: string) => updateActiveDeviceState({ figmaUrl: url });
+
+  const figmaImageUrl = activeDeviceState.figmaImageUrl;
+  const setFigmaImageUrl = (url: string | null) => updateActiveDeviceState({ figmaImageUrl: url });
+
+  const pins = activeDeviceState.pins;
+  const setPins = (newPins: Pin[] | ((prev: Pin[]) => Pin[])) => {
+    updateActiveDeviceState({
+      pins: typeof newPins === "function" ? newPins(pins) : newPins
+    });
+  };
+
+  const activePinId = activeDeviceState.activePinId;
+  const setActivePinId = (id: number | null) => updateActiveDeviceState({ activePinId: id });
+
+  const [priority, setPriority] = useState("High (크리티컬)");
+  const [newComment, setNewComment] = useState("");
   const [isLoadingFigma, setIsLoadingFigma] = useState(false);
   const [figmaError, setFigmaError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 클립보드 붙여넣기 기능
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.indexOf("image") !== -1) {
+          const blob = item.getAsFile();
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            updateActiveDeviceState({ actualImage: url });
+          }
+        }
+      }
+    };
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [device]);
 
   const activePin = pins.find(p => p.id === activePinId);
 
-  const handleImageClick = (e: MouseEvent<HTMLDivElement>) => {
+  const totalScreens = screens.length;
+  const completedScreens = screens.filter(s => s.issueCount === 0).length;
+  const progressRate = totalScreens > 0 ? Math.round((completedScreens / totalScreens) * 100) : 0;
+
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawStart, setDrawStart] = useState<{x: number, y: number} | null>(null);
+  const [currentRect, setCurrentRect] = useState<{x: number, y: number, w: number, h: number} | null>(null);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!actualImage) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setIsDrawing(true);
+    setDrawStart({ x, y });
+    setCurrentRect({ x, y, w: 0, h: 0 });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDrawing || !drawStart) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const currentX = ((e.clientX - rect.left) / rect.width) * 100;
+    const currentY = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    const clampedX = Math.max(0, Math.min(100, currentX));
+    const clampedY = Math.max(0, Math.min(100, currentY));
+
+    setCurrentRect({
+      x: Math.min(drawStart.x, clampedX),
+      y: Math.min(drawStart.y, clampedY),
+      w: Math.abs(clampedX - drawStart.x),
+      h: Math.abs(clampedY - drawStart.y)
+    });
+  };
+
+  const handleMouseUp = () => {
+    if (!isDrawing || !currentRect) return;
+    setIsDrawing(false);
     
     const newId = pins.length > 0 ? Math.max(...pins.map(p => p.id)) + 1 : 1;
-    setPins([...pins, { id: newId, x, y, comments: [] }]);
+    setPins([...pins, { id: newId, x: currentRect.x, y: currentRect.y, width: currentRect.w, height: currentRect.h, comments: [] }]);
     setActivePinId(newId);
+    
+    setDrawStart(null);
+    setCurrentRect(null);
+  };
+
+  const handleMouseLeave = () => {
+    if (isDrawing) {
+       handleMouseUp();
+    }
   };
 
   const handleDeletePin = () => {
@@ -65,14 +204,21 @@ export default function QABoardPage() {
 
   const handleAddComment = () => {
     if (!activePinId || !newComment.trim()) return;
+    
+    const currentUser = PRESET_MEMBERS.find(m => m.id === currentMemberId);
+    if (!currentUser) {
+      alert("작성자를 먼저 검색하고 선택해주세요.");
+      return;
+    }
+
     setPins(pins.map(p => {
       if (p.id === activePinId) {
         return {
           ...p,
           comments: [...p.comments, {
             id: Date.now(),
-            author: "이영희", // Mock current user
-            role: "Design",
+            author: currentUser.name,
+            role: currentUser.role,
             text: newComment,
             createdAt: "방금 전"
           }]
@@ -106,272 +252,508 @@ export default function QABoardPage() {
     }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setActualImage(url);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#F4F7FB]">
-      <header className="h-14 border-b bg-white px-4 flex items-center justify-between shrink-0 shadow-sm z-10">
-        <div className="flex items-center gap-4">
+      <header className="h-16 border-b bg-white px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
+        <div className="flex items-center gap-6">
           <Link href="/">
-            <Button variant="ghost" size="icon" className="hover:bg-slate-100">
-              <ChevronLeft className="w-5 h-5 text-slate-700" />
+            <Button variant="ghost" size="icon" className="hover:bg-slate-100 w-10 h-10 rounded-full">
+              <ChevronLeft className="w-6 h-6 text-slate-700" />
             </Button>
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-6 bg-[#1E3A8A] text-white rounded text-[10px] font-bold flex items-center justify-center">
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 bg-[#1E3A8A] text-white rounded-md text-xs font-bold flex items-center justify-center">
               QA
             </div>
             <div>
-              <h1 className="font-bold text-slate-800 leading-tight">동호회 앱 배포 전 최종 QA</h1>
-              <p className="text-[11px] font-medium text-slate-500">App (iOS/Android) · 진행중</p>
+              <h1 className="font-bold text-slate-800 text-lg leading-tight flex items-center gap-3">
+                {isAppProject ? "동호회 앱 배포 전 최종 QA" : "인바운드 웹사이트 디자인 QA 1차"}
+                {!isAppProject && (
+                  <div className="flex items-center bg-slate-100 rounded-lg p-0.5 ml-2">
+                    <button
+                      onClick={() => setDevice("PC")}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
+                        device === "PC" ? "bg-white text-[#1E3A8A] shadow-sm" : "text-slate-500 hover:text-slate-700"
+                      }`}
+                    >
+                      <Monitor className="w-3.5 h-3.5" /> PC
+                    </button>
+                    <button
+                      onClick={() => setDevice("Mobile")}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
+                        device === "Mobile" ? "bg-white text-[#1E3A8A] shadow-sm" : "text-slate-500 hover:text-slate-700"
+                      }`}
+                    >
+                      <Smartphone className="w-3.5 h-3.5" /> Mobile
+                    </button>
+                  </div>
+                )}
+              </h1>
+              <div className="flex items-center gap-3 mt-0.5">
+                <p className="text-xs font-medium text-slate-500">{isAppProject ? "App (iOS/Android)" : "Web (반응형)"} · 진행중</p>
+                <div className="flex items-center gap-2 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                  <div className="w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${progressRate}%` }}></div>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-600">{progressRate}%</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="gap-2 text-[#1E3A8A] border-[#1E3A8A]/20 hover:bg-[#EEF2FF]">
+          <Button variant="outline" size="sm" className="gap-2 text-[#1E3A8A] border-[#1E3A8A]/20 hover:bg-[#EEF2FF] h-9">
             <ExternalLink className="w-4 h-4" />
             피그마 프로젝트 열기
           </Button>
-          <Button size="sm" className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90">
+          <Button size="sm" className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 h-9 font-semibold px-6">
             QA 완료 보고서
           </Button>
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="w-[240px] bg-white border-r flex flex-col shrink-0 z-10">
-          <div className="h-12 border-b flex items-center px-4 bg-slate-50">
-            <LayoutGrid className="w-4 h-4 text-slate-500 mr-2" />
-            <span className="text-xs font-bold text-slate-700">전체 화면 ({mockScreens.length})</span>
+      {/* Main Content Area - 레이아웃 간격 넓힘 (p-4 gap-4 추가) */}
+      <div className="flex flex-1 overflow-hidden p-6 gap-6">
+        
+        {/* Leftmost: Screen Thumbnail Sidebar */}
+        <div className="w-[260px] bg-white border rounded-xl flex flex-col shrink-0 shadow-sm overflow-hidden">
+          <div className="h-14 border-b flex items-center justify-between px-5 bg-slate-50/50 shrink-0">
+            <div className="flex items-center">
+              <LayoutGrid className="w-5 h-5 text-[#1E3A8A] mr-3" />
+              <span className="text-sm font-bold text-slate-800">전체 화면 ({screens.length})</span>
+            </div>
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-[#1E3A8A] hover:bg-slate-200" onClick={() => {
+              const newId = `s${Date.now()}`;
+              setScreens([{ id: newId, name: "새로운 화면", issueCount: -1, PC: { ...emptyDeviceState }, Mobile: { ...emptyDeviceState } }, ...screens]);
+              setActiveScreenId(newId);
+            }}>
+              <span className="text-lg leading-none">+</span>
+            </Button>
           </div>
-          <ScrollArea className="flex-1">
-            <div className="p-2 space-y-1">
-              {mockScreens.map((screen) => (
-                <button
-                  key={screen.id}
-                  onClick={() => setActiveScreenId(screen.id)}
-                  className={`w-full text-left p-2 rounded-md flex items-center gap-3 transition-colors ${
-                    activeScreenId === screen.id 
-                      ? "bg-[#EEF2FF] border-[#1E3A8A]/20 border" 
-                      : "hover:bg-slate-100 border border-transparent"
-                  }`}
-                >
-                  <div className="w-10 h-16 bg-slate-200 rounded border shrink-0 overflow-hidden relative">
-                     <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200"></div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-xs font-semibold truncate ${activeScreenId === screen.id ? 'text-[#1E3A8A]' : 'text-slate-700'}`}>
-                      {screen.name}
-                    </p>
-                    <p className="text-[10px] text-slate-500 mt-1 flex items-center">
-                      {screen.issueCount === 0 ? (
-                        <span className="text-emerald-600 flex items-center"><CheckCircle2 className="w-3 h-3 mr-1"/>완료됨</span>
-                      ) : (
-                        <span className="text-rose-600 font-medium">잔여 이슈 {screen.issueCount}건</span>
-                      )}
-                    </p>
-                  </div>
-                </button>
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-3 space-y-1.5">
+              {screens.map((screen) => (
+                <div key={screen.id} className="relative group">
+                  <button
+                    onClick={() => setActiveScreenId(screen.id)}
+                    className={`w-full text-left p-2.5 rounded-lg flex items-center gap-3 transition-colors pr-8 ${
+                      activeScreenId === screen.id 
+                        ? "bg-[#EEF2FF] border-[#1E3A8A]/20 border ring-1 ring-[#1E3A8A]/10 shadow-sm" 
+                        : "hover:bg-slate-100 border border-transparent"
+                    }`}
+                  >
+                    <div className="w-11 h-16 bg-slate-200 rounded border shrink-0 overflow-hidden relative">
+                       {screen[device].actualImage ? (
+                         // eslint-disable-next-line @next/next/no-img-element
+                         <img src={screen[device].actualImage!} alt="" className="w-full h-full object-cover" />
+                       ) : (
+                         <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200"></div>
+                       )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-semibold truncate ${activeScreenId === screen.id ? 'text-[#1E3A8A]' : 'text-slate-700'}`}>
+                        {screen.name}
+                      </p>
+                      <div className="mt-1.5">
+                        {screen.issueCount === -1 ? (
+                          <span className="inline-flex items-center text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5"></span>확인 대기
+                          </span>
+                        ) : screen.issueCount === 0 ? (
+                          <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                            <CheckCircle2 className="w-3 h-3 mr-1"/>완료됨
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-[10px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded">
+                            잔여 이슈 {screen.issueCount}건
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                  {screens.length > 1 && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setScreens(screens.filter(s => s.id !== screen.id));
+                        if (activeScreenId === screen.id) {
+                          setActiveScreenId(screens.find(s => s.id !== screen.id)?.id || "");
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
+                </div>
               ))}
             </div>
-          </ScrollArea>
+          </div>
         </div>
 
-        <div className="flex-1 flex overflow-x-auto p-6 gap-6 relative">
-          <div className="flex-1 flex flex-col items-center">
-            <div className="w-full max-w-sm mb-4">
-              <div className="bg-white px-4 py-2 rounded-t-lg border-x border-t shadow-sm flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                <span className="text-xs font-bold text-slate-700">Figma 시안 (Expected)</span>
+        {/* Center: Split View (Figma vs Capture) */}
+        {(() => {
+          const isWidePCLayout = device === 'PC' && !isAppProject;
+          const wrapperClass = isWidePCLayout ? "flex-col overflow-y-auto gap-8 pb-12 px-8 items-center" : "flex-row overflow-x-auto gap-8 pb-2";
+          const maxWClass = isWidePCLayout ? "max-w-5xl" : "max-w-[420px]";
+          const aspectClass = isWidePCLayout ? "aspect-[16/9]" : "aspect-[9/19]";
+          const headerContainerClass = isWidePCLayout ? "w-full mb-3 flex flex-col justify-end" : "w-full mb-5 h-[120px] flex flex-col justify-end";
+
+          return (
+            <div className={`flex-1 flex relative ${wrapperClass}`}>
+              
+              {/* Figma View (API Fetch Area) */}
+              <div className={`flex flex-col items-center w-full order-2 ${isWidePCLayout ? 'flex-none' : 'flex-1'}`}>
+                <div className={`${isWidePCLayout ? 'w-full mb-3 flex flex-col justify-end' : 'w-full mb-5 h-[120px] flex flex-col justify-end'} ${maxWClass}`}>
+              <div className="bg-white px-5 py-3 rounded-t-xl border-x border-t shadow-sm flex items-center gap-2 shrink-0">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm"></span>
+                <span className="text-sm font-bold text-slate-800">Figma 시안 (Expected)</span>
               </div>
-              <div className="bg-white border-x border-b shadow-sm rounded-b-lg p-3 flex gap-2">
+              <div className="bg-white border-x border-b shadow-sm rounded-b-xl p-4 flex gap-2">
                 <div className="relative flex-1">
-                  <LinkIcon className="absolute left-2.5 top-2 h-4 w-4 text-slate-400" />
+                  <LinkIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                   <Input 
                     placeholder="피그마 프레임 링크 (node-id 포함)" 
-                    className="h-8 pl-8 text-xs bg-slate-50"
+                    className="h-9 pl-9 text-xs bg-slate-50 border-slate-200 focus-visible:ring-purple-500/30"
                     value={figmaUrl}
                     onChange={(e) => setFigmaUrl(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && fetchFigmaImage()}
                   />
                 </div>
-                <Button size="sm" className="h-8 text-xs bg-purple-600 hover:bg-purple-700" onClick={fetchFigmaImage} disabled={isLoadingFigma || !figmaUrl}>
-                  {isLoadingFigma ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+                <Button size="sm" className="h-9 text-xs font-semibold bg-purple-600 hover:bg-purple-700 shadow-sm px-4" onClick={fetchFigmaImage} disabled={isLoadingFigma || !figmaUrl}>
+                  {isLoadingFigma ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : null}
                   불러오기
                 </Button>
               </div>
-              {figmaError && <p className="text-[10px] text-red-500 mt-1.5 px-1">{figmaError}</p>}
+              {figmaError && <p className="text-xs font-medium text-red-500 mt-2 px-1">{figmaError}</p>}
             </div>
 
-            <div className="w-full max-w-sm aspect-[9/19] bg-white border border-slate-200 shadow-sm rounded-xl flex items-center justify-center relative overflow-hidden">
+            <div className={`w-full bg-white border border-slate-200 shadow-md rounded-2xl flex items-center justify-center relative overflow-hidden ring-1 ring-black/5 ${maxWClass} ${aspectClass}`}>
               {isLoadingFigma ? (
                 <div className="flex flex-col items-center text-purple-600">
                   <Loader2 className="w-8 h-8 animate-spin mb-3" />
-                  <p className="text-xs font-medium">피그마에서 이미지를 추출하는 중...</p>
+                  <p className="text-xs font-bold">피그마에서 이미지를 추출하는 중...</p>
                 </div>
               ) : figmaImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={figmaImageUrl} alt="Figma Render" className="w-full h-full object-contain" />
               ) : (
                 <>
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-blue-50/50"></div>
-                  <div className="text-center p-6 z-10">
-                    <ImageIcon className="w-12 h-12 mx-auto mb-4 text-indigo-200" />
-                    <p className="text-sm font-semibold text-slate-700">이미지가 없습니다</p>
-                    <p className="text-xs mt-1 text-slate-500">상단에 피그마 링크를 입력하고<br/>불러오기 버튼을 눌러주세요.</p>
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/40 to-purple-50/40"></div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10">
+                    <div className="w-16 h-16 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center mb-4 shadow-sm border border-purple-100">
+                      <ImageIcon className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-800">피그마 시안 렌더링 영역</h3>
+                    <p className="text-xs mt-2 text-slate-500 leading-relaxed">상단에 피그마 링크를 입력하고<br/>불러오기 버튼을 눌러주세요.</p>
+                    <div className="h-10 mt-6" aria-hidden="true"></div>
                   </div>
                 </>
               )}
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col items-center">
-            <div className="bg-white px-4 py-2 rounded-full shadow-sm border mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-              <span className="text-xs font-bold text-slate-700">테스트 화면 (Actual)</span>
-              <span className="text-[10px] text-slate-400 ml-1">클릭하여 핀 추가</span>
-            </div>
-            <div className="w-full max-w-sm aspect-[9/19] bg-white border border-slate-200 shadow-sm rounded-xl relative overflow-hidden group">
-              <div 
-                className="absolute inset-0 cursor-crosshair bg-slate-50 transition-colors"
-                onClick={handleImageClick}
-              >
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 pointer-events-none">
-                   <p className="text-sm font-semibold">수동 업로드된 캡처본</p>
+          {/* Actual Capture View */}
+          <div className={`flex flex-col items-center w-full order-1 ${isWidePCLayout ? 'flex-none' : 'flex-1'}`}>
+            <div className={`${headerContainerClass} ${maxWClass}`}>
+              <div className="bg-white px-5 py-3 rounded-xl border shadow-sm flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></span>
+                  <span className="text-sm font-bold text-slate-800">테스트 화면 (Actual)</span>
                 </div>
+                {actualImage && (
+                  <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">클릭하여 핀 추가</span>
+                )}
               </div>
+            </div>
 
-              {pins.map((pin) => (
-                <button
-                  key={pin.id}
-                  className={`absolute w-7 h-7 -ml-3.5 -mt-3.5 rounded-full flex items-center justify-center text-[11px] font-bold text-white shadow-md transition-all ${
-                    activePinId === pin.id 
-                      ? "bg-[#1E3A8A] scale-110 ring-4 ring-[#1E3A8A]/20" 
-                      : "bg-slate-800 hover:bg-[#1E3A8A]/80"
-                  }`}
-                  style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActivePinId(pin.id);
-                  }}
+            <div className={`w-full bg-white border border-slate-200 shadow-md rounded-2xl relative overflow-hidden group ring-1 ring-black/5 ${maxWClass} ${aspectClass}`}>
+              {!actualImage ? (
+                // 파일 업로드 UI
+                <div className="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center hover:bg-slate-100 transition-colors">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    ref={fileInputRef} 
+                    onChange={handleFileUpload} 
+                  />
+                  <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4 shadow-sm border border-blue-100 cursor-pointer hover:scale-105 transition-transform" onClick={() => fileInputRef.current?.click()}>
+                    <UploadCloud className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-800">테스트 화면 업로드</h3>
+                  <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                    실제 구현된 앱/웹의 캡처 화면을<br/>이곳에 업로드해 주세요.
+                  </p>
+                  <Button className="mt-6 font-bold bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white shadow-sm" onClick={() => fileInputRef.current?.click()}>
+                    내 PC에서 파일 찾기
+                  </Button>
+                </div>
+              ) : (
+                // 캡처 이미지 및 핀 영역
+                <div 
+                  className="absolute inset-0 cursor-crosshair bg-slate-100"
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseLeave}
+                  onDragStart={(e) => e.preventDefault()}
+                  draggable={false}
                 >
-                  {pin.id}
-                </button>
-              ))}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={actualImage} alt="Actual Upload" className="w-full h-full object-contain pointer-events-none select-none" draggable={false} />
+                  
+                  {isDrawing && currentRect && (
+                    <div 
+                      className="absolute border-2 border-rose-500 border-dashed bg-rose-500/10 z-30 pointer-events-none"
+                      style={{
+                        left: `${currentRect.x}%`,
+                        top: `${currentRect.y}%`,
+                        width: `${currentRect.w}%`,
+                        height: `${currentRect.h}%`,
+                      }}
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* Pins overlay */}
+              {actualImage && pins.map((pin) => {
+                const isBox = pin.width !== undefined && pin.height !== undefined && pin.width > 0.5 && pin.height > 0.5;
+                const isActive = activePinId === pin.id;
+                
+                return (
+                  <div
+                    key={pin.id}
+                    className="absolute z-10 group"
+                    style={{ 
+                      left: `${pin.x}%`, 
+                      top: `${pin.y}%`,
+                      width: isBox ? `${pin.width}%` : undefined,
+                      height: isBox ? `${pin.height}%` : undefined,
+                    }}
+                  >
+                    {isBox ? (
+                      <div 
+                        className={`w-full h-full border-2 border-dashed transition-all cursor-pointer ${
+                          isActive ? 'border-rose-600 bg-rose-600/20 z-20' : 'border-rose-500 bg-rose-500/10 hover:bg-rose-500/20'
+                        }`}
+                        onClick={(e) => { e.stopPropagation(); setActivePinId(pin.id); }}
+                      >
+                        <div 
+                          className={`absolute -left-3 -top-3 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md transition-all ${
+                            isActive ? "bg-emerald-600 scale-110 ring-2 ring-white" : "bg-emerald-500 ring-2 ring-white"
+                          }`}
+                        >
+                          {pin.id}
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        className={`absolute w-6 h-6 -ml-3 -mt-3 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md transition-all ring-2 ring-white ${
+                          isActive 
+                            ? "bg-emerald-600 scale-110 ring-4 ring-emerald-600/30 z-20" 
+                            : "bg-emerald-500 hover:bg-emerald-600 hover:scale-105 z-10"
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActivePinId(pin.id);
+                        }}
+                      >
+                        {pin.id}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
+        )
+        })()}
 
-        <div className="w-[420px] bg-white border-l flex flex-col shrink-0 shadow-[-4px_0_24px_rgba(0,0,0,0.02)] z-10">
-          <div className="h-12 border-b flex items-center justify-between px-6 bg-slate-50 shrink-0">
-            <h2 className="font-bold text-sm text-slate-800">
-              QA 이슈 상세 <span className="text-slate-400 font-normal ml-1">(Pin #{activePinId || '-'})</span>
+        {/* Right: Issue Form Panel */}
+        <div className="w-[420px] bg-white border rounded-xl flex flex-col shrink-0 shadow-sm z-10 overflow-hidden">
+          <div className="h-16 border-b flex items-center justify-between px-6 bg-slate-50 shrink-0">
+            <h2 className="font-bold text-base text-slate-800 flex items-center gap-2">
+              <div className="w-1.5 h-5 bg-[#1E3A8A] rounded-full"></div>
+              QA 이슈 상세 <span className="text-slate-400 font-medium ml-1 text-sm">(Pin #{activePinId || '-'})</span>
             </h2>
             {activePinId && (
-              <Button variant="ghost" size="sm" onClick={handleDeletePin} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 px-2">
+              <Button variant="ghost" size="sm" onClick={handleDeletePin} className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 px-2.5 font-bold">
                 <Trash2 className="w-4 h-4 mr-1.5" />
                 핀 삭제
               </Button>
             )}
           </div>
 
-          <ScrollArea className="flex-1">
-            <div className="p-6">
+          <div className="flex-1 overflow-y-auto p-6">
               {activePinId && activePin ? (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right-2 duration-200">
+                <div className="space-y-7 animate-in fade-in slide-in-from-right-2 duration-200">
                   
-                  <div className="bg-[#F8FAFC] border border-slate-200 p-4 rounded-lg">
+                  <div className="bg-[#F8FAFC] border border-slate-200 p-4 rounded-xl shadow-sm">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-slate-700">개발자 전용</span>
+                      <span className="text-xs font-bold text-slate-800">개발자 전용</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 mb-3 leading-relaxed">
+                    <p className="text-xs text-slate-500 mb-3 leading-relaxed">
                       컴포넌트 수치를 피그마에서 바로 확인하고 수정하세요.
                     </p>
                     <Link href={figmaUrl || "#"} target="_blank">
-                      <Button size="sm" variant="outline" className="w-full h-8 text-xs font-semibold text-[#1E3A8A] border-[#1E3A8A]/30 hover:bg-[#EEF2FF]" disabled={!figmaUrl}>
-                        <ExternalLink className="w-3 h-3 mr-1.5" />
+                      <Button size="sm" variant="outline" className="w-full h-9 text-xs font-bold text-[#1E3A8A] border-[#1E3A8A]/30 hover:bg-[#EEF2FF]" disabled={!figmaUrl}>
+                        <ExternalLink className="w-3.5 h-3.5 mr-2" />
                         피그마 Inspect 모드로 열기
                       </Button>
                     </Link>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-slate-700">이슈 유형</Label>
-                    <Select defaultValue="layout">
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="layout">레이아웃 / 간격</SelectItem>
-                        <SelectItem value="typography">타이포그래피</SelectItem>
-                        <SelectItem value="interaction">인터랙션</SelectItem>
-                        <SelectItem value="bug">오류 / 에러</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-slate-700">문제점 설명</Label>
-                    <Textarea placeholder="시안과 다르게 구현된 부분을 적어주세요." className="resize-none h-20 text-sm" />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-slate-700">수정 요청사항</Label>
-                    <Textarea placeholder="어떻게 수정해야 하는지 구체적으로 적어주세요." className="resize-none h-20 text-sm" />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-bold text-slate-700">우선순위</Label>
-                      <Select defaultValue="medium">
-                        <SelectTrigger className="h-9 text-sm">
-                          <SelectValue />
+                  {!isAppProject && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold text-slate-800">디바이스</Label>
+                      <Select defaultValue="PC/Mobile 공통">
+                        <SelectTrigger className="h-10 text-sm bg-white font-medium border-blue-200 focus:ring-blue-500">
+                          <SelectValue placeholder="발생 기기 선택" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="high">High (크리티컬)</SelectItem>
-                          <SelectItem value="medium">Medium (일반)</SelectItem>
-                          <SelectItem value="low">Low (마이너)</SelectItem>
+                          <SelectItem value="PC/Mobile 공통"><span className="font-semibold text-blue-700">PC / Mobile 공통 이슈</span></SelectItem>
+                          <SelectItem value="PC 전용">💻 PC 전용 이슈</SelectItem>
+                          <SelectItem value="Mobile 전용">📱 Mobile 전용 이슈</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-bold text-slate-700">상태</Label>
-                      <Select defaultValue="open">
-                        <SelectTrigger className="h-9 text-sm font-medium">
-                          <SelectValue />
+                  )}
+
+                  <div className="grid grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold text-slate-800">이슈 유형</Label>
+                      <Select defaultValue="레이아웃/간격">
+                        <SelectTrigger className="h-10 text-sm bg-white font-medium">
+                          <SelectValue placeholder="유형 선택" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="open">이슈발생</SelectItem>
-                          <SelectItem value="fixing">확인/검토중</SelectItem>
-                          <SelectItem value="fixed">수정완료</SelectItem>
-                          <SelectItem value="done">완료됨</SelectItem>
+                          <SelectItem value="레이아웃/간격">레이아웃 / 간격</SelectItem>
+                          <SelectItem value="타이포그래피">타이포그래피</SelectItem>
+                          <SelectItem value="인터랙션">인터랙션</SelectItem>
+                          <SelectItem value="오류/에러">오류 / 에러</SelectItem>
+                          <SelectItem value="기타">기타</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold text-slate-800">적용 언어(다국어)</Label>
+                      <Select defaultValue="한국어 (KR)">
+                        <SelectTrigger className="h-10 text-sm bg-white font-medium">
+                          <SelectValue placeholder="언어 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="한국어 (KR)">한국어 (KR)</SelectItem>
+                          <SelectItem value="영어 (EN)">영어 (EN)</SelectItem>
+                          <SelectItem value="일본어 (JP)">일본어 (JP)</SelectItem>
+                          <SelectItem value="중국어 (CN)">중국어 (CN)</SelectItem>
+                          <SelectItem value="공통 (All)">공통 (All)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
 
-                  <Button className="w-full bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white font-bold h-10 shadow-sm">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-800">문제점 설명</Label>
+                    <Textarea placeholder="시안과 다르게 구현된 부분을 적어주세요." className="resize-none h-24 text-sm bg-slate-50/50" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-800">수정 요청사항</Label>
+                    <Textarea placeholder="어떻게 수정해야 하는지 구체적으로 적어주세요." className="resize-none h-24 text-sm bg-slate-50/50" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold text-slate-800">우선순위</Label>
+                      <Select value={priority} onValueChange={setPriority}>
+                        <SelectTrigger className="h-10 text-sm bg-white font-medium">
+                          <div className="flex items-center gap-2">
+                            {priority === "High (크리티컬)" && <span className="w-1 h-1 rounded-full bg-rose-500 shrink-0"></span>}
+                            {priority === "Medium (일반)" && <span className="w-1 h-1 rounded-full bg-amber-500 shrink-0"></span>}
+                            {priority === "Low (마이너)" && <span className="w-1 h-1 rounded-full bg-emerald-500 shrink-0"></span>}
+                            <span className="flex-1 text-left line-clamp-1">{priority || "우선순위 선택"}</span>
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="High (크리티컬)">
+                            <div className="flex items-center gap-2">
+                              <span className="w-1 h-1 rounded-full bg-rose-500 shrink-0"></span>
+                              High (크리티컬)
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Medium (일반)">
+                            <div className="flex items-center gap-2">
+                              <span className="w-1 h-1 rounded-full bg-amber-500 shrink-0"></span>
+                              Medium (일반)
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Low (마이너)">
+                            <div className="flex items-center gap-2">
+                              <span className="w-1 h-1 rounded-full bg-emerald-500 shrink-0"></span>
+                              Low (마이너)
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold text-slate-800">상태</Label>
+                      <Select defaultValue="이슈발생">
+                        <SelectTrigger className="h-10 text-sm bg-white font-medium">
+                          <SelectValue placeholder="상태 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="이슈발생">이슈발생</SelectItem>
+                          <SelectItem value="확인/검토중">확인/검토중</SelectItem>
+                          <SelectItem value="수정완료">수정완료</SelectItem>
+                          <SelectItem value="완료됨">완료됨</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <Button className="w-full bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white font-bold h-12 text-sm shadow-md rounded-lg mt-2">
                     내용 저장하기
                   </Button>
 
                   {/* 댓글 (Comments) 섹션 */}
-                  <div className="mt-8 pt-6 border-t border-slate-200">
+                  <div className="mt-10 pt-6 border-t border-slate-200">
                     <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-4">
                       <MessageSquare className="w-4 h-4 text-slate-500" />
-                      문의 및 코멘트 <span className="text-[#1E3A8A] bg-blue-50 px-1.5 py-0.5 rounded text-xs">{activePin.comments.length}</span>
+                      문의 및 코멘트 <span className="text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded text-xs">{activePin.comments.length}</span>
                     </h3>
                     
-                    <div className="space-y-4 mb-4">
+                    <div className="space-y-4 mb-5">
                       {activePin.comments.length === 0 ? (
-                        <p className="text-xs text-slate-400 text-center py-4 bg-slate-50 rounded-lg border border-dashed">등록된 코멘트가 없습니다.</p>
+                        <p className="text-xs text-slate-400 text-center py-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">등록된 코멘트가 없습니다.</p>
                       ) : (
                         activePin.comments.map((comment) => (
-                          <div key={comment.id} className="bg-slate-50 rounded-lg p-3 text-sm border border-slate-100">
-                            <div className="flex justify-between items-start mb-1.5">
+                          <div key={comment.id} className="bg-slate-50/80 rounded-xl p-4 text-sm border border-slate-100 shadow-sm">
+                            <div className="flex justify-between items-start mb-2">
                               <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-700 text-xs">{comment.author}</span>
-                                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${comment.role === 'Frontend' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'}`}>
+                                <span className="font-bold text-slate-800 text-xs">{comment.author}</span>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                                  comment.role === 'Dev' ? 'bg-blue-100 text-blue-700' : 
+                                  comment.role === 'Design' ? 'bg-purple-100 text-purple-700' : 
+                                  'bg-orange-100 text-orange-700'
+                                }`}>
                                   {comment.role}
                                 </span>
                               </div>
-                              <span className="text-[10px] text-slate-400">{comment.createdAt}</span>
+                              <span className="text-[10px] text-slate-400 font-medium">{comment.createdAt}</span>
                             </div>
                             <p className="text-slate-600 text-xs leading-relaxed">{comment.text}</p>
                           </div>
@@ -379,34 +761,73 @@ export default function QABoardPage() {
                       )}
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex items-center w-full bg-slate-50 border border-slate-200 rounded-lg focus-within:ring-2 focus-within:ring-[#1E3A8A]/30 overflow-visible h-10 px-1 gap-1 relative shadow-sm transition-all">
+                      <div className="relative w-[100px] shrink-0 h-full flex items-center">
+                        <Input 
+                          placeholder="작성자 검색" 
+                          className="border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full text-xs font-bold text-[#1E3A8A] w-full placeholder:font-normal placeholder:text-slate-400" 
+                          value={authorSearch}
+                          onChange={(e) => {
+                            setAuthorSearch(e.target.value);
+                            setIsAuthorDropdownOpen(true);
+                          }}
+                          onFocus={() => setIsAuthorDropdownOpen(true)}
+                          onBlur={() => setTimeout(() => setIsAuthorDropdownOpen(false), 200)}
+                        />
+                        
+                        {isAuthorDropdownOpen && filteredMembers.length > 0 && (
+                          <div className="absolute bottom-full left-0 mb-1 w-[180px] bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden z-50 max-h-[220px] overflow-y-auto animate-in fade-in zoom-in-95">
+                            {filteredMembers.map(m => (
+                              <button
+                                key={m.id}
+                                className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 flex items-center justify-between border-b border-slate-50 last:border-0"
+                                onClick={() => {
+                                  setCurrentMemberId(m.id);
+                                  setAuthorSearch(m.name);
+                                  setIsAuthorDropdownOpen(false);
+                                }}
+                              >
+                                <span className="font-bold text-slate-800">
+                                  {m.name.split(new RegExp(`(${authorSearch})`, 'gi')).map((part, i) => 
+                                    part.toLowerCase() === authorSearch.toLowerCase() ? <span key={i} className="text-red-500">{part}</span> : part
+                                  )}
+                                </span>
+                                <span className="text-[10px] text-slate-400">{m.role}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="w-[1px] h-4 bg-slate-300 shrink-0" />
+                      
                       <Input 
-                        placeholder="이슈에 대해 문의할 내용을 입력하세요." 
-                        className="text-xs h-9 bg-slate-50 border-slate-200"
+                        placeholder="문의 내용 입력" 
+                        className="border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full flex-1 text-xs"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
                       />
-                      <Button size="icon" className="h-9 w-9 bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 shrink-0" onClick={handleAddComment}>
-                        <Send className="w-4 h-4" />
+                      
+                      <Button size="icon" className="h-8 w-8 bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 shrink-0 shadow-sm rounded-md mr-0.5" onClick={handleAddComment}>
+                        <Send className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                   </div>
 
                 </div>
               ) : (
-                <div className="py-20 text-center">
-                  <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <div className="w-2 h-2 bg-slate-300 rounded-full"></div>
+                <div className="py-24 text-center">
+                  <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-200">
+                    <div className="w-2.5 h-2.5 bg-slate-300 rounded-full"></div>
                   </div>
-                  <p className="text-sm font-semibold text-slate-700">선택된 핀이 없습니다</p>
-                  <p className="text-xs text-slate-500 mt-1">좌측 캡처 화면을 클릭해<br/>새 핀을 추가하세요.</p>
+                  <p className="text-base font-bold text-slate-800">선택된 핀이 없습니다</p>
+                  <p className="text-xs text-slate-500 mt-2 leading-relaxed">좌측 테스트 화면을 클릭해<br/>새로운 QA 이슈(핀)를 추가하세요.</p>
                 </div>
               )}
             </div>
-          </ScrollArea>
+          </div>
         </div>
       </div>
-    </div>
   );
 }
