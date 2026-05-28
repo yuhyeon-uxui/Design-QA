@@ -448,10 +448,6 @@ export default function QABoardPage() {
           <Button variant="outline" size="sm" className="gap-2 text-[#1E3A8A] border-[#1E3A8A]/20 hover:bg-[#EEF2FF] h-9">
             <ExternalLink className="w-4 h-4" />
             피그마 프로젝트 열기
-          </Button>
-          <Button size="sm" className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 h-9 font-semibold px-6">
-            QA 완료 보고서
-          </Button>
         </div>
       </header>
 
