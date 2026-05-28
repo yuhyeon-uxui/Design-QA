@@ -133,7 +133,7 @@ export default function QABoardPage() {
         setDoc(doc(db, "project_screens", params.id as string), { screens }, { merge: true });
       } catch (e) {
         console.error("Storage limit exceeded", e);
-        alert("저장에 실패했습니다.");
+        alert("데이터베이스 용량이 초과되었습니다 (단일 프로젝트 1MB 한도). 고화질 이미지가 너무 많습니다. 뒤로가기 후 [새 프로젝트]를 생성해서 이어서 진행해주세요!");
       }
     }
   }, [screens, params.id, isMounted]);
@@ -144,8 +144,8 @@ export default function QABoardPage() {
       const canvas = document.createElement("canvas");
       let width = img.width;
       let height = img.height;
-      const MAX_WIDTH = 1280;
-      const MAX_HEIGHT = 720;
+      const MAX_WIDTH = 1920;
+      const MAX_HEIGHT = 1080;
       
       if (width > height) {
         if (width > MAX_WIDTH) {
@@ -166,7 +166,7 @@ export default function QABoardPage() {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
-        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.4); // 높은 압축률 적용
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.85); // 고화질 적용
         updateActiveDeviceState({ actualImage: compressedDataUrl });
       }
     };
