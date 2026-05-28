@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { db, storage } from "@/lib/firebase";
-import { doc, onSnapshot, setDoc, getDoc } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { db } from "@/lib/firebase";
+import { collection, doc, onSnapshot, setDoc, getDoc, deleteDoc } from "firebase/firestore";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone } from "lucide-react";
 import Link from "next/link";
@@ -96,12 +96,11 @@ export default function QABoardPage() {
     if (!params.id) return;
     
     // Load screen data
-    const unsubscribeScreens = onSnapshot(doc(db, "project_screens", params.id as string), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.screens) {
-          setScreens(data.screens);
-        }
+    const unsubscribeScreens = onSnapshot(collection(db, "project_screens", params.id as string, "screens"), (snapshot) => {
+      if (!snapshot.empty) {
+        const loaded = snapshot.docs.map(d => d.data() as ScreenData);
+        loaded.sort((a, b) => parseInt(a.id.replace('s','')) - parseInt(b.id.replace('s','')));
+        setScreens(loaded);
       } else {
         setScreens(INITIAL_SCREENS);
       }
@@ -128,13 +127,12 @@ export default function QABoardPage() {
   }, [params.id]);
 
   useEffect(() => {
-    if (isMounted && params.id && screens !== INITIAL_SCREENS) {
-      try {
-        setDoc(doc(db, "project_screens", params.id as string), { screens }, { merge: true });
-      } catch (e) {
-        console.error("Storage limit exceeded", e);
-        alert("데이터베이스 용량이 초과되었습니다 (단일 프로젝트 1MB 한도). 고화질 이미지가 너무 많습니다. 뒤로가기 후 [새 프로젝트]를 생성해서 이어서 진행해주세요!");
-      }
+    if (isMounted && params.id && screens !== INITIAL_SCREENS && screens.length > 0) {
+      screens.forEach(screen => {
+        setDoc(doc(db, "project_screens", params.id as string, "screens", screen.id), screen, { merge: true }).catch(e => {
+          console.error("Storage limit exceeded", e);
+        });
+      });
     }
   }, [screens, params.id, isMounted]);
 
@@ -234,6 +232,9 @@ export default function QABoardPage() {
   const handleSavePinDetails = () => {
     if (!activePinId) return;
     setPins(pins.map(p => p.id === activePinId ? { ...p, ...localForm } : p));
+    toast.success("내용 저장완료!", {
+      description: "이슈 상세 내용이 성공적으로 저장되었습니다."
+    });
   };
 
   const [newComment, setNewComment] = useState("");
@@ -517,6 +518,7 @@ export default function QABoardPage() {
                       onClick={(e) => {
                         e.stopPropagation();
                         setScreens(screens.filter(s => s.id !== screen.id));
+                        deleteDoc(doc(db, "project_screens", params.id as string, "screens", screen.id));
                         if (activeScreenId === screen.id) {
                           setActiveScreenId(screens.find(s => s.id !== screen.id)?.id || "");
                         }
