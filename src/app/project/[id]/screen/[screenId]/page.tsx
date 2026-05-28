@@ -75,7 +75,9 @@ const INITIAL_SCREENS: ScreenData[] = [{
 
 export default function QABoardPage() {
   const params = useParams();
-  const isAppProject = params.id === "p2";
+  const [projectTitle, setProjectTitle] = useState("");
+  const [projectPlatform, setProjectPlatform] = useState("");
+  const isAppProject = projectPlatform ? projectPlatform.includes("App") : params.id === "p2";
   const [screens, setScreens] = useState(INITIAL_SCREENS);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -86,6 +88,26 @@ export default function QABoardPage() {
     if (saved) {
       try {
         setScreens(JSON.parse(saved));
+      } catch (e) {}
+    }
+
+    const savedProjects = localStorage.getItem("design_qa_projects");
+    if (savedProjects) {
+      try {
+        const projects = JSON.parse(savedProjects);
+        const currentProject = projects.find((p: any) => p.id === params.id);
+        if (currentProject) {
+          setProjectTitle(currentProject.name);
+          setProjectPlatform(currentProject.platform);
+        } else {
+          if (params.id === "p1") {
+            setProjectTitle("인바운드 웹사이트 디자인 QA 1차");
+            setProjectPlatform("Web (반응형)");
+          } else if (params.id === "p2") {
+            setProjectTitle("동호회 앱 배포 전 최종 QA");
+            setProjectPlatform("App (iOS/Android)");
+          }
+        }
       } catch (e) {}
     }
   }, [params.id]);
@@ -294,7 +316,7 @@ export default function QABoardPage() {
             </div>
             <div>
               <h1 className="font-bold text-slate-800 text-lg leading-tight flex items-center gap-3">
-                {isAppProject ? "동호회 앱 배포 전 최종 QA" : "인바운드 웹사이트 디자인 QA 1차"}
+                {projectTitle || (isAppProject ? "동호회 앱 배포 전 최종 QA" : "인바운드 웹사이트 디자인 QA 1차")}
                 {!isAppProject && (
                   <div className="flex items-center bg-slate-100 rounded-lg p-0.5 ml-2">
                     <button
@@ -317,7 +339,7 @@ export default function QABoardPage() {
                 )}
               </h1>
               <div className="flex items-center gap-3 mt-0.5">
-                <p className="text-xs font-medium text-slate-500">{isAppProject ? "App (iOS/Android)" : "Web (반응형)"} · 진행중</p>
+                <p className="text-xs font-medium text-slate-500">{projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)")} · 진행중</p>
                 <div className="flex items-center gap-2 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
                   <div className="w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${progressRate}%` }}></div>
