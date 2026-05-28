@@ -25,6 +25,13 @@ interface Pin {
   width?: number;
   height?: number;
   comments: Comment[];
+  device?: string;
+  issueType?: string;
+  language?: string;
+  description?: string;
+  request?: string;
+  priority?: string;
+  status?: string;
 }
 const PRESET_MEMBERS = [
   { id: "d1", name: "안유현 대리", role: "Design" },
@@ -157,7 +164,30 @@ export default function QABoardPage() {
   const activePinId = activeDeviceState.activePinId;
   const setActivePinId = (id: number | null) => updateActiveDeviceState({ activePinId: id });
 
-  const [priority, setPriority] = useState("High (크리티컬)");
+  const activePin = pins.find(p => p.id === activePinId);
+  const [localForm, setLocalForm] = useState<Partial<Pin>>({});
+
+  useEffect(() => {
+    if (activePin) {
+      setLocalForm({
+        device: activePin.device || "PC/Mobile 공통",
+        issueType: activePin.issueType || "레이아웃/간격",
+        language: activePin.language || "한국어 (KR)",
+        description: activePin.description || "",
+        request: activePin.request || "",
+        priority: activePin.priority || "High (크리티컬)",
+        status: activePin.status || "이슈발생"
+      });
+    } else {
+      setLocalForm({});
+    }
+  }, [activePinId]);
+
+  const handleSavePinDetails = () => {
+    if (!activePinId) return;
+    setPins(pins.map(p => p.id === activePinId ? { ...p, ...localForm } : p));
+  };
+
   const [newComment, setNewComment] = useState("");
   const [isLoadingFigma, setIsLoadingFigma] = useState(false);
   const [figmaError, setFigmaError] = useState("");
@@ -182,8 +212,7 @@ export default function QABoardPage() {
     return () => window.removeEventListener("paste", handlePaste);
   }, [device]);
 
-  const activePin = pins.find(p => p.id === activePinId);
-
+  // removed activePin find here since it was moved up
   const totalScreens = screens.length;
   const completedScreens = screens.filter(s => s.issueCount === 0).length;
   const progressRate = totalScreens > 0 ? Math.round((completedScreens / totalScreens) * 100) : 0;
@@ -660,7 +689,7 @@ export default function QABoardPage() {
                   {!isAppProject && (
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">디바이스</Label>
-                      <Select defaultValue="PC/Mobile 공통">
+                      <Select value={localForm.device || "PC/Mobile 공통"} onValueChange={(val) => val && setLocalForm({...localForm, device: val})}>
                         <SelectTrigger className="h-10 text-sm bg-white font-medium border-blue-200 focus:ring-blue-500">
                           <SelectValue placeholder="발생 기기 선택" />
                         </SelectTrigger>
@@ -676,7 +705,7 @@ export default function QABoardPage() {
                   <div className="grid grid-cols-2 gap-5">
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">이슈 유형</Label>
-                      <Select defaultValue="레이아웃/간격">
+                      <Select value={localForm.issueType || "레이아웃/간격"} onValueChange={(val) => val && setLocalForm({...localForm, issueType: val})}>
                         <SelectTrigger className="h-10 text-sm bg-white font-medium">
                           <SelectValue placeholder="유형 선택" />
                         </SelectTrigger>
@@ -691,7 +720,7 @@ export default function QABoardPage() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">적용 언어(다국어)</Label>
-                      <Select defaultValue="한국어 (KR)">
+                      <Select value={localForm.language || "한국어 (KR)"} onValueChange={(val) => val && setLocalForm({...localForm, language: val})}>
                         <SelectTrigger className="h-10 text-sm bg-white font-medium">
                           <SelectValue placeholder="언어 선택" />
                         </SelectTrigger>
@@ -708,24 +737,34 @@ export default function QABoardPage() {
 
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-800">문제점 설명</Label>
-                    <Textarea placeholder="시안과 다르게 구현된 부분을 적어주세요." className="resize-none h-24 text-sm bg-slate-50/50" />
+                    <Textarea 
+                      placeholder="시안과 다르게 구현된 부분을 적어주세요." 
+                      className="resize-none h-24 text-sm bg-slate-50/50" 
+                      value={localForm.description || ""}
+                      onChange={(e) => setLocalForm({...localForm, description: e.target.value})}
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-800">수정 요청사항</Label>
-                    <Textarea placeholder="어떻게 수정해야 하는지 구체적으로 적어주세요." className="resize-none h-24 text-sm bg-slate-50/50" />
+                    <Textarea 
+                      placeholder="어떻게 수정해야 하는지 구체적으로 적어주세요." 
+                      className="resize-none h-24 text-sm bg-slate-50/50" 
+                      value={localForm.request || ""}
+                      onChange={(e) => setLocalForm({...localForm, request: e.target.value})}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-5">
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">우선순위</Label>
-                      <Select value={priority} onValueChange={(val) => val && setPriority(val)}>
+                      <Select value={localForm.priority || "High (크리티컬)"} onValueChange={(val) => val && setLocalForm({...localForm, priority: val})}>
                         <SelectTrigger className="h-10 text-sm bg-white font-medium">
                           <div className="flex items-center gap-2">
-                            {priority === "High (크리티컬)" && <span className="w-1 h-1 rounded-full bg-rose-500 shrink-0"></span>}
-                            {priority === "Medium (일반)" && <span className="w-1 h-1 rounded-full bg-amber-500 shrink-0"></span>}
-                            {priority === "Low (마이너)" && <span className="w-1 h-1 rounded-full bg-emerald-500 shrink-0"></span>}
-                            <span className="flex-1 text-left line-clamp-1">{priority || "우선순위 선택"}</span>
+                            {localForm.priority === "High (크리티컬)" && <span className="w-1 h-1 rounded-full bg-rose-500 shrink-0"></span>}
+                            {localForm.priority === "Medium (일반)" && <span className="w-1 h-1 rounded-full bg-amber-500 shrink-0"></span>}
+                            {localForm.priority === "Low (마이너)" && <span className="w-1 h-1 rounded-full bg-emerald-500 shrink-0"></span>}
+                            <span className="flex-1 text-left line-clamp-1">{localForm.priority || "우선순위 선택"}</span>
                           </div>
                         </SelectTrigger>
                         <SelectContent>
@@ -752,7 +791,7 @@ export default function QABoardPage() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">상태</Label>
-                      <Select defaultValue="이슈발생">
+                      <Select value={localForm.status || "이슈발생"} onValueChange={(val) => val && setLocalForm({...localForm, status: val})}>
                         <SelectTrigger className="h-10 text-sm bg-white font-medium">
                           <SelectValue placeholder="상태 선택" />
                         </SelectTrigger>
@@ -766,7 +805,10 @@ export default function QABoardPage() {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white font-bold h-12 text-sm shadow-md rounded-lg mt-2">
+                  <Button 
+                    className="w-full bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white font-bold h-12 text-sm shadow-md rounded-lg mt-2 transition-all active:scale-[0.98]"
+                    onClick={handleSavePinDetails}
+                  >
                     내용 저장하기
                   </Button>
 
