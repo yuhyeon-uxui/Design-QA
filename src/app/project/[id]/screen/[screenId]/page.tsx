@@ -202,15 +202,20 @@ export default function QABoardPage() {
         if (item.type.indexOf("image") !== -1) {
           const blob = item.getAsFile();
           if (blob) {
-            const url = URL.createObjectURL(blob);
-            updateActiveDeviceState({ actualImage: url });
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              if (event.target?.result) {
+                updateActiveDeviceState({ actualImage: event.target.result as string });
+              }
+            };
+            reader.readAsDataURL(blob);
           }
         }
       }
     };
     window.addEventListener("paste", handlePaste);
     return () => window.removeEventListener("paste", handlePaste);
-  }, [device]);
+  }, [device, activeScreenId]);
 
   // removed activePin find here since it was moved up
   const totalScreens = screens.length;
@@ -325,8 +330,13 @@ export default function QABoardPage() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setActualImage(url);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setActualImage(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
