@@ -144,8 +144,8 @@ export default function QABoardPage() {
       const canvas = document.createElement("canvas");
       let width = img.width;
       let height = img.height;
-      const MAX_WIDTH = 1920;
-      const MAX_HEIGHT = 1080;
+      const MAX_WIDTH = 1280;
+      const MAX_HEIGHT = 720;
       
       if (width > height) {
         if (width > MAX_WIDTH) {
@@ -166,18 +166,8 @@ export default function QABoardPage() {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
-        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.6);
-        
-        // Firebase Storage 업로드
-        const storageRef = ref(storage, `projects/${params.id}/screens/${activeScreenId}/${device}_${Date.now()}.jpg`);
-        uploadString(storageRef, compressedDataUrl, 'data_url').then((snapshot) => {
-          getDownloadURL(snapshot.ref).then((downloadURL) => {
-            updateActiveDeviceState({ actualImage: downloadURL });
-          });
-        }).catch((error) => {
-          console.error("Upload failed", error);
-          alert("이미지 업로드에 실패했습니다.");
-        });
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.4); // 높은 압축률 적용
+        updateActiveDeviceState({ actualImage: compressedDataUrl });
       }
     };
     img.src = dataUrl;
