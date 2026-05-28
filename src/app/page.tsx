@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BarChart3, CheckCircle2, Layout, LayoutGrid, ListTodo, Plus } from "lucide-react";
+import { ArrowRight, BarChart3, CheckCircle2, Layout, LayoutGrid, ListTodo, Plus, Calendar } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -318,6 +318,8 @@ export default function Dashboard() {
                         <span className={`px-2 py-0.5 rounded text-xs font-bold ${getPlatformColor(project.platform)}`}>{project.platform}</span>
                         <span className="text-slate-300">|</span>
                         <span className="text-slate-500 font-medium">화면 {project.screensCount}장</span>
+                        <span className="text-slate-300">|</span>
+                        <span className="text-slate-500 font-medium flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {project.lastUpdated}</span>
                       </CardDescription>
                     </div>
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
