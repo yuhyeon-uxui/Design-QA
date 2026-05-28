@@ -128,11 +128,24 @@ export default function QABoardPage() {
 
   useEffect(() => {
     if (isMounted && params.id && screens !== INITIAL_SCREENS && screens.length > 0) {
+      let totalIssues = 0;
+      let totalCompleted = 0;
+
       screens.forEach(screen => {
         setDoc(doc(db, "project_screens", params.id as string, "screens", screen.id), screen, { merge: true }).catch(e => {
           console.error("Storage limit exceeded", e);
         });
+
+        const allPins = [...screen.PC.pins, ...screen.Mobile.pins];
+        totalIssues += allPins.length;
+        totalCompleted += allPins.filter(p => p.status === "완료됨").length;
       });
+
+      setDoc(doc(db, "projects", params.id as string), {
+        screensCount: screens.length,
+        issuesCount: totalIssues,
+        completedCount: totalCompleted,
+      }, { merge: true }).catch(console.error);
     }
   }, [screens, params.id, isMounted]);
 
@@ -184,11 +197,22 @@ export default function QABoardPage() {
   const activeDeviceState = activeScreen[device];
 
   const updateActiveDeviceState = (updates: Partial<ScreenDeviceState>) => {
-    setScreens(prev => prev.map(s => 
-      s.id === activeScreenId 
-        ? { ...s, [device]: { ...s[device], ...updates } } 
-        : s
-    ));
+    setScreens(prev => prev.map(s => {
+      if (s.id === activeScreenId) {
+        const updatedDeviceState = { ...s[device], ...updates };
+        const newScreen = { ...s, [device]: updatedDeviceState };
+        
+        const allPins = [...newScreen.PC.pins, ...newScreen.Mobile.pins];
+        if (allPins.length > 0) {
+          newScreen.issueCount = allPins.filter(p => p.status !== "완료됨").length;
+        } else {
+          newScreen.issueCount = -1;
+        }
+        
+        return newScreen;
+      }
+      return s;
+    }));
   };
 
   const actualImage = activeDeviceState.actualImage;
