@@ -552,22 +552,27 @@ export default function QABoardPage() {
                   <span className="text-sm font-bold text-slate-800">테스트 화면 (Actual)</span>
                 </div>
                 {actualImage && (
-                  <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">클릭하여 핀 추가</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">클릭하여 핀 추가</span>
+                    <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => fileInputRef.current?.click()}>
+                      이미지 다시 올리기
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
 
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+            />
             <div className={`w-full bg-white border border-slate-200 shadow-md rounded-2xl relative overflow-hidden group ring-1 ring-black/5 ${maxWClass} ${aspectClass}`}>
               {!actualImage ? (
                 // 파일 업로드 UI
                 <div className="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center hover:bg-slate-100 transition-colors">
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    className="hidden" 
-                    ref={fileInputRef} 
-                    onChange={handleFileUpload} 
-                  />
                   <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4 shadow-sm border border-blue-100 cursor-pointer hover:scale-105 transition-transform" onClick={() => fileInputRef.current?.click()}>
                     <UploadCloud className="w-8 h-8" />
                   </div>
