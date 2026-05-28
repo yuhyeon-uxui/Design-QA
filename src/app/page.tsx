@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, getDocs, writeBatch } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart3, CheckCircle2, Layout, LayoutGrid, ListTodo, Plus, Calendar, Trash2 } from "lucide-react";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CustomAlert } from "@/components/ui/custom-alert";
 
 const INITIAL_PROJECTS: Array<{
   id: string;
@@ -46,6 +47,7 @@ export default function Dashboard() {
   const [newProjectPlatform, setNewProjectPlatform] = useState("");
   const [newProjectDueDate, setNewProjectDueDate] = useState("");
   const [filter, setFilter] = useState<"all" | "ongoing" | "unresolved" | "resolved">("all");
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
   const filteredProjects = projects.filter(p => {
     if (filter === "all") return true;
@@ -82,17 +84,30 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteProject = async (e: React.MouseEvent, projectId: string) => {
+  const handleDeleteProject = (e: React.MouseEvent, projectId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!window.confirm("정말 이 프로젝트를 삭제하시겠습니까? 모든 데이터가 삭제되며 복구할 수 없습니다.")) return;
-    
+    setProjectToDelete(projectId);
+  };
+
+  const confirmDeleteProject = async () => {
+    if (!projectToDelete) return;
     try {
-      await deleteDoc(doc(db, "projects", projectId));
-      await deleteDoc(doc(db, "project_screens", projectId));
+      await deleteDoc(doc(db, "projects", projectToDelete));
+      // Delete all screens in the project_screens collection
+      const screensRef = collection(db, "project_screens", projectToDelete, "screens");
+      const screensSnapshot = await getDocs(screensRef);
+      const batch = writeBatch(db);
+      screensSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      
+      await deleteDoc(doc(db, "project_screens", projectToDelete));
     } catch (e) {
       console.error("Error deleting project:", e);
-      alert("프로젝트 삭제에 실패했습니다.");
+    } finally {
+      setProjectToDelete(null);
     }
   };
 
@@ -341,6 +356,7 @@ export default function Dashboard() {
                         <span className="text-slate-500 font-medium flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {project.lastUpdated}</span>
                       </CardDescription>
                     </div>
+                    <div className="flex items-center">
                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                         project.status === '진행중' ? 'bg-blue-100 text-blue-700' : 
                         project.status === 'QA 완료' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
@@ -383,6 +399,16 @@ export default function Dashboard() {
           )}
         </div>
       </main>
+      {/* 프로젝트 삭제 확인 팝업 */}
+      <CustomAlert 
+        isOpen={!!projectToDelete}
+        title="프로젝트 삭제"
+        description="이 프로젝트를 삭제하시겠습니까?\n모든 데이터가 삭제되며 복구할 수 없습니다."
+        onCancel={() => setProjectToDelete(null)}
+        onConfirm={confirmDeleteProject}
+        variant="2-button"
+      />
+
     </div>
   );
 }

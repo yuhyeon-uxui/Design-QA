@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, doc, onSnapshot, setDoc, getDoc, deleteDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, setDoc, getDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { CustomAlert } from "@/components/ui/custom-alert";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone } from "lucide-react";
+import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -171,6 +172,9 @@ export default function QABoardPage() {
   const [currentMemberId, setCurrentMemberId] = useState("");
   const [authorSearch, setAuthorSearch] = useState("");
   const [isAuthorDropdownOpen, setIsAuthorDropdownOpen] = useState(false);
+  const [isPinDeleteAlertOpen, setIsPinDeleteAlertOpen] = useState(false);
+  const [isProjectDeleteAlertOpen, setIsProjectDeleteAlertOpen] = useState(false);
+  const [pinToDelete, setPinToDelete] = useState<number | null>(null);
   const filteredMembers = PRESET_MEMBERS.filter(m => m.name.includes(authorSearch) || m.role.toLowerCase().includes(authorSearch.toLowerCase()));
   type Device = "PC" | "Mobile";
   const [device, setDevice] = useState<Device>("PC");
@@ -356,8 +360,37 @@ export default function QABoardPage() {
 
   const handleDeletePin = () => {
     if (!activePinId) return;
-    setPins(pins.filter(p => p.id !== activePinId));
+    setPinToDelete(activePinId);
+    setIsPinDeleteAlertOpen(true);
+  };
+
+  const confirmDeletePin = () => {
+    if (pinToDelete === null) return;
+    setPins(pins.filter(p => p.id !== pinToDelete));
     setActivePinId(null);
+    setIsPinDeleteAlertOpen(false);
+    setPinToDelete(null);
+  };
+
+  const confirmDeleteProject = async () => {
+    if (!params.id) return;
+    try {
+      const projectId = params.id as string;
+      await deleteDoc(doc(db, "projects", projectId));
+      
+      const screensRef = collection(db, "project_screens", projectId, "screens");
+      const screensSnapshot = await getDocs(screensRef);
+      const batch = writeBatch(db);
+      screensSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      
+      await deleteDoc(doc(db, "project_screens", projectId));
+      router.push("/");
+    } catch (e) {
+      console.error("Error deleting project:", e);
+    }
   };
 
   const handleAddComment = () => {
@@ -477,6 +510,15 @@ export default function QABoardPage() {
           <Button variant="outline" size="sm" className="gap-2 text-[#1E3A8A] border-[#1E3A8A]/20 hover:bg-[#EEF2FF] h-9">
             <ExternalLink className="w-4 h-4" />
             피그마 프로젝트 열기
+          </Button>
+          <Button 
+            size="sm" 
+            className="gap-2 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 border border-rose-200 h-9 font-bold transition-all"
+            onClick={() => setIsProjectDeleteAlertOpen(true)}
+          >
+            <Trash2 className="w-4 h-4" />
+            프로젝트 삭제
+          </Button>
         </div>
       </header>
 
@@ -1047,6 +1089,27 @@ export default function QABoardPage() {
             </div>
           </div>
         </div>
-      </div>
+      
+      <CustomAlert 
+        isOpen={isPinDeleteAlertOpen}
+        title="핀 삭제"
+        description="이 핀을 정말 삭제하시겠습니까?\n작성된 코멘트와 함께 모든 데이터가 삭제됩니다."
+        onCancel={() => {
+          setIsPinDeleteAlertOpen(false);
+          setPinToDelete(null);
+        }}
+        onConfirm={confirmDeletePin}
+        variant="2-button"
+      />
+
+      <CustomAlert 
+        isOpen={isProjectDeleteAlertOpen}
+        title="프로젝트 삭제"
+        description="이 프로젝트를 삭제하시겠습니까?\n모든 데이터가 삭제되며 복구할 수 없습니다."
+        onCancel={() => setIsProjectDeleteAlertOpen(false)}
+        onConfirm={confirmDeleteProject}
+        variant="2-button"
+      />
+    </div>
   );
 }
