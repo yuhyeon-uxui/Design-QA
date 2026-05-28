@@ -21,6 +21,7 @@ const INITIAL_PROJECTS: Array<{
   issuesCount: number;
   completedCount: number;
   screensCount: number;
+  completedScreensCount?: number;
   lastUpdated: string;
 }> = [];
 
@@ -66,6 +67,7 @@ export default function Dashboard() {
       issuesCount: 0,
       completedCount: 0,
       screensCount: 1,
+      completedScreensCount: 0,
       lastUpdated: newProjectDueDate || new Date().toISOString().split('T')[0],
       createdAt: Date.now()
     };
@@ -320,7 +322,10 @@ export default function Dashboard() {
             </div>
           ) : (
             filteredProjects.map((project) => {
-            const progress = Math.round((project.completedCount / project.issuesCount) * 100) || 0;
+            const totalTasks = project.screensCount + project.issuesCount;
+            const completedTasks = (project.completedScreensCount || 0) + project.completedCount;
+            const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+            
             const getPlatformColor = (platform: string) => {
               if (platform.includes("Web")) return "bg-blue-50 text-blue-700 border border-blue-100";
               if (platform.includes("App")) return "bg-emerald-50 text-emerald-700 border border-emerald-100";

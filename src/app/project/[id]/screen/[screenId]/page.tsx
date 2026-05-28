@@ -106,6 +106,7 @@ export default function ScreenQA() {
   const isAppProject = projectPlatform ? projectPlatform.includes("App") : params.id === "p2";
   const [screens, setScreens] = useState(INITIAL_SCREENS);
   const [isMounted, setIsMounted] = useState(false);
+  const [isExitAlertOpen, setIsExitAlertOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -118,10 +119,14 @@ export default function ScreenQA() {
         loaded.sort((a, b) => parseInt(a.id.replace('s','')) - parseInt(b.id.replace('s','')));
         setScreens(loaded);
         
+        const completedScreensCount = loaded.filter(s => s.issueCount === 0).length;
         // Sync screensCount if out of sync
         getDoc(doc(db, "projects", params.id as string)).then(pDoc => {
-          if (pDoc.exists() && pDoc.data().screensCount !== loaded.length) {
-            setDoc(doc(db, "projects", params.id as string), { screensCount: loaded.length }, { merge: true });
+          if (pDoc.exists() && (pDoc.data().screensCount !== loaded.length || pDoc.data().completedScreensCount !== completedScreensCount)) {
+            setDoc(doc(db, "projects", params.id as string), { 
+              screensCount: loaded.length,
+              completedScreensCount: completedScreensCount
+            }, { merge: true });
           }
         });
       } else {
@@ -230,13 +235,16 @@ export default function ScreenQA() {
       if (params.id) {
         let totalIssues = 0;
         let totalCompleted = 0;
+        let completedScreensCount = 0;
         nextScreens.forEach(screen => {
+          if (screen.issueCount === 0) completedScreensCount++;
           const allPins = [...(screen.PC?.pins || []), ...(screen.Mobile?.pins || [])];
           totalIssues += allPins.length;
           totalCompleted += allPins.filter(p => p.status === "완료됨").length;
         });
         setDoc(doc(db, "projects", params.id as string), {
           screensCount: nextScreens.length,
+          completedScreensCount: completedScreensCount,
           issuesCount: totalIssues,
           completedCount: totalCompleted,
         }, { merge: true }).catch(console.error);
@@ -327,10 +335,14 @@ export default function ScreenQA() {
   }, [device, activeScreenId]);
 
   // removed activePin find here since it was moved up
+  const totalScreens = screens.length;
+  const completedScreens = screens.filter(s => s.issueCount === 0).length;
   const allPins = screens.flatMap(s => [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])]);
   const totalIssues = allPins.length;
   const completedIssues = allPins.filter(p => p.status === "완료됨").length;
-  const progressRate = totalIssues > 0 ? Math.round((completedIssues / totalIssues) * 100) : 0;
+  const totalTasks = totalScreens + totalIssues;
+  const completedTasks = completedScreens + completedIssues;
+  const progressRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawStart, setDrawStart] = useState<{x: number, y: number} | null>(null);
@@ -483,12 +495,20 @@ export default function ScreenQA() {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#F4F7FB]">
       <header className="h-16 border-b bg-white px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
-        <div className="flex items-center gap-6">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="hover:bg-slate-100 w-10 h-10 rounded-full">
-              <ChevronLeft className="w-6 h-6 text-slate-700" />
-            </Button>
-          </Link>
+        <div className="flex items-center">
+          <button 
+            onClick={() => {
+              const hasUnreviewed = screens.some(s => s.issueCount === -1);
+              if (hasUnreviewed) {
+                setIsExitAlertOpen(true);
+              } else {
+                router.push("/");
+              }
+            }}
+            className="flex items-center justify-center hover:bg-slate-100 w-10 h-10 rounded-full transition-colors mr-1"
+          >
+            <ChevronLeft className="w-6 h-6 text-slate-700" />
+          </button>
           <div className="flex items-center gap-4">
             <div className="w-8 h-8 bg-[#1E3A8A] text-white rounded-md text-xs font-bold flex items-center justify-center">
               QA
@@ -566,13 +586,16 @@ export default function ScreenQA() {
                   
                   let totalIssues = 0;
                   let totalCompleted = 0;
+                  let completedScreensCount = 0;
                   nextScreens.forEach(s => {
+                    if (s.issueCount === 0) completedScreensCount++;
                     const allPins = [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
                     totalIssues += allPins.length;
                     totalCompleted += allPins.filter(p => p.status === "완료됨").length;
                   });
                   setDoc(doc(db, "projects", params.id as string), {
                     screensCount: nextScreens.length,
+                    completedScreensCount: completedScreensCount,
                     issuesCount: totalIssues,
                     completedCount: totalCompleted,
                   }, { merge: true }).catch(console.error);
@@ -654,13 +677,16 @@ export default function ScreenQA() {
                             
                             let totalIssues = 0;
                             let totalCompleted = 0;
+                            let completedScreensCount = 0;
                             nextScreens.forEach(s => {
+                              if (s.issueCount === 0) completedScreensCount++;
                               const allPins = [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
                               totalIssues += allPins.length;
                               totalCompleted += allPins.filter(p => p.status === "완료됨").length;
                             });
                             setDoc(doc(db, "projects", params.id as string), {
                               screensCount: nextScreens.length,
+                              completedScreensCount: completedScreensCount,
                               issuesCount: totalIssues,
                               completedCount: totalCompleted,
                             }, { merge: true }).catch(console.error);
@@ -1146,6 +1172,17 @@ export default function ScreenQA() {
         description={<>이 프로젝트를 삭제하시겠습니까?<br/>모든 데이터가 삭제되며 복구할 수 없습니다.</>}
         onCancel={() => setIsProjectDeleteAlertOpen(false)}
         onConfirm={confirmDeleteProject}
+        variant="2-button"
+      />
+
+      <CustomAlert 
+        isOpen={isExitAlertOpen}
+        title="미작성 화면 알림"
+        description={<>아직 확인 대기 중인 화면이 있습니다.<br/>그래도 대시보드로 나가시겠습니까?</>}
+        confirmText="나가기"
+        cancelText="머무르기"
+        onCancel={() => setIsExitAlertOpen(false)}
+        onConfirm={() => router.push("/")}
         variant="2-button"
       />
     </div>
