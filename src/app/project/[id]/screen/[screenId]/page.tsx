@@ -84,8 +84,9 @@ const INITIAL_SCREENS: ScreenData[] = [{
   Mobile: { ...emptyDeviceState }
 }];
 
-export default function QABoardPage() {
+export default function ScreenQA() {
   const params = useParams();
+  const router = useRouter();
   const [projectTitle, setProjectTitle] = useState("");
   const [projectPlatform, setProjectPlatform] = useState("");
   const isAppProject = projectPlatform ? projectPlatform.includes("App") : params.id === "p2";
