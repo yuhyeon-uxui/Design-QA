@@ -127,27 +127,10 @@ export default function QABoardPage() {
   }, [params.id]);
 
   useEffect(() => {
-    if (isMounted && params.id && screens !== INITIAL_SCREENS && screens.length > 0) {
-      let totalIssues = 0;
-      let totalCompleted = 0;
-
-      screens.forEach(screen => {
-        setDoc(doc(db, "project_screens", params.id as string, "screens", screen.id), screen, { merge: true }).catch(e => {
-          console.error("Storage limit exceeded", e);
-        });
-
-        const allPins = [...screen.PC.pins, ...screen.Mobile.pins];
-        totalIssues += allPins.length;
-        totalCompleted += allPins.filter(p => p.status === "완료됨").length;
-      });
-
-      setDoc(doc(db, "projects", params.id as string), {
-        screensCount: screens.length,
-        issuesCount: totalIssues,
-        completedCount: totalCompleted,
-      }, { merge: true }).catch(console.error);
+    if (isMounted && params.id) {
+      // Just fetch project details if needed, onSnapshot handles screen loading
     }
-  }, [screens, params.id, isMounted]);
+  }, [params.id, isMounted]);
 
   const compressAndSetImage = (dataUrl: string) => {
     const img = new window.Image();
@@ -197,22 +180,44 @@ export default function QABoardPage() {
   const activeDeviceState = activeScreen[device];
 
   const updateActiveDeviceState = (updates: Partial<ScreenDeviceState>) => {
-    setScreens(prev => prev.map(s => {
-      if (s.id === activeScreenId) {
-        const updatedDeviceState = { ...s[device], ...updates };
-        const newScreen = { ...s, [device]: updatedDeviceState };
-        
-        const allPins = [...newScreen.PC.pins, ...newScreen.Mobile.pins];
-        if (allPins.length > 0) {
-          newScreen.issueCount = allPins.filter(p => p.status !== "완료됨").length;
-        } else {
-          newScreen.issueCount = -1;
+    setScreens(prev => {
+      const nextScreens = prev.map(s => {
+        if (s.id === activeScreenId) {
+          const updatedDeviceState = { ...s[device], ...updates };
+          const newScreen = { ...s, [device]: updatedDeviceState };
+          
+          const allPins = [...(newScreen.PC?.pins || []), ...(newScreen.Mobile?.pins || [])];
+          if (allPins.length > 0) {
+            newScreen.issueCount = allPins.filter(p => p.status !== "완료됨").length;
+          } else {
+            newScreen.issueCount = -1;
+          }
+          
+          if (params.id) {
+            setDoc(doc(db, "project_screens", params.id as string, "screens", newScreen.id), newScreen, { merge: true }).catch(console.error);
+          }
+          return newScreen;
         }
-        
-        return newScreen;
+        return s;
+      });
+
+      if (params.id) {
+        let totalIssues = 0;
+        let totalCompleted = 0;
+        nextScreens.forEach(screen => {
+          const allPins = [...(screen.PC?.pins || []), ...(screen.Mobile?.pins || [])];
+          totalIssues += allPins.length;
+          totalCompleted += allPins.filter(p => p.status === "완료됨").length;
+        });
+        setDoc(doc(db, "projects", params.id as string), {
+          screensCount: nextScreens.length,
+          issuesCount: totalIssues,
+          completedCount: totalCompleted,
+        }, { merge: true }).catch(console.error);
       }
-      return s;
-    }));
+      
+      return nextScreens;
+    });
   };
 
   const actualImage = activeDeviceState.actualImage;
@@ -257,12 +262,12 @@ export default function QABoardPage() {
     if (!activePinId) return;
 
     if (!localForm.description?.trim()) {
-      toast.error("문제점 설명을 입력해주세요.");
+      toast.error("문제점 설명을 입력해주세요.", { id: "save-error" });
       return;
     }
 
     setPins(pins.map(p => p.id === activePinId ? { ...p, ...localForm } : p));
-    toast.success("내용 저장완료!");
+    toast.success("내용 저장완료!", { id: "save-success" });
   };
 
   const [newComment, setNewComment] = useState("");
@@ -487,7 +492,28 @@ export default function QABoardPage() {
             </div>
             <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-[#1E3A8A] hover:bg-slate-200" onClick={() => {
               const newId = `s${Date.now()}`;
-              setScreens([{ id: newId, name: "새로운 화면", issueCount: -1, PC: { ...emptyDeviceState }, Mobile: { ...emptyDeviceState } }, ...screens]);
+              const newScreen = { id: newId, name: "새로운 화면", issueCount: -1, PC: { ...emptyDeviceState }, Mobile: { ...emptyDeviceState } };
+              
+              setScreens(prev => {
+                const nextScreens = [newScreen, ...prev];
+                if (params.id) {
+                  setDoc(doc(db, "project_screens", params.id as string, "screens", newId), newScreen, { merge: true }).catch(console.error);
+                  
+                  let totalIssues = 0;
+                  let totalCompleted = 0;
+                  nextScreens.forEach(s => {
+                    const allPins = [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
+                    totalIssues += allPins.length;
+                    totalCompleted += allPins.filter(p => p.status === "완료됨").length;
+                  });
+                  setDoc(doc(db, "projects", params.id as string), {
+                    screensCount: nextScreens.length,
+                    issuesCount: totalIssues,
+                    completedCount: totalCompleted,
+                  }, { merge: true }).catch(console.error);
+                }
+                return nextScreens;
+              });
               setActiveScreenId(newId);
             }}>
               <span className="text-lg leading-none">+</span>
@@ -541,8 +567,27 @@ export default function QABoardPage() {
                       className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setScreens(screens.filter(s => s.id !== screen.id));
-                        deleteDoc(doc(db, "project_screens", params.id as string, "screens", screen.id));
+                        setScreens(prev => {
+                          const nextScreens = prev.filter(s => s.id !== screen.id);
+                          if (params.id) {
+                            deleteDoc(doc(db, "project_screens", params.id as string, "screens", screen.id)).catch(console.error);
+                            
+                            let totalIssues = 0;
+                            let totalCompleted = 0;
+                            nextScreens.forEach(s => {
+                              const allPins = [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
+                              totalIssues += allPins.length;
+                              totalCompleted += allPins.filter(p => p.status === "완료됨").length;
+                            });
+                            setDoc(doc(db, "projects", params.id as string), {
+                              screensCount: nextScreens.length,
+                              issuesCount: totalIssues,
+                              completedCount: totalCompleted,
+                            }, { merge: true }).catch(console.error);
+                          }
+                          return nextScreens;
+                        });
+                        
                         if (activeScreenId === screen.id) {
                           setActiveScreenId(screens.find(s => s.id !== screen.id)?.id || "");
                         }
