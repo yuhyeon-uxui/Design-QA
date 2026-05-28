@@ -84,6 +84,20 @@ const INITIAL_SCREENS: ScreenData[] = [{
   Mobile: { ...emptyDeviceState }
 }];
 
+const formatTimeAgo = (dateString: string) => {
+  if (!dateString || !dateString.includes('T')) return dateString;
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInMinutes = Math.floor(diffInMs / 1000 / 60);
+  const diffInHours = Math.floor(diffInMinutes / 60);
+
+  if (diffInMinutes < 1) return "방금 전";
+  if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
+  if (diffInHours < 24) return `${diffInHours}시간 전`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+
 export default function ScreenQA() {
   const params = useParams();
   const router = useRouter();
@@ -412,7 +426,7 @@ export default function ScreenQA() {
             author: currentUser.name,
             role: currentUser.role,
             text: newComment,
-            createdAt: "방금 전"
+            createdAt: new Date().toISOString()
           }]
         };
       }
@@ -1015,7 +1029,7 @@ export default function ScreenQA() {
                                   {comment.role}
                                 </span>
                               </div>
-                              <span className="text-[10px] text-slate-400 font-medium">{comment.createdAt}</span>
+                              <span className="text-[10px] text-slate-400 font-medium">{formatTimeAgo(comment.createdAt)}</span>
                             </div>
                             <p className="text-slate-600 text-xs leading-relaxed">{comment.text}</p>
                           </div>
@@ -1094,7 +1108,7 @@ export default function ScreenQA() {
       <CustomAlert 
         isOpen={isPinDeleteAlertOpen}
         title="핀 삭제"
-        description="이 핀을 정말 삭제하시겠습니까?\n작성된 코멘트와 함께 모든 데이터가 삭제됩니다."
+        description={<>이 핀을 정말 삭제하시겠습니까?<br/>작성된 코멘트와 함께 모든 데이터가 삭제됩니다.</>}
         onCancel={() => {
           setIsPinDeleteAlertOpen(false);
           setPinToDelete(null);
@@ -1106,7 +1120,7 @@ export default function ScreenQA() {
       <CustomAlert 
         isOpen={isProjectDeleteAlertOpen}
         title="프로젝트 삭제"
-        description="이 프로젝트를 삭제하시겠습니까?\n모든 데이터가 삭제되며 복구할 수 없습니다."
+        description={<>이 프로젝트를 삭제하시겠습니까?<br/>모든 데이터가 삭제되며 복구할 수 없습니다.</>}
         onCancel={() => setIsProjectDeleteAlertOpen(false)}
         onConfirm={confirmDeleteProject}
         variant="2-button"

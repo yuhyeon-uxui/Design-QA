@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CustomAlert } from "@/components/ui/custom-alert";
 
 const INITIAL_PROJECTS: Array<{
   id: string;
@@ -47,7 +46,6 @@ export default function Dashboard() {
   const [newProjectPlatform, setNewProjectPlatform] = useState("");
   const [newProjectDueDate, setNewProjectDueDate] = useState("");
   const [filter, setFilter] = useState<"all" | "ongoing" | "unresolved" | "resolved">("all");
-  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
   const filteredProjects = projects.filter(p => {
     if (filter === "all") return true;
@@ -67,47 +65,33 @@ export default function Dashboard() {
       status: "진행중",
       issuesCount: 0,
       completedCount: 0,
-      screensCount: 0,
+      screensCount: 1,
       lastUpdated: newProjectDueDate || new Date().toISOString().split('T')[0],
       createdAt: Date.now()
     };
 
     try {
       await setDoc(doc(db, "projects", newId), newProject);
+      
+      // Initialize with 1 screen
+      const emptyDeviceState = { image: "", issuesCount: -1, pins: [] };
+      const initialScreen = { 
+        id: "s1", 
+        name: "새로운 화면", 
+        status: "확인 대기", 
+        issueCount: -1,
+        PC: { ...emptyDeviceState }, 
+        Mobile: { ...emptyDeviceState } 
+      };
+      await setDoc(doc(db, "project_screens", newId, "screens", "s1"), initialScreen);
+
       setIsModalOpen(false);
       setNewProjectName("");
       setNewProjectPlatform("");
       setNewProjectDueDate("");
     } catch (e) {
-      console.error("Error creating project: ", e);
+      console.error("Error creating project:", e);
       alert("프로젝트 생성 실패");
-    }
-  };
-
-  const handleDeleteProject = (e: React.MouseEvent, projectId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setProjectToDelete(projectId);
-  };
-
-  const confirmDeleteProject = async () => {
-    if (!projectToDelete) return;
-    try {
-      await deleteDoc(doc(db, "projects", projectToDelete));
-      // Delete all screens in the project_screens collection
-      const screensRef = collection(db, "project_screens", projectToDelete, "screens");
-      const screensSnapshot = await getDocs(screensRef);
-      const batch = writeBatch(db);
-      screensSnapshot.docs.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
-      await batch.commit();
-      
-      await deleteDoc(doc(db, "project_screens", projectToDelete));
-    } catch (e) {
-      console.error("Error deleting project:", e);
-    } finally {
-      setProjectToDelete(null);
     }
   };
 
@@ -363,13 +347,6 @@ export default function Dashboard() {
                       }`}>
                         {project.status === '진행중' && project.issuesCount > 0 && project.issuesCount === project.completedCount ? 'QA 완료' : project.status}
                       </span>
-                      <button 
-                        onClick={(e) => handleDeleteProject(e, project.id)}
-                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors ml-2"
-                        title="프로젝트 삭제"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </div>
                   </div>
                 </CardHeader>
@@ -399,15 +376,6 @@ export default function Dashboard() {
           )}
         </div>
       </main>
-      {/* 프로젝트 삭제 확인 팝업 */}
-      <CustomAlert 
-        isOpen={!!projectToDelete}
-        title="프로젝트 삭제"
-        description="이 프로젝트를 삭제하시겠습니까?\n모든 데이터가 삭제되며 복구할 수 없습니다."
-        onCancel={() => setProjectToDelete(null)}
-        onConfirm={confirmDeleteProject}
-        variant="2-button"
-      />
 
     </div>
   );
