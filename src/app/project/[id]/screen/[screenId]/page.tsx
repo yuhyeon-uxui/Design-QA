@@ -121,9 +121,49 @@ export default function QABoardPage() {
 
   useEffect(() => {
     if (isMounted && params.id) {
-      localStorage.setItem(`design_qa_screens_${params.id}`, JSON.stringify(screens));
+      try {
+        localStorage.setItem(`design_qa_screens_${params.id}`, JSON.stringify(screens));
+      } catch (e) {
+        console.error("Storage limit exceeded", e);
+        alert("브라우저 저장 공간이 꽉 차서 저장이 실패했습니다. 이미지가 너무 크거나 핀이 너무 많습니다.");
+      }
     }
   }, [screens, params.id, isMounted]);
+
+  const compressAndSetImage = (dataUrl: string) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+      const MAX_WIDTH = 1920;
+      const MAX_HEIGHT = 1080;
+      
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.6);
+        updateActiveDeviceState({ actualImage: compressedDataUrl });
+      }
+    };
+    img.src = dataUrl;
+  };
 
   const [activeScreenId, setActiveScreenId] = useState("s1");
   const [currentMemberId, setCurrentMemberId] = useState("");
@@ -205,7 +245,7 @@ export default function QABoardPage() {
             const reader = new FileReader();
             reader.onload = (event) => {
               if (event.target?.result) {
-                updateActiveDeviceState({ actualImage: event.target.result as string });
+                compressAndSetImage(event.target.result as string);
               }
             };
             reader.readAsDataURL(blob);
@@ -215,6 +255,7 @@ export default function QABoardPage() {
     };
     window.addEventListener("paste", handlePaste);
     return () => window.removeEventListener("paste", handlePaste);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [device, activeScreenId]);
 
   // removed activePin find here since it was moved up
@@ -333,11 +374,12 @@ export default function QABoardPage() {
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
-          setActualImage(event.target.result as string);
+          compressAndSetImage(event.target.result as string);
         }
       };
       reader.readAsDataURL(file);
     }
+    e.target.value = "";
   };
 
   return (
