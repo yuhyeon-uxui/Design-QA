@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, MouseEvent, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { db, storage } from "@/lib/firebase";
+import { doc, onSnapshot, setDoc, getDoc } from "firebase/firestore";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -91,41 +94,46 @@ export default function QABoardPage() {
   useEffect(() => {
     setIsMounted(true);
     if (!params.id) return;
-    const saved = localStorage.getItem(`design_qa_screens_${params.id}`);
-    if (saved) {
-      try {
-        setScreens(JSON.parse(saved));
-      } catch (e) {}
-    }
-
-    const savedProjects = localStorage.getItem("design_qa_projects");
-    if (savedProjects) {
-      try {
-        const projects = JSON.parse(savedProjects);
-        const currentProject = projects.find((p: any) => p.id === params.id);
-        if (currentProject) {
-          setProjectTitle(currentProject.name);
-          setProjectPlatform(currentProject.platform);
-        } else {
-          if (params.id === "p1") {
-            setProjectTitle("인바운드 웹사이트 디자인 QA 1차");
-            setProjectPlatform("Web (반응형)");
-          } else if (params.id === "p2") {
-            setProjectTitle("동호회 앱 배포 전 최종 QA");
-            setProjectPlatform("App (iOS/Android)");
-          }
+    
+    // Load screen data
+    const unsubscribeScreens = onSnapshot(doc(db, "project_screens", params.id as string), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.screens) {
+          setScreens(data.screens);
         }
-      } catch (e) {}
-    }
+      } else {
+        setScreens(INITIAL_SCREENS);
+      }
+    });
+
+    // Load project details
+    getDoc(doc(db, "projects", params.id as string)).then((docSnap) => {
+      if (docSnap.exists()) {
+        const currentProject = docSnap.data();
+        setProjectTitle(currentProject.name);
+        setProjectPlatform(currentProject.platform);
+      } else {
+        if (params.id === "p1") {
+          setProjectTitle("인바운드 웹사이트 디자인 QA 1차");
+          setProjectPlatform("Web (반응형)");
+        } else if (params.id === "p2") {
+          setProjectTitle("동호회 앱 배포 전 최종 QA");
+          setProjectPlatform("App (iOS/Android)");
+        }
+      }
+    });
+
+    return () => unsubscribeScreens();
   }, [params.id]);
 
   useEffect(() => {
-    if (isMounted && params.id) {
+    if (isMounted && params.id && screens !== INITIAL_SCREENS) {
       try {
-        localStorage.setItem(`design_qa_screens_${params.id}`, JSON.stringify(screens));
+        setDoc(doc(db, "project_screens", params.id as string), { screens }, { merge: true });
       } catch (e) {
         console.error("Storage limit exceeded", e);
-        alert("브라우저 저장 공간이 꽉 차서 저장이 실패했습니다. 이미지가 너무 크거나 핀이 너무 많습니다.");
+        alert("저장에 실패했습니다.");
       }
     }
   }, [screens, params.id, isMounted]);
@@ -159,7 +167,17 @@ export default function QABoardPage() {
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
         const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.6);
-        updateActiveDeviceState({ actualImage: compressedDataUrl });
+        
+        // Firebase Storage 업로드
+        const storageRef = ref(storage, `projects/${params.id}/screens/${activeScreenId}/${device}_${Date.now()}.jpg`);
+        uploadString(storageRef, compressedDataUrl, 'data_url').then((snapshot) => {
+          getDownloadURL(snapshot.ref).then((downloadURL) => {
+            updateActiveDeviceState({ actualImage: downloadURL });
+          });
+        }).catch((error) => {
+          console.error("Upload failed", error);
+          alert("이미지 업로드에 실패했습니다.");
+        });
       }
     };
     img.src = dataUrl;

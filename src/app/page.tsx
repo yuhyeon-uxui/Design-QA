@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, doc, setDoc, query, orderBy } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart3, CheckCircle2, Layout, LayoutGrid, ListTodo, Plus, Calendar } from "lucide-react";
@@ -23,24 +25,21 @@ const INITIAL_PROJECTS: Array<{
 }> = [];
 
 export default function Dashboard() {
-  const [projects, setProjects] = useState(INITIAL_PROJECTS);
+  const [projects, setProjects] = useState<typeof INITIAL_PROJECTS>([]);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    const saved = localStorage.getItem("design_qa_projects");
-    if (saved) {
-      try {
-        setProjects(JSON.parse(saved));
-      } catch (e) {}
-    }
+    const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const projData: any[] = [];
+      snapshot.forEach((doc) => {
+        projData.push({ id: doc.id, ...doc.data() });
+      });
+      setProjects(projData as any);
+    });
+    return () => unsubscribe();
   }, []);
-
-  useEffect(() => {
-    if (isMounted) {
-      localStorage.setItem("design_qa_projects", JSON.stringify(projects));
-    }
-  }, [projects, isMounted]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
@@ -56,11 +55,11 @@ export default function Dashboard() {
     return true;
   });
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (!newProjectName.trim() || !newProjectPlatform) return;
     
+    const newId = `p${Date.now()}`;
     const newProject = {
-      id: `p${Date.now()}`,
       name: newProjectName,
       platform: newProjectPlatform,
       status: "진행중",
@@ -68,13 +67,19 @@ export default function Dashboard() {
       completedCount: 0,
       screensCount: 0,
       lastUpdated: newProjectDueDate || new Date().toISOString().split('T')[0],
+      createdAt: Date.now()
     };
 
-    setProjects([newProject, ...projects]);
-    setIsModalOpen(false);
-    setNewProjectName("");
-    setNewProjectPlatform("");
-    setNewProjectDueDate("");
+    try {
+      await setDoc(doc(db, "projects", newId), newProject);
+      setIsModalOpen(false);
+      setNewProjectName("");
+      setNewProjectPlatform("");
+      setNewProjectDueDate("");
+    } catch (e) {
+      console.error("Error creating project: ", e);
+      alert("프로젝트 생성 실패");
+    }
   };
 
   return (
