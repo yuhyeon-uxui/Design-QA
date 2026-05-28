@@ -231,10 +231,14 @@ export default function QABoardPage() {
 
   const handleSavePinDetails = () => {
     if (!activePinId) return;
+
+    if (!localForm.description?.trim()) {
+      toast.error("문제점 설명을 입력해주세요.");
+      return;
+    }
+
     setPins(pins.map(p => p.id === activePinId ? { ...p, ...localForm } : p));
-    toast.success("내용 저장완료!", {
-      description: "이슈 상세 내용이 성공적으로 저장되었습니다."
-    });
+    toast.success("내용 저장완료!");
   };
 
   const [newComment, setNewComment] = useState("");

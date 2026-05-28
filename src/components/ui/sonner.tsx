@@ -25,7 +25,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
           <TriangleAlertIcon className="size-4" />
         ),
         error: (
-          <OctagonXIcon className="size-4" />
+          <div className="w-[22px] h-[22px] bg-red-500 rounded-full flex items-center justify-center shrink-0">
+            <OctagonXIcon className="w-3.5 h-3.5 text-white" strokeWidth={3.5} />
+          </div>
         ),
         loading: (
           <Loader2Icon className="size-4 animate-spin" />
