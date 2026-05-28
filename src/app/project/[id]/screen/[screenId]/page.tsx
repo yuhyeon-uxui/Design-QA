@@ -327,9 +327,10 @@ export default function ScreenQA() {
   }, [device, activeScreenId]);
 
   // removed activePin find here since it was moved up
-  const totalScreens = screens.length;
-  const completedScreens = screens.filter(s => s.issueCount === 0).length;
-  const progressRate = totalScreens > 0 ? Math.round((completedScreens / totalScreens) * 100) : 0;
+  const allPins = screens.flatMap(s => [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])]);
+  const totalIssues = allPins.length;
+  const completedIssues = allPins.filter(p => p.status === "완료됨").length;
+  const progressRate = totalIssues > 0 ? Math.round((completedIssues / totalIssues) * 100) : 0;
 
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawStart, setDrawStart] = useState<{x: number, y: number} | null>(null);
