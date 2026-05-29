@@ -308,6 +308,8 @@ export default function ScreenQA() {
   const [newComment, setNewComment] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editCommentText, setEditCommentText] = useState("");
+  const [isCommentDeleteAlertOpen, setIsCommentDeleteAlertOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
   const [isLoadingFigma, setIsLoadingFigma] = useState(false);
   const [figmaError, setFigmaError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -474,17 +476,23 @@ export default function ScreenQA() {
   };
 
   const handleDeleteComment = (commentId: number) => {
-    if (!activePinId) return;
-    if (!confirm("정말 이 코멘트를 삭제하시겠습니까?")) return;
+    setCommentToDelete(commentId);
+    setIsCommentDeleteAlertOpen(true);
+  };
+
+  const confirmDeleteComment = () => {
+    if (!activePinId || commentToDelete === null) return;
     setPins(pins.map(p => {
       if (p.id === activePinId) {
         return {
           ...p,
-          comments: p.comments.filter(c => c.id !== commentId)
+          comments: p.comments.filter(c => c.id !== commentToDelete)
         };
       }
       return p;
     }));
+    setIsCommentDeleteAlertOpen(false);
+    setCommentToDelete(null);
   };
 
   const fetchFigmaImage = async () => {
@@ -1232,6 +1240,18 @@ export default function ScreenQA() {
           setPinToDelete(null);
         }}
         onConfirm={confirmDeletePin}
+        variant="2-button"
+      />
+
+      <CustomAlert 
+        isOpen={isCommentDeleteAlertOpen}
+        title="코멘트 삭제"
+        description="정말 이 코멘트를 삭제하시겠습니까?"
+        onCancel={() => {
+          setIsCommentDeleteAlertOpen(false);
+          setCommentToDelete(null);
+        }}
+        onConfirm={confirmDeleteComment}
         variant="2-button"
       />
 
