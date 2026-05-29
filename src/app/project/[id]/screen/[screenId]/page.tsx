@@ -7,12 +7,13 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus } from "lucide-react";
+import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface Comment {
   id: number;
@@ -104,6 +105,11 @@ export default function ScreenQA() {
   const router = useRouter();
   const [projectTitle, setProjectTitle] = useState("");
   const [projectPlatform, setProjectPlatform] = useState("");
+  const [projectStatus, setProjectStatus] = useState("진행중");
+  const [isProjectSettingsOpen, setIsProjectSettingsOpen] = useState(false);
+  const [editProjectName, setEditProjectName] = useState("");
+  const [editProjectPlatform, setEditProjectPlatform] = useState("");
+  const [editProjectStatus, setEditProjectStatus] = useState("진행중");
   const isAppProject = projectPlatform ? projectPlatform.includes("App") : params.id === "p2";
   const [screens, setScreens] = useState(INITIAL_SCREENS);
   const [isMounted, setIsMounted] = useState(false);
@@ -141,6 +147,7 @@ export default function ScreenQA() {
         const currentProject = docSnap.data();
         setProjectTitle(currentProject.name);
         setProjectPlatform(currentProject.platform);
+        if (currentProject.status) setProjectStatus(currentProject.status);
       } else {
         if (params.id === "p1") {
           setProjectTitle("인바운드 웹사이트 디자인 QA 1차");
@@ -154,6 +161,24 @@ export default function ScreenQA() {
 
     return () => unsubscribeScreens();
   }, [params.id]);
+
+  const handleUpdateProjectSettings = async () => {
+    if (!params.id) return;
+    try {
+      await setDoc(doc(db, "projects", params.id as string), {
+        name: editProjectName,
+        platform: editProjectPlatform,
+        status: editProjectStatus,
+      }, { merge: true });
+      setProjectTitle(editProjectName);
+      setProjectPlatform(editProjectPlatform);
+      setProjectStatus(editProjectStatus);
+      setIsProjectSettingsOpen(false);
+      toast.success("프로젝트 설정이 저장되었습니다.");
+    } catch (e) {
+      toast.error("저장에 실패했습니다.");
+    }
+  };
 
   useEffect(() => {
     if (isMounted && params.id) {
@@ -584,7 +609,7 @@ export default function ScreenQA() {
                 )}
               </h1>
               <div className="flex items-center gap-3 mt-0.5">
-                <p className="text-xs font-medium text-slate-500">{projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)")} · 진행중</p>
+                <p className="text-xs font-medium text-slate-500">{projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)")} · {projectStatus}</p>
                 <div className="flex items-center gap-2 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
                   <div className="w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${progressRate}%` }}></div>
@@ -596,6 +621,20 @@ export default function ScreenQA() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-2 text-slate-700 hover:bg-slate-50 border-slate-200 h-9 font-bold transition-all"
+            onClick={() => {
+              setEditProjectName(projectTitle);
+              setEditProjectPlatform(projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)"));
+              setEditProjectStatus(projectStatus);
+              setIsProjectSettingsOpen(true);
+            }}
+          >
+            <Settings className="w-4 h-4" />
+            설정
+          </Button>
           <Button variant="outline" size="sm" className="gap-2 text-[#1E3A8A] border-[#1E3A8A]/20 hover:bg-[#EEF2FF] h-9">
             <ExternalLink className="w-4 h-4" />
             피그마 프로젝트 열기
@@ -1294,6 +1333,82 @@ export default function ScreenQA() {
         }}
         variant="1-button"
       />
+
+      <Dialog open={isProjectSettingsOpen} onOpenChange={setIsProjectSettingsOpen}>
+        <DialogContent className="sm:max-w-[500px] p-8">
+          <DialogHeader className="mb-2">
+            <DialogTitle className="text-xl font-bold text-slate-900">프로젝트 설정</DialogTitle>
+            <DialogDescription className="text-sm text-slate-500">
+              프로젝트의 이름과 플랫폼, 상태를 변경할 수 있습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-6 py-2">
+            <div className="space-y-2.5">
+              <Label htmlFor="edit-name" className="text-sm font-bold text-slate-800">프로젝트 이름</Label>
+              <Input
+                id="edit-name"
+                value={editProjectName}
+                onChange={(e) => setEditProjectName(e.target.value)}
+                className="h-11"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <Label className="text-sm font-bold text-slate-800">플랫폼 유형</Label>
+                <div className="flex flex-col gap-2">
+                  {["Web (반응형)", "App (iOS/Android)", "기타"].map((platform) => (
+                    <button
+                      key={platform}
+                      onClick={() => setEditProjectPlatform(platform)}
+                      className={`px-4 py-2 rounded-lg text-sm font-bold border transition-all text-left ${
+                        editProjectPlatform === platform
+                          ? "bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-sm"
+                          : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                      }`}
+                    >
+                      {platform}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Label className="text-sm font-bold text-slate-800">진행 상태</Label>
+                <div className="flex flex-col gap-2">
+                  {["진행중", "완료됨", "홀딩"].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setEditProjectStatus(status)}
+                      className={`px-4 py-2 rounded-lg text-sm font-bold border transition-all text-left ${
+                        editProjectStatus === status
+                          ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                          : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="mt-4 !bg-transparent !border-none !p-0 !m-0">
+            <div className="flex gap-3 justify-end w-full">
+              <Button variant="outline" onClick={() => setIsProjectSettingsOpen(false)} className="h-12 px-6 font-semibold rounded-lg">취소</Button>
+              <Button 
+                onClick={handleUpdateProjectSettings} 
+                disabled={!editProjectName.trim()}
+                className={`h-12 px-8 font-bold rounded-lg text-base transition-all ${
+                  editProjectName.trim()
+                    ? "bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white shadow-md" 
+                    : "bg-slate-200 text-slate-400 hover:bg-slate-200"
+                }`}
+              >
+                저장하기
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
