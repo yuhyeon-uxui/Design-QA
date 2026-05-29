@@ -151,7 +151,7 @@ export default function ScreenQA() {
         setProjectTitle(currentProject.name);
         setProjectPlatform(currentProject.platform);
         if (currentProject.status) setProjectStatus(currentProject.status);
-        if (currentProject.dueDate) setProjectDueDate(currentProject.dueDate);
+        if (currentProject.lastUpdated) setProjectDueDate(currentProject.lastUpdated);
       } else {
         if (params.id === "p1") {
           setProjectTitle("인바운드 웹사이트 디자인 QA 1차");
@@ -182,7 +182,7 @@ export default function ScreenQA() {
         name: editProjectName,
         platform: editProjectPlatform,
         status: editProjectStatus,
-        dueDate: editProjectDueDate,
+        lastUpdated: editProjectDueDate || new Date().toISOString().split('T')[0],
       }, { merge: true });
       setProjectTitle(editProjectName);
       setProjectPlatform(editProjectPlatform);
