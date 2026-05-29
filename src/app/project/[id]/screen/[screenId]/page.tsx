@@ -110,6 +110,7 @@ export default function ScreenQA() {
   const [editProjectName, setEditProjectName] = useState("");
   const [editProjectPlatform, setEditProjectPlatform] = useState("");
   const [editProjectStatus, setEditProjectStatus] = useState("진행중");
+  const [isProjectCompleteAlertOpen, setIsProjectCompleteAlertOpen] = useState(false);
   const isAppProject = projectPlatform ? projectPlatform.includes("App") : params.id === "p2";
   const [screens, setScreens] = useState(INITIAL_SCREENS);
   const [isMounted, setIsMounted] = useState(false);
@@ -162,8 +163,17 @@ export default function ScreenQA() {
     return () => unsubscribeScreens();
   }, [params.id]);
 
-  const handleUpdateProjectSettings = async () => {
+  const handleUpdateProjectSettings = async (force: boolean = false) => {
     if (!params.id) return;
+    
+    if (force !== true && editProjectStatus === "완료됨") {
+      const remainingIssuesCount = screens.reduce((acc, s) => acc + (s.issueCount === -1 ? 1 : Math.max(0, s.issueCount)), 0);
+      if (remainingIssuesCount > 0) {
+        setIsProjectCompleteAlertOpen(true);
+        return;
+      }
+    }
+
     try {
       await setDoc(doc(db, "projects", params.id as string), {
         name: editProjectName,
@@ -1395,7 +1405,7 @@ export default function ScreenQA() {
             <div className="flex gap-3 justify-end w-full">
               <Button variant="outline" onClick={() => setIsProjectSettingsOpen(false)} className="h-12 px-6 font-semibold rounded-lg">취소</Button>
               <Button 
-                onClick={handleUpdateProjectSettings} 
+                onClick={() => handleUpdateProjectSettings(false)} 
                 disabled={!editProjectName.trim()}
                 className={`h-12 px-8 font-bold rounded-lg text-base transition-all ${
                   editProjectName.trim()
@@ -1409,6 +1419,18 @@ export default function ScreenQA() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CustomAlert 
+        isOpen={isProjectCompleteAlertOpen}
+        title="프로젝트 완료 안내"
+        description={<>아직 해결되지 않은 이슈가 남아있습니다.<br/>이대로 QA를 종료하고 완료 처리하시겠습니까?</>}
+        onCancel={() => setIsProjectCompleteAlertOpen(false)}
+        onConfirm={() => {
+          setIsProjectCompleteAlertOpen(false);
+          handleUpdateProjectSettings(true);
+        }}
+        variant="2-button"
+      />
     </div>
   );
 }
