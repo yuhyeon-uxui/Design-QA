@@ -1177,13 +1177,17 @@ export default function ScreenQA() {
 
       <CustomAlert 
         isOpen={isExitAlertOpen}
-        title="미작성 화면 알림"
-        description={<>아직 확인 대기 중인 화면이 있습니다.<br/>그래도 대시보드로 나가시겠습니까?</>}
-        confirmText="나가기"
-        cancelText="머무르기"
-        onCancel={() => setIsExitAlertOpen(false)}
-        onConfirm={() => router.push("/")}
-        variant="2-button"
+        title="미작성 화면 안내"
+        description={<>아직 확인 대기 중인 화면이 남아있습니다.<br/>QA를 모두 완료해야 대시보드로 나갈 수 있습니다.</>}
+        confirmText="다음 미작성 화면으로 이동"
+        onConfirm={() => {
+          const unreviewedScreen = screens.find(s => s.issueCount === -1);
+          if (unreviewedScreen) {
+            setActiveScreenId(unreviewedScreen.id);
+            setIsExitAlertOpen(false);
+          }
+        }}
+        variant="1-button"
       />
     </div>
   );
