@@ -48,11 +48,21 @@ const PRESET_MEMBERS = [
   { id: "v2", name: "이보원 대리", role: "Dev" },
   { id: "v3", name: "유호준 차장", role: "Dev" },
   { id: "v4", name: "윤서진 과장", role: "Dev" },
+  { id: "p1", name: "권수진 선임", role: "PM" },
+  { id: "p2", name: "이정민 수석", role: "PM" },
   { id: "v5", name: "김성호 과장", role: "Dev" },
   { id: "v6", name: "박현주 주임", role: "Dev" },
   { id: "v7", name: "배은덕 부장", role: "Dev" },
   { id: "v8", name: "정시영 과장", role: "Dev" },
 ];
+
+const renderTextWithMentions = (text: string) => {
+  if (!text) return text;
+  const membersRegex = new RegExp(`(@(?:${PRESET_MEMBERS.map(m => m.name.replace(/[-/\\\\^$*+?.()|[\\]{}]/g, '\\$&')).join('|')}))`, 'g');
+  return text.split(membersRegex).map((part, i) => 
+    part.startsWith('@') ? <span key={i} className="font-bold text-[#1E3A8A] bg-blue-50 px-1 rounded">{part}</span> : part
+  );
+};
 
 interface ScreenDeviceState {
   actualImage: string | null;
@@ -113,6 +123,8 @@ export default function ScreenQA() {
   const [editProjectStatus, setEditProjectStatus] = useState("진행중");
   const [editProjectDueDate, setEditProjectDueDate] = useState("");
   const [isProjectCompleteAlertOpen, setIsProjectCompleteAlertOpen] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [isMentionOpen, setIsMentionOpen] = useState(false);
   const isAppProject = projectPlatform ? projectPlatform.includes("App") : params.id === "p2";
   const [screens, setScreens] = useState(INITIAL_SCREENS);
   const [isMounted, setIsMounted] = useState(false);
@@ -353,6 +365,29 @@ export default function ScreenQA() {
   const [isLoadingFigma, setIsLoadingFigma] = useState(false);
   const [figmaError, setFigmaError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCommentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setNewComment(val);
+    const lastAtIdx = val.lastIndexOf('@');
+    if (lastAtIdx !== -1) {
+      const query = val.slice(lastAtIdx + 1);
+      if (!query.includes(' ')) {
+        setMentionQuery(query);
+        setIsMentionOpen(true);
+        return;
+      }
+    }
+    setIsMentionOpen(false);
+  };
+
+  const handleMentionSelect = (m: any) => {
+    const lastAtIdx = newComment.lastIndexOf('@');
+    if (lastAtIdx !== -1) {
+      setNewComment(newComment.slice(0, lastAtIdx) + '@' + m.name + ' ');
+    }
+    setIsMentionOpen(false);
+  };
 
   // 클립보드 붙여넣기 기능
   useEffect(() => {
@@ -1214,7 +1249,7 @@ export default function ScreenQA() {
                                 </div>
                               </div>
                             ) : (
-                              <p className="text-slate-600 text-xs leading-relaxed">{comment.text}</p>
+                              <p className="text-slate-600 text-xs leading-relaxed">{renderTextWithMentions(comment.text)}</p>
                             )}
                           </div>
                         ))
@@ -1261,12 +1296,30 @@ export default function ScreenQA() {
                       
                       <div className="w-[1px] h-4 bg-slate-300 shrink-0" />
                       
+                      {isMentionOpen && PRESET_MEMBERS.filter(m => m.name.includes(mentionQuery)).length > 0 && (
+                        <div className="absolute bottom-full mb-1 left-24 w-[180px] bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden z-50 max-h-[220px] overflow-y-auto animate-in fade-in zoom-in-95">
+                          {PRESET_MEMBERS.filter(m => m.name.includes(mentionQuery)).map((m) => (
+                            <button
+                              key={m.id}
+                              className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 flex justify-between items-center"
+                              onClick={() => handleMentionSelect(m)}
+                            >
+                              <span className="font-bold text-slate-800">{m.name}</span>
+                              <span className="text-[10px] text-slate-400">{m.role}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
                       <Input 
-                        placeholder="문의 내용 입력" 
+                        placeholder="문의 내용 입력 (@로 멘션 가능)" 
                         className="border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full flex-1 text-xs"
                         value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
+                        onChange={handleCommentChange}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddComment();
+                          if (e.key === 'Escape') setIsMentionOpen(false);
+                        }}
                       />
                       
                       <Button size="icon" className="h-8 w-8 bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 shrink-0 shadow-sm rounded-md mr-0.5" onClick={handleAddComment}>
