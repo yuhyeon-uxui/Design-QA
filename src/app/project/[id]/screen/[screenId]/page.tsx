@@ -495,7 +495,7 @@ export default function ScreenQA() {
   const unreviewedScreen = screens.find(s => {
     if (s.issueCount === -1) return true;
     const allPins = [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
-    return allPins.some(p => !p.actualText.trim() && !p.expectedText.trim());
+    return allPins.some(p => !(p.description || "").trim() && !(p.request || "").trim());
   });
   const exitAlertType = unreviewedScreen?.issueCount === -1 ? 'no-image' : 'empty-pin';
 
@@ -1195,7 +1195,7 @@ export default function ScreenQA() {
             setActiveScreenId(unreviewedScreen.id);
             if (exitAlertType === 'empty-pin') {
               const allPins = [...(unreviewedScreen.PC?.pins || []), ...(unreviewedScreen.Mobile?.pins || [])];
-              const emptyPin = allPins.find(p => !p.actualText.trim() && !p.expectedText.trim());
+              const emptyPin = allPins.find(p => !(p.description || "").trim() && !(p.request || "").trim());
               if (emptyPin) {
                 const isPC = unreviewedScreen.PC?.pins.some(p => p.id === emptyPin.id);
                 const targetDevice = isPC ? "PC" : "Mobile";
