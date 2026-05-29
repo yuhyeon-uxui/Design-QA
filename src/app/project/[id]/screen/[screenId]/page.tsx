@@ -492,14 +492,20 @@ export default function ScreenQA() {
     e.target.value = "";
   };
 
+  const unreviewedScreen = screens.find(s => {
+    if (s.issueCount === -1) return true;
+    const allPins = [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
+    return allPins.some(p => !p.actualText.trim() && !p.expectedText.trim());
+  });
+  const exitAlertType = unreviewedScreen?.issueCount === -1 ? 'no-image' : 'empty-pin';
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#F4F7FB]">
       <header className="h-16 border-b bg-white px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
         <div className="flex items-center">
           <button 
             onClick={() => {
-              const hasUnreviewed = screens.some(s => s.issueCount === -1);
-              if (hasUnreviewed) {
+              if (unreviewedScreen) {
                 setIsExitAlertOpen(true);
               } else {
                 router.push("/");
@@ -1177,13 +1183,29 @@ export default function ScreenQA() {
 
       <CustomAlert 
         isOpen={isExitAlertOpen}
-        title="미작성 화면 안내"
-        description={<>아직 확인 대기 중인 화면이 남아있습니다.<br/>QA를 모두 완료해야 대시보드로 나갈 수 있습니다.</>}
-        confirmText="다음 미작성 화면으로 이동"
+        title={exitAlertType === 'no-image' ? "미작성 화면 안내" : "미작성 이슈 안내"}
+        description={
+          exitAlertType === 'no-image' 
+            ? <>아직 확인 대기 중인 화면이 남아있습니다.<br/>QA를 모두 완료해야 대시보드로 나갈 수 있습니다.</>
+            : <>이미지는 업로드되었으나 내용이 비어있는 핀(이슈)이 있습니다.<br/>내용을 작성하거나 불필요한 핀을 삭제해주세요.</>
+        }
+        confirmText={exitAlertType === 'no-image' ? "다음 미작성 화면으로 이동" : "해당 핀으로 이동"}
         onConfirm={() => {
-          const unreviewedScreen = screens.find(s => s.issueCount === -1);
           if (unreviewedScreen) {
             setActiveScreenId(unreviewedScreen.id);
+            if (exitAlertType === 'empty-pin') {
+              const allPins = [...(unreviewedScreen.PC?.pins || []), ...(unreviewedScreen.Mobile?.pins || [])];
+              const emptyPin = allPins.find(p => !p.actualText.trim() && !p.expectedText.trim());
+              if (emptyPin) {
+                const isPC = unreviewedScreen.PC?.pins.some(p => p.id === emptyPin.id);
+                const targetDevice = isPC ? "PC" : "Mobile";
+                setDevice(targetDevice);
+                setScreens(prev => prev.map(s => s.id === unreviewedScreen.id ? {
+                  ...s,
+                  [targetDevice]: { ...s[targetDevice], activePinId: emptyPin.id }
+                } : s));
+              }
+            }
             setIsExitAlertOpen(false);
           }
         }}
