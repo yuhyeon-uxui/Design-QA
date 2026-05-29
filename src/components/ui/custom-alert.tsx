@@ -25,7 +25,7 @@ export function CustomAlert({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-xl w-[320px] p-6 flex flex-col items-center animate-in zoom-in-95 duration-200">
         <h2 className="text-lg font-bold text-slate-900 text-center mb-2">{title}</h2>
         <div className="text-sm text-slate-500 text-center mb-6 leading-relaxed whitespace-pre-wrap">

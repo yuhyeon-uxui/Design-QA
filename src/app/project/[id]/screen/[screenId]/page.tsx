@@ -1418,7 +1418,6 @@ export default function ScreenQA() {
                 onChange={(e) => setEditProjectDueDate(e.target.value)}
                 className="h-11"
               />
-              <p className="text-xs text-slate-500 mt-1">※ 미설정 시 오늘 날짜로 지정됩니다.</p>
             </div>
           </div>
           <DialogFooter className="mt-4 !bg-transparent !border-none !p-0 !m-0">
