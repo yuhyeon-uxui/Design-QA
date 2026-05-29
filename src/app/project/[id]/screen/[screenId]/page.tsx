@@ -106,10 +106,12 @@ export default function ScreenQA() {
   const [projectTitle, setProjectTitle] = useState("");
   const [projectPlatform, setProjectPlatform] = useState("");
   const [projectStatus, setProjectStatus] = useState("진행중");
+  const [projectDueDate, setProjectDueDate] = useState("");
   const [isProjectSettingsOpen, setIsProjectSettingsOpen] = useState(false);
   const [editProjectName, setEditProjectName] = useState("");
   const [editProjectPlatform, setEditProjectPlatform] = useState("");
   const [editProjectStatus, setEditProjectStatus] = useState("진행중");
+  const [editProjectDueDate, setEditProjectDueDate] = useState("");
   const [isProjectCompleteAlertOpen, setIsProjectCompleteAlertOpen] = useState(false);
   const isAppProject = projectPlatform ? projectPlatform.includes("App") : params.id === "p2";
   const [screens, setScreens] = useState(INITIAL_SCREENS);
@@ -149,6 +151,7 @@ export default function ScreenQA() {
         setProjectTitle(currentProject.name);
         setProjectPlatform(currentProject.platform);
         if (currentProject.status) setProjectStatus(currentProject.status);
+        if (currentProject.dueDate) setProjectDueDate(currentProject.dueDate);
       } else {
         if (params.id === "p1") {
           setProjectTitle("인바운드 웹사이트 디자인 QA 1차");
@@ -179,10 +182,12 @@ export default function ScreenQA() {
         name: editProjectName,
         platform: editProjectPlatform,
         status: editProjectStatus,
+        dueDate: editProjectDueDate,
       }, { merge: true });
       setProjectTitle(editProjectName);
       setProjectPlatform(editProjectPlatform);
       setProjectStatus(editProjectStatus);
+      setProjectDueDate(editProjectDueDate);
       setIsProjectSettingsOpen(false);
       toast.success("프로젝트 설정이 저장되었습니다.");
     } catch (e) {
@@ -619,7 +624,10 @@ export default function ScreenQA() {
                 )}
               </h1>
               <div className="flex items-center gap-3 mt-0.5">
-                <p className="text-xs font-medium text-slate-500">{projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)")} · {projectStatus}</p>
+                <p className="text-xs font-medium text-slate-500">
+                  {projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)")} · {projectStatus}
+                  {projectDueDate && ` · 요청일: ${projectDueDate}`}
+                </p>
                 <div className="flex items-center gap-2 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
                   <div className="w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${progressRate}%` }}></div>
@@ -639,6 +647,7 @@ export default function ScreenQA() {
               setEditProjectName(projectTitle);
               setEditProjectPlatform(projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)"));
               setEditProjectStatus(projectStatus);
+              setEditProjectDueDate(projectDueDate);
               setIsProjectSettingsOpen(true);
             }}
           >
@@ -1399,6 +1408,17 @@ export default function ScreenQA() {
                   ))}
                 </div>
               </div>
+            </div>
+            <div className="space-y-2.5">
+              <Label htmlFor="edit-date" className="text-sm font-bold text-slate-800">요청일</Label>
+              <Input
+                id="edit-date"
+                type="date"
+                value={editProjectDueDate}
+                onChange={(e) => setEditProjectDueDate(e.target.value)}
+                className="h-11"
+              />
+              <p className="text-xs text-slate-500 mt-1">※ 미설정 시 오늘 날짜로 지정됩니다.</p>
             </div>
           </div>
           <DialogFooter className="mt-4 !bg-transparent !border-none !p-0 !m-0">
