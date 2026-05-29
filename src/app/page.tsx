@@ -52,7 +52,7 @@ export default function Dashboard() {
     if (filter === "all") return true;
     if (filter === "ongoing") return p.status === "진행중";
     if (filter === "unresolved") return (p.issuesCount - p.completedCount) > 0;
-    if (filter === "resolved") return p.issuesCount > 0 && p.issuesCount === p.completedCount;
+    if (filter === "resolved") return p.status === "완료됨";
     return true;
   });
 
@@ -296,7 +296,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className={`text-sm font-medium ${filter === 'resolved' ? 'text-emerald-600' : 'text-slate-500'}`}>완료된 프로젝트</p>
-                  <p className="text-3xl font-bold text-emerald-600 mt-1">{projects.filter(p => p.issuesCount > 0 && p.issuesCount === p.completedCount).length}</p>
+                  <p className="text-3xl font-bold text-emerald-600 mt-1">{projects.filter(p => p.status === '완료됨').length}</p>
                 </div>
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${filter === 'resolved' ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-600'}`}>
                   <CheckCircle2 className="w-6 h-6" />
