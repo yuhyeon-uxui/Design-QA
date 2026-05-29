@@ -20,6 +20,7 @@ interface Comment {
   role: string;
   text: string;
   createdAt: string;
+  isEdited?: boolean;
 }
 
 interface Pin {
@@ -305,6 +306,8 @@ export default function ScreenQA() {
   };
 
   const [newComment, setNewComment] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editCommentText, setEditCommentText] = useState("");
   const [isLoadingFigma, setIsLoadingFigma] = useState(false);
   const [figmaError, setFigmaError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -453,6 +456,35 @@ export default function ScreenQA() {
       return p;
     }));
     setNewComment("");
+  };
+
+  const handleEditComment = (commentId: number, text: string) => {
+    if (!activePinId || !text.trim()) return;
+    setPins(pins.map(p => {
+      if (p.id === activePinId) {
+        return {
+          ...p,
+          comments: p.comments.map(c => c.id === commentId ? { ...c, text, isEdited: true } : c)
+        };
+      }
+      return p;
+    }));
+    setEditingCommentId(null);
+    setEditCommentText("");
+  };
+
+  const handleDeleteComment = (commentId: number) => {
+    if (!activePinId) return;
+    if (!confirm("정말 이 코멘트를 삭제하시겠습니까?")) return;
+    setPins(pins.map(p => {
+      if (p.id === activePinId) {
+        return {
+          ...p,
+          comments: p.comments.filter(c => c.id !== commentId)
+        };
+      }
+      return p;
+    }));
   };
 
   const fetchFigmaImage = async () => {
@@ -1072,7 +1104,7 @@ export default function ScreenQA() {
                         <p className="text-xs text-slate-400 text-center py-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">등록된 코멘트가 없습니다.</p>
                       ) : (
                         activePin.comments.map((comment) => (
-                          <div key={comment.id} className="bg-slate-50/80 rounded-xl p-4 text-sm border border-slate-100 shadow-sm">
+                          <div key={comment.id} className="bg-slate-50/80 rounded-xl p-4 text-sm border border-slate-100 shadow-sm relative group">
                             <div className="flex justify-between items-start mb-2">
                               <div className="flex items-center gap-2">
                                 <span className="font-bold text-slate-800 text-xs">{comment.author}</span>
@@ -1084,9 +1116,40 @@ export default function ScreenQA() {
                                   {comment.role}
                                 </span>
                               </div>
-                              <span className="text-[10px] text-slate-400 font-medium">{formatTimeAgo(comment.createdAt)}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="opacity-0 group-hover:opacity-100 flex items-center gap-2 transition-opacity mr-1">
+                                  <button onClick={() => { setEditingCommentId(comment.id); setEditCommentText(comment.text); }} className="text-slate-400 hover:text-blue-500 text-[10px] font-bold">수정</button>
+                                  <button onClick={() => handleDeleteComment(comment.id)} className="text-slate-400 hover:text-red-500 text-[10px] font-bold">삭제</button>
+                                </div>
+                                <span className="text-[10px] text-slate-400 font-medium">
+                                  {formatTimeAgo(comment.createdAt)} {comment.isEdited && "(편집됨)"}
+                                </span>
+                              </div>
                             </div>
-                            <p className="text-slate-600 text-xs leading-relaxed">{comment.text}</p>
+                            {editingCommentId === comment.id ? (
+                              <div className="flex flex-col gap-2 mt-2">
+                                <Input 
+                                  value={editCommentText}
+                                  onChange={(e) => setEditCommentText(e.target.value)}
+                                  className="text-xs h-8 bg-white border-slate-200"
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                      e.preventDefault();
+                                      handleEditComment(comment.id, editCommentText);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingCommentId(null);
+                                    }
+                                  }}
+                                />
+                                <div className="flex justify-end gap-3">
+                                  <button onClick={() => setEditingCommentId(null)} className="text-[10px] text-slate-500 hover:text-slate-700 font-bold">취소</button>
+                                  <button onClick={() => handleEditComment(comment.id, editCommentText)} className="text-[10px] text-blue-600 font-bold hover:text-blue-800">저장</button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-slate-600 text-xs leading-relaxed">{comment.text}</p>
+                            )}
                           </div>
                         ))
                       )}
