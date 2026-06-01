@@ -332,7 +332,7 @@ export default function ScreenQA() {
 
   useEffect(() => {
     setActivePinId(null);
-  }, [device, params.screenId]);
+  }, [device, activeScreenId]);
 
   const activePin = pins.find(p => p.id === activePinId);
   const [localForm, setLocalForm] = useState<Partial<Pin>>({});
