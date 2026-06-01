@@ -367,6 +367,7 @@ export default function ScreenQA() {
   const [isLoadingFigma, setIsLoadingFigma] = useState(false);
   const [figmaError, setFigmaError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -1315,11 +1316,41 @@ export default function ScreenQA() {
                         </div>
                       )}
 
-                      <Input 
-                        placeholder="문의 내용 입력 (@로 멘션 가능)" 
-                        className="border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full flex-1 text-xs"
-                        value={newComment}
-                        onChange={handleCommentChange}
+                      <div className="relative flex-1 h-full overflow-hidden flex items-center">
+                        <div 
+                          ref={overlayRef}
+                          className="absolute inset-0 px-2 flex items-center whitespace-pre overflow-x-auto overflow-y-hidden text-xs pointer-events-none text-slate-800 scrollbar-hide" 
+                          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                          aria-hidden="true"
+                        >
+                          {newComment ? newComment.split(/(@[\w가-힣\s]+?(?=\s|$))/g).map((part, i) => {
+                            if (part.startsWith('@')) {
+                              const name = part.slice(1).trim();
+                              const member = PRESET_MEMBERS.find(m => name.startsWith(m.name));
+                              if (member) {
+                                const actualName = member.name;
+                                const rest = part.slice(1 + actualName.length);
+                                return (
+                                  <span key={i}>
+                                    <span className="bg-blue-100 text-blue-700 px-1 py-0.5 rounded font-medium text-[10px]">
+                                      @{actualName}
+                                    </span>
+                                    <span>{rest}</span>
+                                  </span>
+                                );
+                              }
+                            }
+                            return <span key={i}>{part}</span>;
+                          }) : <span className="text-slate-400">문의 내용 입력 (@로 멘션 가능)</span>}
+                        </div>
+                        <Input 
+                          className="relative border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full w-full text-xs text-transparent placeholder:text-transparent"
+                          style={{ caretColor: '#1e293b' }}
+                          value={newComment}
+                          onChange={handleCommentChange}
+                          onScroll={(e) => {
+                            if (overlayRef.current) overlayRef.current.scrollLeft = e.currentTarget.scrollLeft;
+                          }}
                         onKeyDown={(e) => {
                           if (e.nativeEvent.isComposing) return;
                           if (isMentionOpen) {
@@ -1342,7 +1373,7 @@ export default function ScreenQA() {
                           if (e.key === 'Escape') setIsMentionOpen(false);
                         }}
                       />
-                      
+                      </div>
                       <Button size="icon" className="h-8 w-8 bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 shrink-0 shadow-sm rounded-md mr-0.5" onClick={handleAddComment}>
                         <Send className="w-3.5 h-3.5" />
                       </Button>
