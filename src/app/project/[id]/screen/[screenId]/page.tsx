@@ -1060,7 +1060,7 @@ export default function ScreenQA() {
                     <p className="text-xs text-slate-500 mb-3 leading-relaxed">
                       컴포넌트 수치를 피그마에서 바로 확인하고 수정하세요.
                     </p>
-                    <Link href={figmaUrl || "#"} target="_blank">
+                    <Link href={figmaUrl ? (figmaUrl.includes('mode=dev') ? figmaUrl : figmaUrl.includes('?') ? `${figmaUrl}&mode=dev` : `${figmaUrl}?mode=dev`) : "#"} target="_blank">
                       <Button size="sm" variant="outline" className="w-full h-9 text-xs font-bold text-[#1E3A8A] border-[#1E3A8A]/30 hover:bg-[#EEF2FF]" disabled={!figmaUrl}>
                         <ExternalLink className="w-3.5 h-3.5 mr-2" />
                         피그마 Inspect 모드로 열기
