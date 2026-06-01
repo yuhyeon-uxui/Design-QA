@@ -38,6 +38,7 @@ interface Pin {
   request?: string;
   priority?: string;
   status?: string;
+  createdAt?: string;
 }
 const PRESET_MEMBERS = [
   { id: "d1", name: "안유현 대리", role: "Design" },
@@ -464,7 +465,7 @@ export default function ScreenQA() {
     setIsDrawing(false);
     
     const newId = pins.length > 0 ? Math.max(...pins.map(p => p.id)) + 1 : 1;
-    setPins([...pins, { id: newId, x: currentRect.x, y: currentRect.y, width: currentRect.w, height: currentRect.h, comments: [] }]);
+    setPins([...pins, { id: newId, x: currentRect.x, y: currentRect.y, width: currentRect.w, height: currentRect.h, comments: [], createdAt: new Date().toISOString() }]);
     setActivePinId(newId);
     
     setDrawStart(null);
@@ -1045,10 +1046,10 @@ export default function ScreenQA() {
               QA 이슈 상세 
               <span className="text-slate-400 font-medium ml-1 text-sm flex items-center gap-2">
                 <span>(Pin #{activePinId || '-'})</span>
-                {activePin?.createdAt && (
+                {(activePin?.createdAt || activePin?.comments?.[0]?.createdAt) && (
                   <>
                     <span className="text-slate-300 text-xs">|</span>
-                    <span className="text-slate-500 text-xs">{activePin.createdAt.split('T')[0].replace(/-/g, '.')}</span>
+                    <span className="text-slate-500 text-xs">{(activePin.createdAt || activePin.comments[0].createdAt).split('T')[0].replace(/-/g, '.')}</span>
                   </>
                 )}
               </span>
