@@ -123,6 +123,7 @@ export default function ScreenQA() {
   const [isProjectCompleteAlertOpen, setIsProjectCompleteAlertOpen] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const [isMentionOpen, setIsMentionOpen] = useState(false);
+  const [mentionSelectedIndex, setMentionSelectedIndex] = useState(0);
   const isAppProject = projectPlatform ? projectPlatform.includes("App") : params.id === "p2";
   const [screens, setScreens] = useState(INITIAL_SCREENS);
   const [isMounted, setIsMounted] = useState(false);
@@ -375,6 +376,7 @@ export default function ScreenQA() {
       const query = val.slice(lastAtIdx + 1);
       if (!query.includes(' ')) {
         setMentionQuery(query);
+        setMentionSelectedIndex(0);
         setIsMentionOpen(true);
         return;
       }
@@ -1300,10 +1302,10 @@ export default function ScreenQA() {
                       
                       {isMentionOpen && PRESET_MEMBERS.filter(m => m.name.includes(mentionQuery)).length > 0 && (
                         <div className="absolute bottom-full mb-1 left-24 w-[180px] bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden z-50 max-h-[220px] overflow-y-auto animate-in fade-in zoom-in-95">
-                          {PRESET_MEMBERS.filter(m => m.name.includes(mentionQuery)).map((m) => (
+                          {PRESET_MEMBERS.filter(m => m.name.includes(mentionQuery)).map((m, index) => (
                             <button
                               key={m.id}
-                              className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 flex justify-between items-center"
+                              className={`w-full text-left px-3 py-2 text-xs transition-colors border-b border-slate-50 last:border-0 flex justify-between items-center ${index === mentionSelectedIndex ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
                               onClick={() => handleMentionSelect(m)}
                             >
                               <span className="font-bold text-slate-800">{m.name}</span>
@@ -1320,6 +1322,22 @@ export default function ScreenQA() {
                         onChange={handleCommentChange}
                         onKeyDown={(e) => {
                           if (e.nativeEvent.isComposing) return;
+                          if (isMentionOpen) {
+                            const filtered = PRESET_MEMBERS.filter(m => m.name.includes(mentionQuery));
+                            if (e.key === 'ArrowDown') {
+                              e.preventDefault();
+                              setMentionSelectedIndex(prev => (prev + 1) % filtered.length);
+                            } else if (e.key === 'ArrowUp') {
+                              e.preventDefault();
+                              setMentionSelectedIndex(prev => (prev - 1 + filtered.length) % filtered.length);
+                            } else if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (filtered[mentionSelectedIndex]) handleMentionSelect(filtered[mentionSelectedIndex]);
+                            } else if (e.key === 'Escape') {
+                              setIsMentionOpen(false);
+                            }
+                            return;
+                          }
                           if (e.key === 'Enter') handleAddComment();
                           if (e.key === 'Escape') setIsMentionOpen(false);
                         }}
