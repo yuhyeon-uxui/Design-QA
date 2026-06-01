@@ -1042,7 +1042,16 @@ export default function ScreenQA() {
           <div className="h-16 border-b flex items-center justify-between px-6 bg-slate-50 shrink-0">
             <h2 className="font-bold text-base text-slate-800 flex items-center gap-2">
               <div className="w-1.5 h-5 bg-[#1E3A8A] rounded-full"></div>
-              QA 이슈 상세 <span className="text-slate-400 font-medium ml-1 text-sm">(Pin #{activePinId || '-'})</span>
+              QA 이슈 상세 
+              <span className="text-slate-400 font-medium ml-1 text-sm flex items-center gap-2">
+                <span>(Pin #{activePinId || '-'})</span>
+                {activePin?.createdAt && (
+                  <>
+                    <span className="text-slate-300 text-xs">|</span>
+                    <span className="text-slate-500 text-xs">{activePin.createdAt.split('T')[0].replace(/-/g, '.')}</span>
+                  </>
+                )}
+              </span>
             </h2>
             {activePinId && (
               <Button variant="ghost" size="sm" onClick={handleDeletePin} className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 px-2.5 font-bold">
