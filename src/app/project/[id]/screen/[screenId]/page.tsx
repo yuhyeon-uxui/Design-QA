@@ -698,14 +698,6 @@ export default function ScreenQA() {
             <ExternalLink className="w-4 h-4" />
             피그마 프로젝트 열기
           </Button>
-          <Button 
-            size="sm" 
-            className="gap-2 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 border border-rose-200 h-9 font-bold transition-all"
-            onClick={() => setIsProjectDeleteAlertOpen(true)}
-          >
-            <Trash2 className="w-4 h-4" />
-            프로젝트 삭제
-          </Button>
         </div>
       </header>
 
@@ -1535,20 +1527,33 @@ export default function ScreenQA() {
               />
             </div>
           </div>
-          <DialogFooter className="mt-4 !bg-transparent !border-none !p-0 !m-0">
-            <div className="flex gap-3 justify-end w-full">
-              <Button variant="outline" onClick={() => setIsProjectSettingsOpen(false)} className="h-12 px-6 font-semibold rounded-lg">취소</Button>
+          <DialogFooter className="mt-8 !bg-transparent !border-none !p-0 !m-0 border-t border-slate-100 pt-6">
+            <div className="flex justify-between w-full">
               <Button 
-                onClick={() => handleUpdateProjectSettings(false)} 
-                disabled={!editProjectName.trim()}
-                className={`h-12 px-8 font-bold rounded-lg text-base transition-all ${
-                  editProjectName.trim()
-                    ? "bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white shadow-md" 
-                    : "bg-slate-200 text-slate-400 hover:bg-slate-200"
-                }`}
+                variant="ghost" 
+                onClick={() => {
+                  setIsProjectSettingsOpen(false);
+                  setTimeout(() => setIsProjectDeleteAlertOpen(true), 150);
+                }} 
+                className="h-12 px-4 font-bold text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-all"
               >
-                저장하기
+                <Trash2 className="w-4 h-4 mr-2" />
+                프로젝트 삭제
               </Button>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setIsProjectSettingsOpen(false)} className="h-12 px-6 font-semibold rounded-lg text-slate-600 hover:text-slate-800">취소</Button>
+                <Button 
+                  onClick={() => handleUpdateProjectSettings(false)} 
+                  disabled={!editProjectName.trim()}
+                  className={`h-12 px-8 font-bold rounded-lg text-base transition-all ${
+                    editProjectName.trim()
+                      ? "bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white shadow-md" 
+                      : "bg-slate-200 text-slate-400 hover:bg-slate-200"
+                  }`}
+                >
+                  저장하기
+                </Button>
+              </div>
             </div>
           </DialogFooter>
         </DialogContent>
