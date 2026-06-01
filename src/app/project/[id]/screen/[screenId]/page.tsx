@@ -1323,25 +1323,20 @@ export default function ScreenQA() {
                           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                           aria-hidden="true"
                         >
-                          {newComment ? newComment.split(/(@[\w가-힣\s]+?(?=\s|$))/g).map((part, i) => {
-                            if (part.startsWith('@')) {
-                              const name = part.slice(1).trim();
-                              const member = PRESET_MEMBERS.find(m => name.startsWith(m.name));
-                              if (member) {
-                                const actualName = member.name;
-                                const rest = part.slice(1 + actualName.length);
+                          {newComment ? (() => {
+                            const memberNames = PRESET_MEMBERS.map(m => m.name).join('|');
+                            const regex = new RegExp(`(@(?:${memberNames}))`, 'g');
+                            return newComment.split(regex).map((part, i) => {
+                              if (part.startsWith('@')) {
                                 return (
-                                  <span key={i}>
-                                    <span className="bg-blue-100 text-blue-700 px-1 py-0.5 rounded font-medium text-[10px]">
-                                      @{actualName}
-                                    </span>
-                                    <span>{rest}</span>
+                                  <span key={i} className="bg-blue-100 text-blue-700 rounded-sm">
+                                    {part}
                                   </span>
                                 );
                               }
-                            }
-                            return <span key={i}>{part}</span>;
-                          }) : <span className="text-slate-400">문의 내용 입력 (@로 멘션 가능)</span>}
+                              return <span key={i}>{part}</span>;
+                            });
+                          })() : <span className="text-slate-400">문의 내용 입력 (@로 멘션 가능)</span>}
                         </div>
                         <Input 
                           className="relative border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full w-full text-xs text-transparent placeholder:text-transparent"
