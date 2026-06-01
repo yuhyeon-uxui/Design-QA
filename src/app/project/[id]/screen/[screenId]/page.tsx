@@ -121,6 +121,8 @@ export default function ScreenQA() {
   const [editProjectPlatform, setEditProjectPlatform] = useState("");
   const [editProjectStatus, setEditProjectStatus] = useState("진행중");
   const [editProjectDueDate, setEditProjectDueDate] = useState("");
+  const [projectFigmaUrl, setProjectFigmaUrl] = useState("");
+  const [editProjectFigmaUrl, setEditProjectFigmaUrl] = useState("");
   const [isProjectCompleteAlertOpen, setIsProjectCompleteAlertOpen] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const [isMentionOpen, setIsMentionOpen] = useState(false);
@@ -164,6 +166,7 @@ export default function ScreenQA() {
         setProjectPlatform(currentProject.platform);
         if (currentProject.status) setProjectStatus(currentProject.status);
         if (currentProject.lastUpdated) setProjectDueDate(currentProject.lastUpdated);
+        if (currentProject.figmaProjectUrl) setProjectFigmaUrl(currentProject.figmaProjectUrl);
       } else {
         if (params.id === "p1") {
           setProjectTitle("인바운드 웹사이트 디자인 QA 1차");
@@ -194,12 +197,14 @@ export default function ScreenQA() {
         name: editProjectName,
         platform: editProjectPlatform,
         status: editProjectStatus,
+        figmaProjectUrl: editProjectFigmaUrl,
         lastUpdated: editProjectDueDate || new Date().toISOString().split('T')[0],
       }, { merge: true });
       setProjectTitle(editProjectName);
       setProjectPlatform(editProjectPlatform);
       setProjectStatus(editProjectStatus);
       setProjectDueDate(editProjectDueDate);
+      setProjectFigmaUrl(editProjectFigmaUrl);
       setIsProjectSettingsOpen(false);
       toast.success("프로젝트 설정이 저장되었습니다.");
     } catch (e) {
@@ -688,16 +693,19 @@ export default function ScreenQA() {
               setEditProjectPlatform(projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)"));
               setEditProjectStatus(projectStatus);
               setEditProjectDueDate(projectDueDate);
+              setEditProjectFigmaUrl(projectFigmaUrl);
               setIsProjectSettingsOpen(true);
             }}
           >
             <Settings className="w-4 h-4" />
             설정
           </Button>
-          <Button variant="outline" size="sm" className="gap-2 text-[#1E3A8A] border-[#1E3A8A]/20 hover:bg-[#EEF2FF] h-9">
-            <ExternalLink className="w-4 h-4" />
-            피그마 프로젝트 열기
-          </Button>
+          <Link href={projectFigmaUrl || "#"} target={projectFigmaUrl ? "_blank" : undefined} className={!projectFigmaUrl ? "pointer-events-none" : ""}>
+            <Button variant="outline" size="sm" className="gap-2 text-[#1E3A8A] border-[#1E3A8A]/20 hover:bg-[#EEF2FF] h-9" disabled={!projectFigmaUrl}>
+              <ExternalLink className="w-4 h-4" />
+              피그마 프로젝트 열기
+            </Button>
+          </Link>
         </div>
       </header>
 
@@ -1475,6 +1483,16 @@ export default function ScreenQA() {
                 id="edit-name"
                 value={editProjectName}
                 onChange={(e) => setEditProjectName(e.target.value)}
+                className="h-11"
+              />
+            </div>
+            <div className="space-y-2.5">
+              <Label htmlFor="edit-figma" className="text-sm font-bold text-slate-800">전체 피그마 프로젝트 링크 (선택)</Label>
+              <Input
+                id="edit-figma"
+                placeholder="https://www.figma.com/design/..."
+                value={editProjectFigmaUrl}
+                onChange={(e) => setEditProjectFigmaUrl(e.target.value)}
                 className="h-11"
               />
             </div>

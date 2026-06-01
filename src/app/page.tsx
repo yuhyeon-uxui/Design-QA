@@ -23,6 +23,7 @@ const INITIAL_PROJECTS: Array<{
   screensCount: number;
   completedScreensCount?: number;
   lastUpdated: string;
+  figmaProjectUrl?: string;
 }> = [];
 
 export default function Dashboard() {
@@ -46,6 +47,7 @@ export default function Dashboard() {
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectPlatform, setNewProjectPlatform] = useState("");
   const [newProjectDueDate, setNewProjectDueDate] = useState("");
+  const [newProjectFigmaUrl, setNewProjectFigmaUrl] = useState("");
   const [filter, setFilter] = useState<"all" | "ongoing" | "unresolved" | "resolved">("all");
 
   const filteredProjects = projects.filter(p => {
@@ -69,7 +71,8 @@ export default function Dashboard() {
       screensCount: 1,
       completedScreensCount: 0,
       lastUpdated: newProjectDueDate || new Date().toISOString().split('T')[0],
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      figmaProjectUrl: newProjectFigmaUrl || ""
     };
 
     try {
@@ -91,6 +94,7 @@ export default function Dashboard() {
       setNewProjectName("");
       setNewProjectPlatform("");
       setNewProjectDueDate("");
+      setNewProjectFigmaUrl("");
     } catch (e) {
       console.error("Error creating project:", e);
       alert("프로젝트 생성 실패");
@@ -183,6 +187,16 @@ export default function Dashboard() {
                     placeholder="예: 사내 그룹웨어 리뉴얼 QA"
                     value={newProjectName}
                     onChange={(e) => setNewProjectName(e.target.value)}
+                    className="h-11"
+                  />
+                </div>
+                <div className="space-y-2.5">
+                  <Label htmlFor="figmaUrl" className="text-sm font-bold text-slate-800">전체 피그마 프로젝트 링크 (선택)</Label>
+                  <Input
+                    id="figmaUrl"
+                    placeholder="https://www.figma.com/design/..."
+                    value={newProjectFigmaUrl}
+                    onChange={(e) => setNewProjectFigmaUrl(e.target.value)}
                     className="h-11"
                   />
                 </div>
