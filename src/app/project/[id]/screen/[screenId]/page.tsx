@@ -1490,7 +1490,7 @@ export default function ScreenQA() {
               <Label htmlFor="edit-figma" className="text-sm font-bold text-slate-800">전체 피그마 프로젝트 링크 (선택)</Label>
               <Input
                 id="edit-figma"
-                placeholder="https://www.figma.com/design/..."
+                placeholder="피그마 링크를 넣어주세요."
                 value={editProjectFigmaUrl}
                 onChange={(e) => setEditProjectFigmaUrl(e.target.value)}
                 className="h-11"
