@@ -869,7 +869,7 @@ export default function ScreenQA() {
               <div className={`bg-white px-5 py-3 border-x border-t shadow-sm flex items-center justify-between shrink-0 ${figmaImageUrl ? 'rounded-xl border-b mb-3' : 'rounded-t-xl'}`}>
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm"></span>
-                  <span className="text-sm font-bold text-slate-800">Figma 시안 (Expected)</span>
+                  <span className="text-sm font-bold text-slate-800">Figma 시안</span>
                 </div>
                 {figmaImageUrl && (
                   <div className="flex items-center gap-2">
@@ -935,7 +935,7 @@ export default function ScreenQA() {
               <div className="bg-white px-5 py-3 rounded-xl border shadow-sm flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></span>
-                  <span className="text-sm font-bold text-slate-800">테스트 화면 (Actual)</span>
+                  <span className="text-sm font-bold text-slate-800">테스트 화면</span>
                 </div>
                 {actualImage && (
                   <div className="flex items-center gap-2">
