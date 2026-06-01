@@ -906,7 +906,7 @@ export default function ScreenQA() {
 
             <div className={`w-full bg-slate-50 border border-slate-200 shadow-md rounded-2xl flex flex-col relative overflow-y-auto overflow-x-hidden custom-scrollbar group ring-1 ring-black/5 ${maxWClass} ${aspectClass}`}>
               {isLoadingFigma ? (
-                <div className="flex flex-col items-center text-purple-600">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-purple-600 z-10 bg-slate-50/50">
                   <Loader2 className="w-8 h-8 animate-spin mb-3" />
                   <p className="text-xs font-bold">피그마에서 이미지를 추출하는 중...</p>
                 </div>
