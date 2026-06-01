@@ -1236,6 +1236,7 @@ export default function ScreenQA() {
                                   className="text-xs h-8 bg-white border-slate-200"
                                   autoFocus
                                   onKeyDown={(e) => {
+                                    if (e.nativeEvent.isComposing) return;
                                     if (e.key === 'Enter' && !e.shiftKey) {
                                       e.preventDefault();
                                       handleEditComment(comment.id, editCommentText);
@@ -1318,6 +1319,7 @@ export default function ScreenQA() {
                         value={newComment}
                         onChange={handleCommentChange}
                         onKeyDown={(e) => {
+                          if (e.nativeEvent.isComposing) return;
                           if (e.key === 'Enter') handleAddComment();
                           if (e.key === 'Escape') setIsMentionOpen(false);
                         }}
