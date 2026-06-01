@@ -1319,11 +1319,11 @@ export default function ScreenQA() {
                       <div className="relative flex-1 h-full overflow-hidden flex items-center">
                         <div 
                           ref={overlayRef}
-                          className="absolute inset-0 px-2 flex items-center overflow-x-auto overflow-y-hidden text-xs pointer-events-none text-slate-800 scrollbar-hide" 
+                          className="absolute inset-0 px-2 flex items-center overflow-x-auto overflow-y-hidden text-xs font-sans tracking-normal pointer-events-none text-slate-800 scrollbar-hide" 
                           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                           aria-hidden="true"
                         >
-                          <span className="whitespace-pre">
+                          <span className="whitespace-pre shrink-0">
                             {newComment ? (() => {
                               const memberNames = PRESET_MEMBERS.map(m => m.name).join('|');
                               const regex = new RegExp(`(@(?:${memberNames}))`, 'g');
@@ -1341,7 +1341,7 @@ export default function ScreenQA() {
                           </span>
                         </div>
                         <Input 
-                          className="relative border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full w-full text-xs text-transparent placeholder:text-transparent"
+                          className="relative border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full w-full text-xs font-sans tracking-normal text-transparent placeholder:text-transparent"
                           style={{ caretColor: '#1e293b' }}
                           value={newComment}
                           onChange={handleCommentChange}
