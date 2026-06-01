@@ -69,7 +69,6 @@ interface ScreenDeviceState {
   figmaUrl: string;
   figmaImageUrl: string | null;
   pins: Pin[];
-  activePinId: number | null;
 }
 
 interface ScreenData {
@@ -84,8 +83,7 @@ const emptyDeviceState: ScreenDeviceState = {
   actualImage: null,
   figmaUrl: "",
   figmaImageUrl: null,
-  pins: [],
-  activePinId: null
+  pins: []
 };
 
 const INITIAL_SCREENS: ScreenData[] = [{
@@ -323,8 +321,11 @@ export default function ScreenQA() {
     });
   };
 
-  const activePinId = activeDeviceState.activePinId;
-  const setActivePinId = (id: number | null) => updateActiveDeviceState({ activePinId: id });
+  const [activePinId, setActivePinId] = useState<number | null>(null);
+
+  useEffect(() => {
+    setActivePinId(null);
+  }, [device, params.screenId]);
 
   const activePin = pins.find(p => p.id === activePinId);
   const [localForm, setLocalForm] = useState<Partial<Pin>>({});
@@ -1394,10 +1395,8 @@ export default function ScreenQA() {
                 const isPC = unreviewedScreen.PC?.pins.some(p => p.id === emptyPin.id);
                 const targetDevice = isPC ? "PC" : "Mobile";
                 setDevice(targetDevice);
-                setScreens(prev => prev.map(s => s.id === unreviewedScreen.id ? {
-                  ...s,
-                  [targetDevice]: { ...s[targetDevice], activePinId: emptyPin.id }
-                } : s));
+                setDevice(targetDevice);
+                setActivePinId(emptyPin.id);
               }
             }
             setIsExitAlertOpen(false);
