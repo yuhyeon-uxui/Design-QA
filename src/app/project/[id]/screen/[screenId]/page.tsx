@@ -7,7 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings } from "lucide-react";
+import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -866,26 +866,41 @@ export default function ScreenQA() {
               {/* Figma View (API Fetch Area) */}
               <div className={`flex flex-col items-center w-full order-2 ${isWidePCLayout ? 'flex-none' : 'flex-1'}`}>
                 <div className={`${isWidePCLayout ? 'w-full mb-3 flex flex-col justify-end' : 'w-full mb-5 h-[120px] flex flex-col justify-end'} ${maxWClass}`}>
-              <div className="bg-white px-5 py-3 rounded-t-xl border-x border-t shadow-sm flex items-center gap-2 shrink-0">
-                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm"></span>
-                <span className="text-sm font-bold text-slate-800">Figma 시안 (Expected)</span>
-              </div>
-              <div className="bg-white border-x border-b shadow-sm rounded-b-xl p-4 flex gap-2">
-                <div className="relative flex-1">
-                  <LinkIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                  <Input 
-                    placeholder="피그마 프레임 링크 (node-id 포함)" 
-                    className="h-9 pl-9 text-xs bg-slate-50 border-slate-200 focus-visible:ring-purple-500/30"
-                    value={figmaUrl}
-                    onChange={(e) => setFigmaUrl(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && fetchFigmaImage()}
-                  />
+              <div className={`bg-white px-5 py-3 border-x border-t shadow-sm flex items-center justify-between shrink-0 ${figmaImageUrl ? 'rounded-xl border-b mb-3' : 'rounded-t-xl'}`}>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm"></span>
+                  <span className="text-sm font-bold text-slate-800">Figma 시안 (Expected)</span>
                 </div>
-                <Button size="sm" className="h-9 text-xs font-semibold bg-purple-600 hover:bg-purple-700 shadow-sm px-4" onClick={fetchFigmaImage} disabled={isLoadingFigma || !figmaUrl}>
-                  {isLoadingFigma ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : null}
-                  불러오기
-                </Button>
+                {figmaImageUrl && (
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" className="h-7 px-3 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-full" onClick={fetchFigmaImage} disabled={isLoadingFigma}>
+                      {isLoadingFigma ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+                      시안 새로고침
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-7 px-3 text-xs font-medium text-slate-600 bg-white" onClick={() => setFigmaImageUrl(null)}>
+                      링크 다시 입력
+                    </Button>
+                  </div>
+                )}
               </div>
+              {!figmaImageUrl && (
+                <div className="bg-white border-x border-b shadow-sm rounded-b-xl p-4 flex gap-2">
+                  <div className="relative flex-1">
+                    <LinkIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <Input 
+                      placeholder="피그마 프레임 링크 (node-id 포함)" 
+                      className="h-9 pl-9 text-xs bg-slate-50 border-slate-200 focus-visible:ring-purple-500/30"
+                      value={figmaUrl}
+                      onChange={(e) => setFigmaUrl(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && fetchFigmaImage()}
+                    />
+                  </div>
+                  <Button size="sm" className="h-9 text-xs font-semibold bg-purple-600 hover:bg-purple-700 shadow-sm px-4" onClick={fetchFigmaImage} disabled={isLoadingFigma || !figmaUrl}>
+                    {isLoadingFigma ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : null}
+                    불러오기
+                  </Button>
+                </div>
+              )}
               {figmaError && <p className="text-xs font-medium text-red-500 mt-2 px-1">{figmaError}</p>}
             </div>
 
