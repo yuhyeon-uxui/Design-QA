@@ -1319,24 +1319,26 @@ export default function ScreenQA() {
                       <div className="relative flex-1 h-full overflow-hidden flex items-center">
                         <div 
                           ref={overlayRef}
-                          className="absolute inset-0 px-2 flex items-center whitespace-pre overflow-x-auto overflow-y-hidden text-xs pointer-events-none text-slate-800 scrollbar-hide" 
+                          className="absolute inset-0 px-2 flex items-center overflow-x-auto overflow-y-hidden text-xs pointer-events-none text-slate-800 scrollbar-hide" 
                           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                           aria-hidden="true"
                         >
-                          {newComment ? (() => {
-                            const memberNames = PRESET_MEMBERS.map(m => m.name).join('|');
-                            const regex = new RegExp(`(@(?:${memberNames}))`, 'g');
-                            return newComment.split(regex).map((part, i) => {
-                              if (part.startsWith('@')) {
-                                return (
-                                  <span key={i} className="bg-blue-100 text-blue-700 rounded-sm">
-                                    {part}
-                                  </span>
-                                );
-                              }
-                              return <span key={i}>{part}</span>;
-                            });
-                          })() : <span className="text-slate-400">문의 내용 입력 (@로 멘션 가능)</span>}
+                          <span className="whitespace-pre">
+                            {newComment ? (() => {
+                              const memberNames = PRESET_MEMBERS.map(m => m.name).join('|');
+                              const regex = new RegExp(`(@(?:${memberNames}))`, 'g');
+                              return newComment.split(regex).map((part, i) => {
+                                if (part.startsWith('@')) {
+                                  return (
+                                    <span key={i} className="bg-blue-100 text-blue-700 rounded-sm">
+                                      {part}
+                                    </span>
+                                  );
+                                }
+                                return <span key={i}>{part}</span>;
+                              });
+                            })() : <span className="text-slate-400">문의 내용 입력 (@로 멘션 가능)</span>}
+                          </span>
                         </div>
                         <Input 
                           className="relative border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full w-full text-xs text-transparent placeholder:text-transparent"
