@@ -997,8 +997,8 @@ export default function ScreenQA() {
                   >
                     {isBox ? (
                       <div 
-                        className={`w-full h-full border-2 border-dashed transition-all cursor-pointer ${
-                          isActive ? 'border-rose-600 bg-rose-600/20 z-20' : 'border-rose-500 bg-rose-500/10 hover:bg-rose-500/20'
+                        className={`w-full h-full border-dashed transition-all cursor-pointer ${
+                          isActive ? 'border-2 border-rose-500 bg-rose-500/20 z-20' : 'border border-rose-400 bg-rose-400/10 hover:bg-rose-400/20'
                         }`}
                         onClick={(e) => { e.stopPropagation(); setActivePinId(pin.id); }}
                       >
