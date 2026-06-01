@@ -904,15 +904,17 @@ export default function ScreenQA() {
               {figmaError && <p className="text-xs font-medium text-red-500 mt-2 px-1">{figmaError}</p>}
             </div>
 
-            <div className={`w-full bg-white border border-slate-200 shadow-md rounded-2xl flex items-center justify-center relative overflow-hidden ring-1 ring-black/5 ${maxWClass} ${aspectClass}`}>
+            <div className={`w-full bg-slate-50 border border-slate-200 shadow-md rounded-2xl flex flex-col relative overflow-y-auto overflow-x-hidden custom-scrollbar group ring-1 ring-black/5 ${maxWClass} ${aspectClass}`}>
               {isLoadingFigma ? (
                 <div className="flex flex-col items-center text-purple-600">
                   <Loader2 className="w-8 h-8 animate-spin mb-3" />
                   <p className="text-xs font-bold">피그마에서 이미지를 추출하는 중...</p>
                 </div>
               ) : figmaImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={figmaImageUrl} alt="Figma Render" className="w-full h-full object-contain" />
+                <div className="relative w-full min-h-full">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={figmaImageUrl} alt="Figma Render" className="w-full h-auto block" />
+                </div>
               ) : (
                 <>
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/40 to-purple-50/40"></div>
@@ -955,7 +957,7 @@ export default function ScreenQA() {
               ref={fileInputRef} 
               onChange={handleFileUpload} 
             />
-            <div className={`w-full bg-white border border-slate-200 shadow-md rounded-2xl relative overflow-hidden group ring-1 ring-black/5 ${maxWClass} ${aspectClass}`}>
+            <div className={`w-full bg-slate-50 border border-slate-200 shadow-md rounded-2xl relative overflow-y-auto overflow-x-hidden group ring-1 ring-black/5 custom-scrollbar ${maxWClass} ${aspectClass}`}>
               {!actualImage ? (
                 // 파일 업로드 UI
                 <div className="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center hover:bg-slate-100 transition-colors">
@@ -973,7 +975,7 @@ export default function ScreenQA() {
               ) : (
                 // 캡처 이미지 및 핀 영역
                 <div 
-                  className="absolute inset-0 cursor-crosshair bg-slate-100"
+                  className="relative w-full min-h-full cursor-crosshair"
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
@@ -982,7 +984,7 @@ export default function ScreenQA() {
                   draggable={false}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={actualImage} alt="Actual Upload" className="w-full h-full object-contain pointer-events-none select-none" draggable={false} />
+                  <img src={actualImage} alt="Actual Upload" className="w-full h-auto block pointer-events-none select-none" draggable={false} />
                   
                   {isDrawing && currentRect && (
                     <div 
