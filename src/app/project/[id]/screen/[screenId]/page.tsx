@@ -7,7 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings, RefreshCw } from "lucide-react";
+import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Check, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1004,6 +1004,7 @@ export default function ScreenQA() {
               {actualImage && pins.map((pin) => {
                 const isBox = pin.width !== undefined && pin.height !== undefined && pin.width > 0.5 && pin.height > 0.5;
                 const isActive = activePinId === pin.id;
+                const isCompleted = pin.status === "완료됨";
                 
                 return (
                   <div
@@ -1019,16 +1020,24 @@ export default function ScreenQA() {
                     {isBox ? (
                       <div 
                         className={`w-full h-full border-dashed transition-all cursor-pointer ${
-                          isActive ? 'border-2 border-rose-500 bg-rose-500/20 z-20' : 'border border-rose-400 bg-rose-400/10 hover:bg-rose-400/20'
+                          isActive 
+                            ? 'border-2 border-rose-500 bg-rose-500/20 z-20' 
+                            : isCompleted
+                              ? 'border-2 border-slate-400 bg-slate-400/20 opacity-70 hover:opacity-100 hover:bg-slate-400/30'
+                              : 'border border-rose-400 bg-rose-400/10 hover:bg-rose-400/20'
                         }`}
                         onClick={(e) => { e.stopPropagation(); setActivePinId(pin.id); }}
                       >
                         <div 
                           className={`absolute -left-3 -top-3 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md transition-all ${
-                            isActive ? "bg-emerald-600 scale-110 ring-2 ring-white" : "bg-emerald-500 ring-2 ring-white"
+                            isActive 
+                              ? "bg-emerald-600 scale-110 ring-2 ring-white" 
+                              : isCompleted
+                                ? "bg-slate-400 ring-2 ring-white"
+                                : "bg-emerald-500 ring-2 ring-white"
                           }`}
                         >
-                          {pin.id}
+                          {isCompleted ? <Check className="w-3.5 h-3.5" /> : pin.id}
                         </div>
                       </div>
                     ) : (
@@ -1036,14 +1045,16 @@ export default function ScreenQA() {
                         className={`absolute w-6 h-6 -ml-3 -mt-3 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md transition-all ring-2 ring-white ${
                           isActive 
                             ? "bg-emerald-600 scale-110 ring-4 ring-emerald-600/30 z-20" 
-                            : "bg-emerald-500 hover:bg-emerald-600 hover:scale-105 z-10"
+                            : isCompleted
+                              ? "bg-slate-400 opacity-80 hover:bg-slate-500 hover:scale-105 z-10"
+                              : "bg-emerald-500 hover:bg-emerald-600 hover:scale-105 z-10"
                         }`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setActivePinId(pin.id);
                         }}
                       >
-                        {pin.id}
+                        {isCompleted ? <Check className="w-3.5 h-3.5" /> : pin.id}
                       </button>
                     )}
                   </div>
