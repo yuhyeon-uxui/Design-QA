@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, getDocs, writeBatch } from "firebase/firestore";
+import { collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, getDocs, writeBatch, collectionGroup } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart3, CheckCircle2, Layout, LayoutGrid, ListTodo, Plus, Calendar, Trash2 } from "lucide-react";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search } from "lucide-react";
 
 const INITIAL_PROJECTS: Array<{
   id: string;
@@ -28,6 +29,8 @@ const INITIAL_PROJECTS: Array<{
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<typeof INITIAL_PROJECTS>([]);
+  const [allScreens, setAllScreens] = useState<any[]>([]);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -40,7 +43,20 @@ export default function Dashboard() {
       });
       setProjects(projData as any);
     });
-    return () => unsubscribe();
+
+    const sq = query(collectionGroup(db, "screens"));
+    const unsubscribeScreens = onSnapshot(sq, (snapshot) => {
+      const screensData: any[] = [];
+      snapshot.forEach((doc) => {
+        screensData.push({ id: doc.id, projectId: doc.ref.parent.parent?.id, ...doc.data() });
+      });
+      setAllScreens(screensData);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeScreens();
+    };
   }, []);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -106,13 +122,27 @@ export default function Dashboard() {
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3 text-[#0064fa] hover:opacity-80 transition-opacity cursor-pointer">
+          <a href="/" className="flex items-center gap-3 text-[#0064fa] hover:opacity-80 transition-opacity cursor-pointer shrink-0">
             <div className="w-8 h-8 rounded bg-[#0064fa] text-white flex items-center justify-center font-bold">
               QA
             </div>
             <span className="font-bold text-lg tracking-tight">피닉스다트 Design QA Hub</span>
           </a>
-          <div className="flex items-center gap-4">
+          
+          {/* Global Search Bar */}
+          <div className="flex-1 max-w-xl mx-8">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="프로젝트, 화면, 이슈(핀), 작성자, 코멘트 등 통합 검색..."
+                className="w-full pl-9 bg-slate-50 border-slate-200 focus-visible:ring-[#0064fa]/30 transition-all rounded-full h-10 text-sm"
+                value={globalSearchQuery}
+                onChange={(e) => setGlobalSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 shrink-0">
             <Dialog>
               <DialogTrigger render={<span className="text-sm font-medium text-slate-500 hover:text-slate-800 cursor-pointer transition-colors px-2 py-1">도움말</span>} />
               <DialogContent className="sm:max-w-[600px] p-8">
@@ -158,6 +188,95 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-6 py-8">
+        {globalSearchQuery ? (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="flex items-center gap-2 mb-6">
+              <Search className="w-5 h-5 text-[#0064fa]" />
+              <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+                "{globalSearchQuery}" 검색 결과
+              </h1>
+            </div>
+            
+            <div className="space-y-4">
+              {(() => {
+                const sq = globalSearchQuery.toLowerCase();
+                const results: any[] = [];
+                
+                allScreens.forEach(screen => {
+                  const proj = projects.find(p => p.id === screen.projectId);
+                  const projName = proj?.name || "알 수 없는 프로젝트";
+                  
+                  const isScreenMatch = screen.name?.toLowerCase().includes(sq) || projName.toLowerCase().includes(sq);
+                  
+                  const matchingPins: any[] = [];
+                  ['PC', 'Mobile'].forEach(device => {
+                    const pins = screen[device]?.pins || [];
+                    pins.forEach((pin: any) => {
+                      const isPinMatch = 
+                        String(pin.id).includes(sq) ||
+                        (pin.description || "").toLowerCase().includes(sq) ||
+                        (pin.request || "").toLowerCase().includes(sq) ||
+                        (pin.status || "").toLowerCase().includes(sq) ||
+                        (pin.comments || []).some((c: any) => c.text.toLowerCase().includes(sq) || c.author.toLowerCase().includes(sq));
+                      
+                      if (isPinMatch || isScreenMatch) {
+                        matchingPins.push({ ...pin, device });
+                      }
+                    });
+                  });
+                  
+                  if (isScreenMatch && matchingPins.length === 0) {
+                    results.push({ type: 'screen', projId: screen.projectId, screenId: screen.id, projName, screenName: screen.name });
+                  } else if (matchingPins.length > 0) {
+                    matchingPins.forEach(pin => {
+                      results.push({ type: 'pin', projId: screen.projectId, screenId: screen.id, projName, screenName: screen.name, pin });
+                    });
+                  }
+                });
+
+                if (results.length === 0) {
+                  return (
+                    <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
+                      <p className="text-slate-500 text-lg">검색 결과가 없습니다.</p>
+                    </div>
+                  );
+                }
+
+                return results.map((res, i) => (
+                  <Link key={i} href={`/project/${res.projId}/screen/${res.screenId}`}>
+                    <div className="bg-white p-5 rounded-xl border border-slate-200 hover:border-[#0064fa]/50 hover:shadow-md transition-all cursor-pointer flex flex-col gap-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#0064fa] bg-blue-50 w-fit px-2 py-1 rounded">
+                        {res.projName} &gt; {res.screenName}
+                      </div>
+                      {res.type === 'pin' && (
+                        <div className="mt-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="w-5 h-5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[10px] font-bold">
+                              {res.pin.id}
+                            </span>
+                            <span className="text-sm font-bold text-slate-800">{res.pin.description || "(설명 없음)"}</span>
+                          </div>
+                          <p className="text-sm text-slate-600 pl-7 line-clamp-2">{res.pin.request || "(요청사항 없음)"}</p>
+                          <div className="flex items-center gap-3 pl-7 mt-2">
+                            <span className="text-xs text-slate-500 font-medium">상태: {res.pin.status}</span>
+                            <span className="text-xs text-slate-500 font-medium">작성자: {res.pin.comments?.[0]?.author || "알 수 없음"}</span>
+                            {res.pin.comments?.length > 0 && (
+                              <span className="text-xs text-slate-500 font-medium">코멘트 {res.pin.comments.length}개</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {res.type === 'screen' && (
+                        <p className="text-sm text-slate-500 mt-1">화면 이름 또는 프로젝트 이름 일치</p>
+                      )}
+                    </div>
+                  </Link>
+                ));
+              })()}
+            </div>
+          </div>
+        ) : (
+          <div className="animate-in fade-in duration-300">
         <div className="flex justify-between items-end mb-8">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
@@ -394,6 +513,8 @@ export default function Dashboard() {
           })
           )}
         </div>
+        </div>
+        )}
       </main>
 
     </div>
