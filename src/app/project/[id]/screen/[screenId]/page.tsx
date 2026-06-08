@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { db } from "@/lib/firebase";
 import { collection, doc, onSnapshot, setDoc, getDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
 import { Button } from "@/components/ui/button";
@@ -112,6 +112,7 @@ const formatTimeAgo = (dateString: string) => {
 export default function ScreenQA() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [projectTitle, setProjectTitle] = useState("");
   const [projectPlatform, setProjectPlatform] = useState("");
   const [projectStatus, setProjectStatus] = useState("진행중");
@@ -332,8 +333,15 @@ export default function ScreenQA() {
   const [activePinId, setActivePinId] = useState<number | null>(null);
 
   useEffect(() => {
-    setActivePinId(null);
-  }, [device, activeScreenId]);
+    const pinIdParam = searchParams.get('pinId');
+    if (pinIdParam) {
+      setActivePinId(Number(pinIdParam));
+      // Remove pinId from URL after applying it (optional, but good UX to not get stuck on it)
+      // router.replace(`/project/${params.id}/screen/${params.screenId}`, { scroll: false });
+    } else {
+      setActivePinId(null);
+    }
+  }, [device, activeScreenId, searchParams]);
 
   const activePin = pins.find(p => p.id === activePinId);
   const [localForm, setLocalForm] = useState<Partial<Pin>>({});

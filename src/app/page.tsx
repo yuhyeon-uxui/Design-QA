@@ -243,7 +243,7 @@ export default function Dashboard() {
                 }
 
                 return results.map((res, i) => (
-                  <Link key={i} href={`/project/${res.projId}/screen/${res.screenId}`}>
+                  <Link key={i} href={`/project/${res.projId}/screen/${res.screenId}${res.type === 'pin' ? `?pinId=${res.pin.id}` : ''}`}>
                     <div className="bg-white p-5 rounded-xl border border-slate-200 hover:border-[#0064fa]/50 hover:shadow-md transition-all cursor-pointer flex flex-col gap-2">
                       <div className="flex items-center gap-2 text-xs font-semibold text-[#0064fa] bg-blue-50 w-fit px-2 py-1 rounded">
                         {res.projName} &gt; {res.screenName}
