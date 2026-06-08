@@ -61,7 +61,7 @@ const renderTextWithMentions = (text: string) => {
   if (!text) return text;
   const membersRegex = new RegExp(`(@(?:${PRESET_MEMBERS.map(m => m.name.replace(/[-/\\\\^$*+?.()|[\\]{}]/g, '\\$&')).join('|')}))`, 'g');
   return text.split(membersRegex).map((part, i) => 
-    part.startsWith('@') ? <span key={i} className="font-bold text-[#1E3A8A] bg-blue-50 px-1 rounded">{part}</span> : part
+    part.startsWith('@') ? <span key={i} className="font-bold text-[#0064fa] bg-blue-50 px-1 rounded">{part}</span> : part
   );
 };
 
@@ -641,7 +641,7 @@ export default function ScreenQA() {
             <ChevronLeft className="w-6 h-6 text-slate-700" />
           </button>
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-[#1E3A8A] text-white rounded-md text-xs font-bold flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#0064fa] text-white rounded-md text-xs font-bold flex items-center justify-center">
               QA
             </div>
             <div>
@@ -652,7 +652,7 @@ export default function ScreenQA() {
                     <button
                       onClick={() => setDevice("PC")}
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
-                        device === "PC" ? "bg-white text-[#1E3A8A] shadow-sm" : "text-slate-500 hover:text-slate-700"
+                        device === "PC" ? "bg-white text-[#0064fa] shadow-sm" : "text-slate-500 hover:text-slate-700"
                       }`}
                     >
                       <Monitor className="w-3.5 h-3.5" /> PC
@@ -660,7 +660,7 @@ export default function ScreenQA() {
                     <button
                       onClick={() => setDevice("Mobile")}
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
-                        device === "Mobile" ? "bg-white text-[#1E3A8A] shadow-sm" : "text-slate-500 hover:text-slate-700"
+                        device === "Mobile" ? "bg-white text-[#0064fa] shadow-sm" : "text-slate-500 hover:text-slate-700"
                       }`}
                     >
                       <Smartphone className="w-3.5 h-3.5" /> Mobile
@@ -701,7 +701,7 @@ export default function ScreenQA() {
             설정
           </Button>
           <Link href={projectFigmaUrl || "#"} target={projectFigmaUrl ? "_blank" : undefined} className={!projectFigmaUrl ? "pointer-events-none" : ""}>
-            <Button variant="outline" size="sm" className="gap-2 text-[#1E3A8A] border-[#1E3A8A]/20 hover:bg-[#EEF2FF] h-9" disabled={!projectFigmaUrl}>
+            <Button variant="outline" size="sm" className="gap-2 text-[#0064fa] border-[#0064fa]/20 hover:bg-[#EEF2FF] h-9" disabled={!projectFigmaUrl}>
               <ExternalLink className="w-4 h-4" />
               피그마 프로젝트 열기
             </Button>
@@ -716,10 +716,10 @@ export default function ScreenQA() {
         <div className="w-[260px] bg-white border rounded-xl flex flex-col shrink-0 shadow-sm overflow-hidden">
           <div className="h-14 border-b flex items-center justify-between px-5 bg-slate-50/50 shrink-0">
             <div className="flex items-center">
-              <LayoutGrid className="w-5 h-5 text-[#1E3A8A] mr-3" />
+              <LayoutGrid className="w-5 h-5 text-[#0064fa] mr-3" />
               <span className="text-sm font-bold text-slate-800">전체 화면 ({screens.length})</span>
             </div>
-            <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-[#1E3A8A] hover:bg-slate-200" onClick={() => {
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-[#0064fa] hover:bg-slate-200" onClick={() => {
               const newId = `s${Date.now()}`;
               const newScreen = { id: newId, name: "새로운 화면", issueCount: -1, PC: { ...emptyDeviceState }, Mobile: { ...emptyDeviceState } };
               
@@ -759,7 +759,7 @@ export default function ScreenQA() {
                     onClick={() => setActiveScreenId(screen.id)}
                     className={`w-full text-left p-2.5 rounded-lg flex items-center gap-3 transition-colors pr-8 ${
                       activeScreenId === screen.id 
-                        ? "bg-[#EEF2FF] border-[#1E3A8A]/20 border ring-1 ring-[#1E3A8A]/10 shadow-sm" 
+                        ? "bg-[#EEF2FF] border-[#0064fa]/20 border ring-1 ring-[#0064fa]/10 shadow-sm" 
                         : "hover:bg-slate-100 border border-transparent"
                     }`}
                   >
@@ -773,7 +773,7 @@ export default function ScreenQA() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <input
-                        className={`w-full bg-transparent text-sm font-semibold outline-none focus:ring-1 focus:ring-[#1E3A8A]/30 rounded px-1 -ml-1 ${activeScreenId === screen.id ? 'text-[#1E3A8A]' : 'text-slate-700'}`}
+                        className={`w-full bg-transparent text-sm font-semibold outline-none focus:ring-1 focus:ring-[#0064fa]/30 rounded px-1 -ml-1 ${activeScreenId === screen.id ? 'text-[#0064fa]' : 'text-slate-700'}`}
                         value={screen.name}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => {
@@ -968,7 +968,7 @@ export default function ScreenQA() {
                   <p className="text-xs text-slate-500 mt-2 leading-relaxed">
                     실제 구현된 앱/웹의 캡처 화면을<br/>이곳에 업로드해 주세요.
                   </p>
-                  <Button className="mt-6 font-bold bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white shadow-sm" onClick={() => fileInputRef.current?.click()}>
+                  <Button className="mt-6 font-bold bg-[#0064fa] hover:bg-[#0064fa]/90 text-white shadow-sm" onClick={() => fileInputRef.current?.click()}>
                     내 PC에서 파일 찾기
                   </Button>
                 </div>
@@ -1070,7 +1070,7 @@ export default function ScreenQA() {
         <div className="w-[420px] bg-white border rounded-xl flex flex-col shrink-0 shadow-sm z-10 overflow-hidden">
           <div className="h-16 border-b flex items-center justify-between px-6 bg-slate-50 shrink-0">
             <h2 className="font-bold text-base text-slate-800 flex items-center gap-2">
-              <div className="w-1.5 h-5 bg-[#1E3A8A] rounded-full"></div>
+              <div className="w-1.5 h-5 bg-[#0064fa] rounded-full"></div>
               QA 이슈 상세 
               <span className="text-slate-400 font-medium ml-1 text-sm flex items-center gap-2">
                 <span>(Pin #{activePinId || '-'})</span>
@@ -1102,7 +1102,7 @@ export default function ScreenQA() {
                       컴포넌트 수치를 피그마에서 바로 확인하고 수정하세요.
                     </p>
                     <Link href={figmaUrl ? (figmaUrl.includes('mode=dev') ? figmaUrl : figmaUrl.includes('?') ? `${figmaUrl}&mode=dev` : `${figmaUrl}?mode=dev`) : "#"} target="_blank">
-                      <Button size="sm" variant="outline" className="w-full h-9 text-xs font-bold text-[#1E3A8A] border-[#1E3A8A]/30 hover:bg-[#EEF2FF]" disabled={!figmaUrl}>
+                      <Button size="sm" variant="outline" className="w-full h-9 text-xs font-bold text-[#0064fa] border-[#0064fa]/30 hover:bg-[#EEF2FF]" disabled={!figmaUrl}>
                         <ExternalLink className="w-3.5 h-3.5 mr-2" />
                         피그마 Inspect 모드로 열기
                       </Button>
@@ -1229,7 +1229,7 @@ export default function ScreenQA() {
                   </div>
 
                   <Button 
-                    className="w-full bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white font-bold h-12 text-sm shadow-md rounded-lg mt-2 transition-all active:scale-[0.98]"
+                    className="w-full bg-[#0064fa] hover:bg-[#0064fa]/90 text-white font-bold h-12 text-sm shadow-md rounded-lg mt-2 transition-all active:scale-[0.98]"
                     onClick={handleSavePinDetails}
                   >
                     내용 저장하기
@@ -1239,7 +1239,7 @@ export default function ScreenQA() {
                   <div className="mt-10 pt-6 border-t border-slate-200">
                     <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-4">
                       <MessageSquare className="w-4 h-4 text-slate-500" />
-                      문의 및 코멘트 <span className="text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded text-xs">{activePin.comments.length}</span>
+                      문의 및 코멘트 <span className="text-[#0064fa] bg-blue-50 px-2 py-0.5 rounded text-xs">{activePin.comments.length}</span>
                     </h3>
                     
                     <div className="space-y-4 mb-5">
@@ -1299,11 +1299,11 @@ export default function ScreenQA() {
                       )}
                     </div>
 
-                    <div className="flex items-center w-full bg-slate-50 border border-slate-200 rounded-lg focus-within:ring-2 focus-within:ring-[#1E3A8A]/30 overflow-visible h-10 px-1 gap-1 relative shadow-sm transition-all">
+                    <div className="flex items-center w-full bg-slate-50 border border-slate-200 rounded-lg focus-within:ring-2 focus-within:ring-[#0064fa]/30 overflow-visible h-10 px-1 gap-1 relative shadow-sm transition-all">
                       <div className="relative w-[100px] shrink-0 h-full flex items-center">
                         <Input 
                           placeholder="작성자 검색" 
-                          className="border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full text-xs font-bold text-[#1E3A8A] w-full placeholder:font-normal placeholder:text-slate-400" 
+                          className="border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full text-xs font-bold text-[#0064fa] w-full placeholder:font-normal placeholder:text-slate-400" 
                           value={authorSearch}
                           onChange={(e) => {
                             setAuthorSearch(e.target.value);
@@ -1414,7 +1414,7 @@ export default function ScreenQA() {
                         />
                       </div>
                       
-                      <Button size="icon" className="h-8 w-8 bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 shrink-0 shadow-sm rounded-md mr-0.5" onClick={handleAddComment}>
+                      <Button size="icon" className="h-8 w-8 bg-[#0064fa] hover:bg-[#0064fa]/90 shrink-0 shadow-sm rounded-md mr-0.5" onClick={handleAddComment}>
                         <Send className="w-3.5 h-3.5" />
                       </Button>
                     </div>
@@ -1534,7 +1534,7 @@ export default function ScreenQA() {
                       onClick={() => setEditProjectPlatform(platform)}
                       className={`px-4 py-2 rounded-lg text-sm font-bold border transition-all text-left ${
                         editProjectPlatform === platform
-                          ? "bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-sm"
+                          ? "bg-[#0064fa] text-white border-[#0064fa] shadow-sm"
                           : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
                       }`}
                     >
@@ -1593,7 +1593,7 @@ export default function ScreenQA() {
                   disabled={!editProjectName.trim()}
                   className={`h-12 px-8 font-bold rounded-lg text-base transition-all ${
                     editProjectName.trim()
-                      ? "bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white shadow-md" 
+                      ? "bg-[#0064fa] hover:bg-[#0064fa]/90 text-white shadow-md" 
                       : "bg-slate-200 text-slate-400 hover:bg-slate-200"
                   }`}
                 >

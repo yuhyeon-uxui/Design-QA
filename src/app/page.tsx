@@ -106,8 +106,8 @@ export default function Dashboard() {
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3 text-[#1E3A8A] hover:opacity-80 transition-opacity cursor-pointer">
-            <div className="w-8 h-8 rounded bg-[#1E3A8A] text-white flex items-center justify-center font-bold">
+          <a href="/" className="flex items-center gap-3 text-[#0064fa] hover:opacity-80 transition-opacity cursor-pointer">
+            <div className="w-8 h-8 rounded bg-[#0064fa] text-white flex items-center justify-center font-bold">
               QA
             </div>
             <span className="font-bold text-lg tracking-tight">피닉스다트 Design QA Hub</span>
@@ -161,14 +161,14 @@ export default function Dashboard() {
         <div className="flex justify-between items-end mb-8">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-              <LayoutGrid className="w-6 h-6 text-[#1E3A8A]" />
+              <LayoutGrid className="w-6 h-6 text-[#0064fa]" />
               프로젝트 대시보드
             </h1>
             <p className="text-slate-500 mt-2 text-sm">전체 QA 프로젝트의 진행 상황과 지표를 확인합니다.</p>
           </div>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger render={
-              <Button className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 h-12 px-6 rounded-xl text-base font-bold shadow-sm">
+              <Button className="bg-[#0064fa] hover:bg-[#0064fa]/90 h-12 px-6 rounded-xl text-base font-bold shadow-sm">
                 <Plus className="w-5 h-5 mr-2" /> 새 프로젝트 생성
               </Button>
             } />
@@ -240,7 +240,7 @@ export default function Dashboard() {
                     disabled={!newProjectName.trim() || !newProjectPlatform}
                     className={`h-12 px-8 font-bold rounded-lg text-base transition-all ${
                       newProjectName.trim() && newProjectPlatform 
-                        ? "bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white shadow-md" 
+                        ? "bg-[#0064fa] hover:bg-[#0064fa]/90 text-white shadow-md" 
                         : "bg-slate-200 text-slate-400 hover:bg-slate-200"
                     }`} 
                   >
@@ -255,16 +255,16 @@ export default function Dashboard() {
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card 
-            className={`border shadow-sm bg-white cursor-pointer transition-all hover:shadow-md ${filter === 'all' ? 'ring-2 ring-[#1E3A8A] border-transparent' : 'border-slate-100 hover:border-slate-200'}`}
+            className={`border shadow-sm bg-white cursor-pointer transition-all hover:shadow-md ${filter === 'all' ? 'ring-2 ring-[#0064fa] border-transparent' : 'border-slate-100 hover:border-slate-200'}`}
             onClick={() => setFilter('all')}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className={`text-sm font-medium ${filter === 'all' ? 'text-[#1E3A8A]' : 'text-slate-500'}`}>전체 프로젝트</p>
+                  <p className={`text-sm font-medium ${filter === 'all' ? 'text-[#0064fa]' : 'text-slate-500'}`}>전체 프로젝트</p>
                   <p className="text-3xl font-bold text-slate-900 mt-1">{projects.length}</p>
                 </div>
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${filter === 'all' ? 'bg-[#1E3A8A] text-white' : 'bg-blue-50 text-[#1E3A8A]'}`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${filter === 'all' ? 'bg-[#0064fa] text-white' : 'bg-blue-50 text-[#0064fa]'}`}>
                   <Layout className="w-6 h-6" />
                 </div>
               </div>
@@ -278,9 +278,9 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className={`text-sm font-medium ${filter === 'ongoing' ? 'text-blue-600' : 'text-slate-500'}`}>진행중인 QA</p>
-                  <p className={`text-3xl font-bold mt-1 ${filter === 'ongoing' ? 'text-blue-600' : 'text-[#1E3A8A]'}`}>{projects.filter(p => p.status === '진행중').length}</p>
+                  <p className={`text-3xl font-bold mt-1 ${filter === 'ongoing' ? 'text-blue-600' : 'text-[#0064fa]'}`}>{projects.filter(p => p.status === '진행중').length}</p>
                 </div>
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${filter === 'ongoing' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-[#1E3A8A]'}`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${filter === 'ongoing' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-[#0064fa]'}`}>
                   <BarChart3 className="w-6 h-6" />
                 </div>
               </div>
@@ -322,7 +322,7 @@ export default function Dashboard() {
 
         {/* Project List */}
         <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <div className="w-1 h-5 bg-[#1E3A8A] rounded-full"></div>
+          <div className="w-1 h-5 bg-[#0064fa] rounded-full"></div>
           {filter === "all" ? "전체 프로젝트 목록" : 
            filter === "ongoing" ? "진행중인 프로젝트 목록" : 
            filter === "unresolved" ? "미해결 이슈가 있는 프로젝트" : "최근 해결된 프로젝트"}
@@ -350,7 +350,7 @@ export default function Dashboard() {
                 <CardHeader className="pb-4 border-b bg-slate-50/50">
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-[#1E3A8A] transition-colors">{project.name}</CardTitle>
+                      <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-[#0064fa] transition-colors">{project.name}</CardTitle>
                       <CardDescription className="pt-2 flex items-center gap-2.5">
                         <span className={`px-2 py-0.5 rounded text-xs font-bold ${getPlatformColor(project.platform)}`}>{project.platform}</span>
                         <span className="text-slate-300">|</span>
@@ -373,7 +373,7 @@ export default function Dashboard() {
                   <div className="space-y-4">
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-500">QA 진행률</span>
-                      <span className="font-bold text-[#1E3A8A]">{progress}%</span>
+                      <span className="font-bold text-[#0064fa]">{progress}%</span>
                     </div>
                     <Progress value={progress} className="h-2" />
                     
@@ -382,7 +382,7 @@ export default function Dashboard() {
                         <span className="font-semibold text-slate-700">{project.completedCount}</span> / {project.issuesCount} 건 완료
                       </div>
                       <Link href={`/project/${project.id}/screen/s1`}>
-                        <Button variant="ghost" size="sm" className="text-[#1E3A8A] hover:bg-blue-50 font-semibold group-hover:translate-x-1 transition-transform">
+                        <Button variant="ghost" size="sm" className="text-[#0064fa] hover:bg-blue-50 font-semibold group-hover:translate-x-1 transition-transform">
                           QA 보드 열기 <ArrowRight className="w-4 h-4 ml-1" />
                         </Button>
                       </Link>
