@@ -1058,6 +1058,8 @@ export default function ScreenQA() {
                       width: isBox ? `${pin.width}%` : undefined,
                       height: isBox ? `${pin.height}%` : undefined,
                     }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onMouseUp={(e) => e.stopPropagation()}
                   >
                     {isBox ? (
                       <div 
