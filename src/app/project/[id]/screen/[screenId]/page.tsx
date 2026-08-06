@@ -1070,7 +1070,8 @@ export default function ScreenQA() {
                               ? 'border-2 border-slate-400 bg-slate-400/20 opacity-70 hover:opacity-100 hover:bg-slate-400/30'
                               : 'border border-rose-400 bg-rose-400/10 hover:bg-rose-400/20'
                         }`}
-                        onClick={(e) => { e.stopPropagation(); setActivePinId(pin.id); }}
+                        onMouseDown={(e) => { e.stopPropagation(); setActivePinId(pin.id); }}
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <div 
                           className={`absolute -left-3 -top-3 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md transition-all ${
@@ -1093,10 +1094,11 @@ export default function ScreenQA() {
                               ? "bg-slate-400 opacity-80 hover:bg-slate-500 hover:scale-105 z-10"
                               : "bg-emerald-500 hover:bg-emerald-600 hover:scale-105 z-10"
                         }`}
-                        onClick={(e) => {
+                        onMouseDown={(e) => {
                           e.stopPropagation();
                           setActivePinId(pin.id);
                         }}
+                        onClick={(e) => e.stopPropagation()}
                       >
                         {isCompleted ? <Check className="w-3.5 h-3.5" /> : pin.id}
                       </button>
