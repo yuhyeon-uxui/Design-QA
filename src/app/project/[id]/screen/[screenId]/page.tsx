@@ -1006,11 +1006,9 @@ export default function ScreenQA() {
                       }}
                     />
                   )}
-                </div>
-              )}
-
-              {/* Pins overlay */}
-              {actualImage && pins.map((pin) => {
+                  
+                  {/* Pins overlay (moved inside inner div to sync with image height) */}
+                  {pins.map((pin) => {
                 const isBox = pin.width !== undefined && pin.height !== undefined && pin.width > 0.5 && pin.height > 0.5;
                 const isActive = activePinId === pin.id;
                 const isCompleted = pin.status === "완료됨";
@@ -1104,6 +1102,8 @@ export default function ScreenQA() {
                   </div>
                 );
               })}
+                </div>
+              )}
             </div>
           </div>
         </div>
