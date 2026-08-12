@@ -226,7 +226,7 @@ export default function ScreenQA() {
       let width = img.width;
       let height = img.height;
       const MAX_WIDTH = 1920;
-      const MAX_HEIGHT = 1080;
+      const MAX_HEIGHT = 8192; // 긴 스크롤(모바일 등) 캡처본이 깨지지 않도록 높이 제한 대폭 상향
       
       if (width > height) {
         if (width > MAX_WIDTH) {
@@ -247,7 +247,7 @@ export default function ScreenQA() {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
-        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.85); // 고화질 적용
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.80); // 고화질 적용하되 용량 최적화
         updateActiveDeviceState({ actualImage: compressedDataUrl });
       }
     };
