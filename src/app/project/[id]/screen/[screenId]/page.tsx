@@ -225,19 +225,19 @@ export default function ScreenQA() {
       const canvas = document.createElement("canvas");
       let width = img.width;
       let height = img.height;
-      const MAX_WIDTH = 1920;
-      const MAX_HEIGHT = 8192; // 긴 스크롤(모바일 등) 캡처본이 깨지지 않도록 높이 제한 대폭 상향
+      const MAX_WIDTH = width > height ? 1920 : 1080; // PC는 1920, 모바일(세로형)은 1080 기준으로 리사이징
+      const MAX_HEIGHT = 8192; // 파이어베이스 1MB 제한을 고려하여 세로 최대치 설정
       
-      if (width > height) {
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
-        }
-      } else {
-        if (height > MAX_HEIGHT) {
-          width *= MAX_HEIGHT / height;
-          height = MAX_HEIGHT;
-        }
+      // 1. 먼저 가로 폭을 기준으로 리사이징 (모바일 캡처본이 지나치게 넓은 경우 방지)
+      if (width > MAX_WIDTH) {
+        height = Math.round(height * (MAX_WIDTH / width));
+        width = MAX_WIDTH;
+      }
+      
+      // 2. 가로를 맞췄음에도 세로가 너무 길다면 세로를 기준으로 한 번 더 리사이징
+      if (height > MAX_HEIGHT) {
+        width = Math.round(width * (MAX_HEIGHT / height));
+        height = MAX_HEIGHT;
       }
       
       canvas.width = width;
