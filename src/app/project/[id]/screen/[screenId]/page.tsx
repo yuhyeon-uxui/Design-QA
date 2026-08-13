@@ -1163,15 +1163,15 @@ export default function ScreenQA() {
                 )}
               </span>
             </h2>
-            <div className="flex items-center gap-2 shrink-0">
-              <Link href={figmaUrl ? (figmaUrl.includes('mode=dev') ? figmaUrl : figmaUrl.includes('?') ? `${figmaUrl}&mode=dev` : `${figmaUrl}?mode=dev`) : "#"} target="_blank">
-                <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-bold text-[#0064fa] border-[#0064fa]/30 hover:bg-[#EEF2FF]" disabled={!figmaUrl}>
-                  <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                  피그마 Inspect 
+            <div className="flex items-center gap-2 shrink-0 w-full">
+              <Link href={figmaUrl ? (figmaUrl.includes('mode=dev') ? figmaUrl : figmaUrl.includes('?') ? `${figmaUrl}&mode=dev` : `${figmaUrl}?mode=dev`) : "#"} target="_blank" className="flex-1">
+                <Button variant="outline" size="sm" className="w-full h-8 px-2.5 text-xs font-bold text-[#0064fa] border-[#0064fa]/30 hover:bg-[#EEF2FF]" disabled={!figmaUrl}>
+                  <ExternalLink className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+                  <span className="truncate">피그마 Inspect</span>
                 </Button>
               </Link>
               {activePinId && (
-                <Button variant="ghost" size="sm" onClick={handleDeletePin} className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 px-2.5 font-bold">
+                <Button variant="ghost" size="sm" onClick={handleDeletePin} className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 px-2.5 font-bold shrink-0">
                   <Trash2 className="w-4 h-4 mr-1.5" />
                   핀 삭제
                 </Button>
