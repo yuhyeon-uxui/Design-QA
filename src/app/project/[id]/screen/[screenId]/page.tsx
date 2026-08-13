@@ -1150,20 +1150,20 @@ export default function ScreenQA() {
           </div>
           
           <div className="h-14 border-b flex items-center justify-between px-6 bg-slate-50 shrink-0">
-            <h2 className="font-bold text-base text-slate-800 flex items-center gap-2">
-              <div className="w-1.5 h-5 bg-[#0064fa] rounded-full"></div>
-              QA 이슈 상세 
-              <span className="text-slate-400 font-medium ml-1 text-sm flex items-center gap-2">
-                <span>(Pin #{activePinId || '-'})</span>
+            <h2 className="font-bold text-base text-slate-800 flex items-center gap-2 whitespace-nowrap overflow-hidden">
+              <div className="w-1.5 h-5 bg-[#0064fa] rounded-full shrink-0"></div>
+              <span className="shrink-0">QA 이슈 상세</span>
+              <span className="text-slate-400 font-medium ml-1 text-sm flex items-center gap-2 truncate">
+                <span className="shrink-0">(Pin #{activePinId || '-'})</span>
                 {(activePin?.createdAt || activePin?.comments?.[0]?.createdAt) && (
-                  <>
-                    <span className="text-slate-300 text-xs">|</span>
-                    <span className="text-slate-500 text-xs">{(activePin.createdAt || activePin.comments[0].createdAt).split('T')[0].replace(/-/g, '.')}</span>
-                  </>
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="text-slate-300 text-xs shrink-0">|</span>
+                    <span className="text-slate-500 text-xs truncate">{(activePin.createdAt || activePin.comments[0].createdAt).split('T')[0].replace(/-/g, '.')}</span>
+                  </div>
                 )}
               </span>
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Link href={figmaUrl ? (figmaUrl.includes('mode=dev') ? figmaUrl : figmaUrl.includes('?') ? `${figmaUrl}&mode=dev` : `${figmaUrl}?mode=dev`) : "#"} target="_blank">
                 <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-bold text-[#0064fa] border-[#0064fa]/30 hover:bg-[#EEF2FF]" disabled={!figmaUrl}>
                   <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
@@ -1253,10 +1253,10 @@ export default function ScreenQA() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-bold text-slate-800">개발자 피드백 상태</Label>
+                    <Label className="text-sm font-bold text-slate-800">개발자 피드백</Label>
                     <Select value={localForm.devFeedback || "대기중"} onValueChange={(val) => setLocalForm({...localForm, devFeedback: val as string})}>
                       <SelectTrigger className="h-10 text-sm bg-blue-50/40 border-blue-200 font-medium text-slate-800">
-                        <SelectValue placeholder="피드백 상태 선택" />
+                        <SelectValue placeholder="피드백 선택" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="대기중">대기중</SelectItem>
