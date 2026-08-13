@@ -304,7 +304,11 @@ export default function ScreenQA() {
           }
           
           if (params.id) {
-            setDoc(doc(db, "project_screens", params.id as string, "screens", newScreen.id), newScreen, { merge: true }).catch(console.error);
+            const cleanScreen = JSON.parse(JSON.stringify(newScreen));
+            setDoc(doc(db, "project_screens", params.id as string, "screens", newScreen.id), cleanScreen, { merge: true }).catch((err) => {
+              console.error("Failed to save screen:", err);
+              toast.error("저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
+            });
           }
           return newScreen;
         }
@@ -321,12 +325,13 @@ export default function ScreenQA() {
           totalIssues += allPins.length;
           totalCompleted += allPins.filter(p => p.status === "완료됨").length;
         });
-        setDoc(doc(db, "projects", params.id as string), {
+        const cleanProjectData = JSON.parse(JSON.stringify({
           screensCount: nextScreens.length,
           completedScreensCount: completedScreensCount,
           issuesCount: totalIssues,
           completedCount: totalCompleted,
-        }, { merge: true }).catch(console.error);
+        }));
+        setDoc(doc(db, "projects", params.id as string), cleanProjectData, { merge: true }).catch(console.error);
       }
       
       return nextScreens;
