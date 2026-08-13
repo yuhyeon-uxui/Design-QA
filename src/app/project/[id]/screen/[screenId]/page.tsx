@@ -1031,15 +1031,16 @@ export default function ScreenQA() {
                   )}
                   
                   {/* Pins overlay (moved inside inner div to sync with image height) */}
-                  {pins.map((pin) => {
+                  {pins.map((pin, index) => {
                 const isBox = pin.width !== undefined && pin.height !== undefined && pin.width > 0.5 && pin.height > 0.5;
                 const isActive = activePinId === pin.id;
                 const isCompleted = pin.status === "완료됨";
+                const pinNumber = index + 1;
                 
                 // Search filter logic
                 const searchLower = pinSearchQuery.toLowerCase();
                 const isMatch = !pinSearchQuery || 
-                  String(pin.id).includes(searchLower) ||
+                  String(pinNumber).includes(searchLower) ||
                   (pin.description || "").toLowerCase().includes(searchLower) ||
                   (pin.request || "").toLowerCase().includes(searchLower) ||
                   (pin.status || "").toLowerCase().includes(searchLower) ||
@@ -1059,12 +1060,12 @@ export default function ScreenQA() {
                       {isBox ? (
                         <div className="w-full h-full border-dashed border border-slate-400 bg-slate-400/10">
                           <div className="absolute -left-3 -top-3 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white bg-slate-400 ring-2 ring-white">
-                            {pin.id}
+                            {pinNumber}
                           </div>
                         </div>
                       ) : (
                         <div className="absolute w-6 h-6 -ml-3 -mt-3 rounded-full flex items-center justify-center text-[10px] font-bold text-white bg-slate-400 ring-2 ring-white">
-                          {pin.id}
+                          {pinNumber}
                         </div>
                       )}
                     </div>
@@ -1105,7 +1106,7 @@ export default function ScreenQA() {
                                 : "bg-emerald-500 ring-2 ring-white"
                           }`}
                         >
-                          {isCompleted ? <Check className="w-3.5 h-3.5" /> : pin.id}
+                          {isCompleted ? <Check className="w-3.5 h-3.5" /> : pinNumber}
                         </div>
                       </div>
                     ) : (
@@ -1159,7 +1160,7 @@ export default function ScreenQA() {
               <div className="w-1.5 h-5 bg-[#0064fa] rounded-full shrink-0"></div>
               <span className="shrink-0">QA 이슈 상세</span>
               <span className="text-slate-400 font-medium ml-1 text-sm flex items-center gap-2 truncate">
-                <span className="shrink-0">(Pin #{activePinId || '-'})</span>
+                <span className="shrink-0">(Pin #{activePinId ? pins.findIndex(p => p.id === activePinId) + 1 : '-'})</span>
                 {(activePin?.createdAt || activePin?.comments?.[0]?.createdAt) && (
                   <div className="flex items-center gap-2 truncate">
                     <span className="text-slate-300 text-xs shrink-0">|</span>
