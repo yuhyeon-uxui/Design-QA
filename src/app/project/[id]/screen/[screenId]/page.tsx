@@ -257,24 +257,18 @@ export default function ScreenQA() {
         const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.50);
         
         setIsUploading(true);
-        const fileName = `screens/${params.id}/${activeScreenId}_${device}_${Date.now()}.jpg`;
         
-        fetch('/api/upload-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fileName, base64: compressedDataUrl })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) throw new Error(data.error);
-          updateActiveDeviceState({ actualImage: data.url });
+        // Firebase Storage 버킷이 생성되지 않아 404 에러가 발생하는 상태입니다.
+        // 압축률을 극대화했기 때문에(약 100KB 내외), Firestore의 1MB 문서 용량 제한에
+        // 걸리지 않으므로 직접 Firestore에 base64로 저장합니다.
+        try {
+          updateActiveDeviceState({ actualImage: compressedDataUrl });
           setIsUploading(false);
-        })
-        .catch((err: any) => {
-          console.error("Upload proxy error:", err);
+        } catch (err: any) {
+          console.error("Direct upload error:", err);
           setIsUploading(false);
           toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
-        });
+        }
       }
     };
     img.src = dataUrl;
