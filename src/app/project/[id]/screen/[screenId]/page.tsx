@@ -975,20 +975,9 @@ export default function ScreenQA() {
                 {actualImage && (
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">클릭하여 핀 추가</span>
-                    <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="h-8 text-xs font-semibold text-rose-600 border-rose-200 hover:bg-rose-50" onClick={() => {
-                    if (confirm("모든 핀을 삭제하시겠습니까? (이 작업은 되돌릴 수 없습니다)")) {
-                      setPins([]);
-                      setActivePinId(null);
-                    }
-                  }}>
-                    <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                    핀 전체 삭제
-                  </Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs font-semibold" onClick={() => setActualImage(null)}>
-                    이미지 다시 올리기
-                  </Button>
-                </div>
+                    <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => setActualImage(null)}>
+                      이미지 다시 올리기
+                    </Button>
                   </div>
                 )}
               </div>
