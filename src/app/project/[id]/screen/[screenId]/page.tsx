@@ -267,7 +267,11 @@ export default function ScreenQA() {
           const fileName = `screens/${params.id}/${activeScreenId}_${device}_${Date.now()}.jpg`;
           const storageRef = ref(storage, fileName);
           
-          uploadBytes(storageRef, blob).then(() => {
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("TIMEOUT")), 15000);
+          });
+          
+          Promise.race([uploadBytes(storageRef, blob), timeoutPromise]).then(() => {
             getDownloadURL(storageRef).then((downloadUrl) => {
               updateActiveDeviceState({ actualImage: downloadUrl });
               setIsUploading(false);
@@ -276,12 +280,16 @@ export default function ScreenQA() {
               setIsUploading(false);
               toast.error("이미지 주소를 가져오는데 실패했습니다.");
             });
-          }).catch((err) => {
+          }).catch((err: any) => {
             console.error("Upload error:", err);
             setIsUploading(false);
-            toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
+            if (err.message === "TIMEOUT") {
+              toast.error("업로드 시간이 초과되었습니다. 회사 네트워크 방화벽 문제이거나 인터넷이 불안정할 수 있습니다.");
+            } else {
+              toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
+            }
           });
-        }, "image/jpeg", 0.75);
+        }, "image/jpeg", 0.60);
       }
     };
     img.src = dataUrl;
