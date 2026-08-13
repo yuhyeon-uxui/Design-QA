@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
 import { collection, doc, onSnapshot, setDoc, getDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
@@ -132,6 +133,7 @@ export default function ScreenQA() {
   const [screens, setScreens] = useState(INITIAL_SCREENS);
   const [isMounted, setIsMounted] = useState(false);
   const [isExitAlertOpen, setIsExitAlertOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -225,16 +227,13 @@ export default function ScreenQA() {
       const canvas = document.createElement("canvas");
       let width = img.width;
       let height = img.height;
-      const MAX_WIDTH = width > height ? 1920 : 1080; // PC는 1920, 모바일(세로형)은 1080 기준으로 리사이징
-      const MAX_HEIGHT = 8192; // 파이어베이스 1MB 제한을 고려하여 세로 최대치 설정
+      const MAX_WIDTH = width > height ? 1920 : 1080;
+      const MAX_HEIGHT = 8192;
       
-      // 1. 먼저 가로 폭을 기준으로 리사이징 (모바일 캡처본이 지나치게 넓은 경우 방지)
       if (width > MAX_WIDTH) {
         height = Math.round(height * (MAX_WIDTH / width));
         width = MAX_WIDTH;
       }
-      
-      // 2. 가로를 맞췄음에도 세로가 너무 길다면 세로를 기준으로 한 번 더 리사이징
       if (height > MAX_HEIGHT) {
         width = Math.round(width * (MAX_HEIGHT / height));
         height = MAX_HEIGHT;
@@ -247,8 +246,26 @@ export default function ScreenQA() {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
-        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.80); // 고화질 적용하되 용량 최적화
-        updateActiveDeviceState({ actualImage: compressedDataUrl });
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.80);
+        
+        setIsUploading(true);
+        const fileName = `screens/${params.id}/${activeScreenId}_${device}_${Date.now()}.jpg`;
+        const storageRef = ref(storage, fileName);
+        
+        uploadString(storageRef, compressedDataUrl, 'data_url').then(() => {
+          getDownloadURL(storageRef).then((downloadUrl) => {
+            updateActiveDeviceState({ actualImage: downloadUrl });
+            setIsUploading(false);
+          }).catch((err) => {
+            console.error("Download URL fetch error:", err);
+            setIsUploading(false);
+            toast.error("이미지 주소를 가져오는데 실패했습니다.");
+          });
+        }).catch((err) => {
+          console.error("Upload error:", err);
+          setIsUploading(false);
+          toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
+        });
       }
     };
     img.src = dataUrl;
@@ -336,8 +353,6 @@ export default function ScreenQA() {
     const pinIdParam = searchParams.get('pinId');
     if (pinIdParam) {
       setActivePinId(Number(pinIdParam));
-      // Remove pinId from URL after applying it (optional, but good UX to not get stuck on it)
-      // router.replace(`/project/${params.id}/screen/${params.screenId}`, { scroll: false });
     } else {
       setActivePinId(null);
     }
@@ -408,7 +423,6 @@ export default function ScreenQA() {
     setIsMentionOpen(false);
   };
 
-  // 클립보드 붙여넣기 기능
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
@@ -433,7 +447,6 @@ export default function ScreenQA() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [device, activeScreenId]);
 
-  // removed activePin find here since it was moved up
   const totalScreens = screens.length;
   const completedScreens = screens.filter(s => s.issueCount === 0).length;
   const allPins = screens.flatMap(s => [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])]);
@@ -448,8 +461,8 @@ export default function ScreenQA() {
   const [currentRect, setCurrentRect] = useState<{x: number, y: number, w: number, h: number} | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!actualImage) return;
-    const rect = e.currentTarget.getBoundingClientRect();
+    if (!actualImage || !overlayRef.current) return;
+    const rect = overlayRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setIsDrawing(true);
@@ -458,8 +471,8 @@ export default function ScreenQA() {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDrawing || !drawStart) return;
-    const rect = e.currentTarget.getBoundingClientRect();
+    if (!isDrawing || !drawStart || !overlayRef.current) return;
+    const rect = overlayRef.current.getBoundingClientRect();
     const currentX = ((e.clientX - rect.left) / rect.width) * 100;
     const currentY = ((e.clientY - rect.top) / rect.height) * 100;
     
@@ -967,7 +980,7 @@ export default function ScreenQA() {
               onChange={handleFileUpload} 
             />
             <div className={`w-full bg-slate-50 border border-slate-200 shadow-md rounded-2xl relative overflow-y-auto overflow-x-hidden group ring-1 ring-black/5 custom-scrollbar ${maxWClass} ${aspectClass}`}>
-              {!actualImage ? (
+              {!actualImage && !isUploading ? (
                 // 파일 업로드 UI
                 <div className="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center hover:bg-slate-100 transition-colors">
                   <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4 shadow-sm border border-blue-100 cursor-pointer hover:scale-105 transition-transform" onClick={() => fileInputRef.current?.click()}>
@@ -981,10 +994,18 @@ export default function ScreenQA() {
                     내 PC에서 파일 찾기
                   </Button>
                 </div>
+              ) : isUploading ? (
+                <div className="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center z-50">
+                  <Loader2 className="w-8 h-8 animate-spin text-[#0064fa] mb-4" />
+                  <h3 className="text-base font-bold text-slate-800">고해상도 이미지 서버 저장 중...</h3>
+                  <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                    용량이 큰 이미지를 안전하게 업로드하고 있습니다.<br/>잠시만 기다려주세요.
+                  </p>
+                </div>
               ) : (
                 // 캡처 이미지 및 핀 영역
                 <div 
-                  className="relative w-full min-h-full cursor-crosshair"
+                  className="relative w-full cursor-crosshair"
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
@@ -993,7 +1014,7 @@ export default function ScreenQA() {
                   draggable={false}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={actualImage} alt="Actual Upload" className="w-full h-auto block pointer-events-none select-none" draggable={false} />
+                  <img src={actualImage || undefined} alt="Actual Upload" className="w-full h-auto block pointer-events-none select-none" draggable={false} />
                   
                   {isDrawing && currentRect && (
                     <div 
