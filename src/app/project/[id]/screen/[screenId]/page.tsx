@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { db, storage } from "@/lib/firebase";
 import { collection, doc, onSnapshot, setDoc, getDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { ref, uploadString, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
@@ -257,26 +257,31 @@ export default function ScreenQA() {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
-        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.80);
-        
         setIsUploading(true);
-        const fileName = `screens/${params.id}/${activeScreenId}_${device}_${Date.now()}.jpg`;
-        const storageRef = ref(storage, fileName);
-        
-        uploadString(storageRef, compressedDataUrl, 'data_url').then(() => {
-          getDownloadURL(storageRef).then((downloadUrl) => {
-            updateActiveDeviceState({ actualImage: downloadUrl });
+        canvas.toBlob((blob) => {
+          if (!blob) {
             setIsUploading(false);
+            toast.error("이미지 압축에 실패했습니다.");
+            return;
+          }
+          const fileName = `screens/${params.id}/${activeScreenId}_${device}_${Date.now()}.jpg`;
+          const storageRef = ref(storage, fileName);
+          
+          uploadBytes(storageRef, blob).then(() => {
+            getDownloadURL(storageRef).then((downloadUrl) => {
+              updateActiveDeviceState({ actualImage: downloadUrl });
+              setIsUploading(false);
+            }).catch((err) => {
+              console.error("Download URL fetch error:", err);
+              setIsUploading(false);
+              toast.error("이미지 주소를 가져오는데 실패했습니다.");
+            });
           }).catch((err) => {
-            console.error("Download URL fetch error:", err);
+            console.error("Upload error:", err);
             setIsUploading(false);
-            toast.error("이미지 주소를 가져오는데 실패했습니다.");
+            toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
           });
-        }).catch((err) => {
-          console.error("Upload error:", err);
-          setIsUploading(false);
-          toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
-        });
+        }, "image/jpeg", 0.75);
       }
     };
     img.src = dataUrl;
