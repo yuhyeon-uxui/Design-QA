@@ -144,7 +144,16 @@ export default function ScreenQA() {
     // Load screen data
     const unsubscribeScreens = onSnapshot(collection(db, "project_screens", params.id as string, "screens"), (snapshot) => {
       if (!snapshot.empty) {
-        const loaded = snapshot.docs.map(d => d.data() as ScreenData);
+        const loaded = snapshot.docs.map(d => {
+          const s = d.data() as ScreenData;
+          const allPins = isAppProject ? [...(s.PC?.pins || [])] : [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
+          if (allPins.length > 0) {
+            s.issueCount = allPins.filter(p => p.status !== "완료됨").length;
+          } else {
+            s.issueCount = -1;
+          }
+          return s;
+        });
         loaded.sort((a, b) => parseInt(a.id.replace('s','')) - parseInt(b.id.replace('s','')));
         setScreens(loaded);
         
@@ -184,7 +193,7 @@ export default function ScreenQA() {
     });
 
     return () => unsubscribeScreens();
-  }, [params.id]);
+  }, [params.id, isAppProject]);
 
   const handleUpdateProjectSettings = async (force: boolean = false) => {
     if (!params.id) return;
