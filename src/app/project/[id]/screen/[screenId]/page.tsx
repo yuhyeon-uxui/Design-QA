@@ -1149,8 +1149,8 @@ export default function ScreenQA() {
             </div>
           </div>
           
-          <div className="h-14 border-b flex items-center justify-between px-6 bg-slate-50 shrink-0">
-            <h2 className="font-bold text-base text-slate-800 flex items-center gap-2 whitespace-nowrap overflow-hidden">
+          <div className="border-b flex flex-col justify-center px-6 py-3.5 gap-3 bg-slate-50 shrink-0">
+            <h2 className="font-bold text-base text-slate-800 flex items-center gap-2 w-full overflow-hidden">
               <div className="w-1.5 h-5 bg-[#0064fa] rounded-full shrink-0"></div>
               <span className="shrink-0">QA 이슈 상세</span>
               <span className="text-slate-400 font-medium ml-1 text-sm flex items-center gap-2 truncate">
