@@ -371,6 +371,7 @@ export default function ScreenQA() {
         language: activePin.language || "한국어 (KR)",
         description: activePin.description || "",
         request: activePin.request || "",
+        devFeedback: activePin.devFeedback || "대기중",
         priority: activePin.priority || "High (크리티컬)",
         status: activePin.status || "이슈발생"
       });
@@ -653,13 +654,7 @@ export default function ScreenQA() {
       <header className="h-16 border-b bg-white px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
         <div className="flex items-center">
           <button 
-            onClick={() => {
-              if (unreviewedScreen) {
-                setIsExitAlertOpen(true);
-              } else {
-                router.push("/");
-              }
-            }}
+            onClick={() => router.push("/")}
             className="flex items-center justify-center hover:bg-slate-100 w-10 h-10 rounded-full transition-colors mr-1"
           >
             <ChevronLeft className="w-6 h-6 text-slate-700" />
@@ -1258,13 +1253,19 @@ export default function ScreenQA() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-bold text-slate-800">개발자 코멘트 / 피드백</Label>
-                    <Textarea 
-                      placeholder="개발자가 이슈를 확인하거나 수정한 후, QA 담당자에게 남길 피드백을 적어주세요." 
-                      className="resize-none h-20 text-sm bg-blue-50/40 border-blue-100 placeholder:text-blue-300 focus-visible:ring-blue-200" 
-                      value={localForm.devFeedback || ""}
-                      onChange={(e) => setLocalForm({...localForm, devFeedback: e.target.value})}
-                    />
+                    <Label className="text-sm font-bold text-slate-800">개발자 피드백 상태</Label>
+                    <Select value={localForm.devFeedback || "대기중"} onValueChange={(val) => setLocalForm({...localForm, devFeedback: val as string})}>
+                      <SelectTrigger className="h-10 text-sm bg-blue-50/40 border-blue-200 font-medium text-slate-800">
+                        <SelectValue placeholder="피드백 상태 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="대기중">대기중</SelectItem>
+                        <SelectItem value="수정완료 (확인요청)">수정완료 (확인요청)</SelectItem>
+                        <SelectItem value="이슈 아님 (정상작동)">이슈 아님 (정상작동)</SelectItem>
+                        <SelectItem value="디자인/기획 검토필요">디자인/기획 검토필요</SelectItem>
+                        <SelectItem value="기술적 구현불가">기술적 구현불가</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="grid grid-cols-2 gap-5">
