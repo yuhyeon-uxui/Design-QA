@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { db, storage } from "@/lib/firebase";
 import { collection, doc, onSnapshot, setDoc, getDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
-import { ref, uploadString, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
@@ -254,39 +254,34 @@ export default function ScreenQA() {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.60);
+        
         setIsUploading(true);
-        canvas.toBlob((blob) => {
-          if (!blob) {
+        const fileName = `screens/${params.id}/${activeScreenId}_${device}_${Date.now()}.jpg`;
+        const storageRef = ref(storage, fileName);
+        
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("TIMEOUT")), 60000); // 1 minute is plenty for small base64
+        });
+        
+        Promise.race([uploadString(storageRef, compressedDataUrl, 'data_url'), timeoutPromise]).then(() => {
+          getDownloadURL(storageRef).then((downloadUrl) => {
+            updateActiveDeviceState({ actualImage: downloadUrl });
             setIsUploading(false);
-            toast.error("이미지 압축에 실패했습니다.");
-            return;
+          }).catch((err) => {
+            console.error("Download URL fetch error:", err);
+            setIsUploading(false);
+            toast.error("이미지 주소를 가져오는데 실패했습니다.");
+          });
+        }).catch((err: any) => {
+          console.error("Upload error:", err);
+          setIsUploading(false);
+          if (err.message === "TIMEOUT") {
+            toast.error("업로드 시간이 초과되었습니다. 회사 네트워크 방화벽 문제이거나 인터넷이 불안정할 수 있습니다.");
+          } else {
+            toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
           }
-          const fileName = `screens/${params.id}/${activeScreenId}_${device}_${Date.now()}.jpg`;
-          const storageRef = ref(storage, fileName);
-          
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error("TIMEOUT")), 180000); // 3 minutes
-          });
-          
-          Promise.race([uploadBytesResumable(storageRef, blob), timeoutPromise]).then(() => {
-            getDownloadURL(storageRef).then((downloadUrl) => {
-              updateActiveDeviceState({ actualImage: downloadUrl });
-              setIsUploading(false);
-            }).catch((err) => {
-              console.error("Download URL fetch error:", err);
-              setIsUploading(false);
-              toast.error("이미지 주소를 가져오는데 실패했습니다.");
-            });
-          }).catch((err: any) => {
-            console.error("Upload error:", err);
-            setIsUploading(false);
-            if (err.message === "TIMEOUT") {
-              toast.error("업로드 시간이 초과되었습니다. 회사 네트워크 방화벽 문제이거나 인터넷이 불안정할 수 있습니다.");
-            } else {
-              toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
-            }
-          });
-        }, "image/jpeg", 0.50);
+        });
       }
     };
     img.src = dataUrl;
