@@ -37,6 +37,7 @@ interface Pin {
   language?: string;
   description?: string;
   request?: string;
+  devFeedback?: string;
   priority?: string;
   status?: string;
   createdAt?: string;
@@ -56,6 +57,7 @@ const PRESET_MEMBERS = [
   { id: "v6", name: "박현주 주임", role: "Dev" },
   { id: "v7", name: "배은덕 부장", role: "Dev" },
   { id: "v8", name: "정시영 과장", role: "Dev" },
+  { id: "o1", name: "외주사", role: "Partner" },
 ];
 
 const renderTextWithMentions = (text: string) => {
@@ -461,8 +463,8 @@ export default function ScreenQA() {
   const [currentRect, setCurrentRect] = useState<{x: number, y: number, w: number, h: number} | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!actualImage || !overlayRef.current) return;
-    const rect = overlayRef.current.getBoundingClientRect();
+    if (!actualImage) return;
+    const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setIsDrawing(true);
@@ -471,8 +473,8 @@ export default function ScreenQA() {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDrawing || !drawStart || !overlayRef.current) return;
-    const rect = overlayRef.current.getBoundingClientRect();
+    if (!isDrawing || !drawStart) return;
+    const rect = e.currentTarget.getBoundingClientRect();
     const currentX = ((e.clientX - rect.left) / rect.width) * 100;
     const currentY = ((e.clientY - rect.top) / rect.height) * 100;
     
@@ -1166,32 +1168,25 @@ export default function ScreenQA() {
                 )}
               </span>
             </h2>
-            {activePinId && (
-              <Button variant="ghost" size="sm" onClick={handleDeletePin} className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 px-2.5 font-bold">
-                <Trash2 className="w-4 h-4 mr-1.5" />
-                핀 삭제
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              <Link href={figmaUrl ? (figmaUrl.includes('mode=dev') ? figmaUrl : figmaUrl.includes('?') ? `${figmaUrl}&mode=dev` : `${figmaUrl}?mode=dev`) : "#"} target="_blank">
+                <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-bold text-[#0064fa] border-[#0064fa]/30 hover:bg-[#EEF2FF]" disabled={!figmaUrl}>
+                  <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                  피그마 Inspect 
+                </Button>
+              </Link>
+              {activePinId && (
+                <Button variant="ghost" size="sm" onClick={handleDeletePin} className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 px-2.5 font-bold">
+                  <Trash2 className="w-4 h-4 mr-1.5" />
+                  핀 삭제
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6">
               {activePinId && activePin ? (
                 <div className="space-y-7 animate-in fade-in slide-in-from-right-2 duration-200">
-                  
-                  <div className="bg-[#F8FAFC] border border-slate-200 p-4 rounded-xl shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-slate-800">개발자 전용</span>
-                    </div>
-                    <p className="text-xs text-slate-500 mb-3 leading-relaxed">
-                      컴포넌트 수치를 피그마에서 바로 확인하고 수정하세요.
-                    </p>
-                    <Link href={figmaUrl ? (figmaUrl.includes('mode=dev') ? figmaUrl : figmaUrl.includes('?') ? `${figmaUrl}&mode=dev` : `${figmaUrl}?mode=dev`) : "#"} target="_blank">
-                      <Button size="sm" variant="outline" className="w-full h-9 text-xs font-bold text-[#0064fa] border-[#0064fa]/30 hover:bg-[#EEF2FF]" disabled={!figmaUrl}>
-                        <ExternalLink className="w-3.5 h-3.5 mr-2" />
-                        피그마 Inspect 모드로 열기
-                      </Button>
-                    </Link>
-                  </div>
 
                   {!isAppProject && (
                     <div className="space-y-2">
@@ -1259,6 +1254,16 @@ export default function ScreenQA() {
                       className="resize-none h-24 text-sm bg-slate-50/50" 
                       value={localForm.request || ""}
                       onChange={(e) => setLocalForm({...localForm, request: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-800">개발자 코멘트 / 피드백</Label>
+                    <Textarea 
+                      placeholder="개발자가 이슈를 확인하거나 수정한 후, QA 담당자에게 남길 피드백을 적어주세요." 
+                      className="resize-none h-20 text-sm bg-blue-50/40 border-blue-100 placeholder:text-blue-300 focus-visible:ring-blue-200" 
+                      value={localForm.devFeedback || ""}
+                      onChange={(e) => setLocalForm({...localForm, devFeedback: e.target.value})}
                     />
                   </div>
 
