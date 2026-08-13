@@ -296,7 +296,7 @@ export default function ScreenQA() {
           const updatedDeviceState = { ...s[device], ...updates };
           const newScreen = { ...s, [device]: updatedDeviceState };
           
-          const allPins = [...(newScreen.PC?.pins || []), ...(newScreen.Mobile?.pins || [])];
+          const allPins = isAppProject ? [...(newScreen.PC?.pins || [])] : [...(newScreen.PC?.pins || []), ...(newScreen.Mobile?.pins || [])];
           if (allPins.length > 0) {
             newScreen.issueCount = allPins.filter(p => p.status !== "완료됨").length;
           } else {
@@ -317,7 +317,7 @@ export default function ScreenQA() {
         let completedScreensCount = 0;
         nextScreens.forEach(screen => {
           if (screen.issueCount === 0) completedScreensCount++;
-          const allPins = [...(screen.PC?.pins || []), ...(screen.Mobile?.pins || [])];
+          const allPins = isAppProject ? [...(screen.PC?.pins || [])] : [...(screen.PC?.pins || []), ...(screen.Mobile?.pins || [])];
           totalIssues += allPins.length;
           totalCompleted += allPins.filter(p => p.status === "완료됨").length;
         });
@@ -452,7 +452,7 @@ export default function ScreenQA() {
 
   const totalScreens = screens.length;
   const completedScreens = screens.filter(s => s.issueCount === 0).length;
-  const allPins = screens.flatMap(s => [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])]);
+  const allPins = screens.flatMap(s => isAppProject ? [...(s.PC?.pins || [])] : [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])]);
   const totalIssues = allPins.length;
   const completedIssues = allPins.filter(p => p.status === "완료됨").length;
   const totalTasks = totalScreens + totalIssues;
@@ -644,7 +644,7 @@ export default function ScreenQA() {
 
   const unreviewedScreen = screens.find(s => {
     if (s.issueCount === -1) return true;
-    const allPins = [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
+    const allPins = isAppProject ? [...(s.PC?.pins || [])] : [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
     return allPins.some(p => !(p.description || "").trim() && !(p.request || "").trim());
   });
   const exitAlertType = unreviewedScreen?.issueCount === -1 ? 'no-image' : 'empty-pin';
@@ -843,7 +843,7 @@ export default function ScreenQA() {
                             let completedScreensCount = 0;
                             nextScreens.forEach(s => {
                               if (s.issueCount === 0) completedScreensCount++;
-                              const allPins = [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
+                              const allPins = isAppProject ? [...(s.PC?.pins || [])] : [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
                               totalIssues += allPins.length;
                               totalCompleted += allPins.filter(p => p.status === "완료됨").length;
                             });
