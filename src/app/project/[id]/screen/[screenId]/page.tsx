@@ -238,7 +238,7 @@ export default function ScreenQA() {
       const canvas = document.createElement("canvas");
       let width = img.width;
       let height = img.height;
-      const MAX_PIXELS = 1500000; // Cap at 1.5 megapixels
+      const MAX_PIXELS = 800000; // Cap at 800k pixels for very small file size
       
       const currentPixels = width * height;
       if (currentPixels > MAX_PIXELS) {
@@ -254,17 +254,13 @@ export default function ScreenQA() {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
-        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.60);
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.50);
         
         setIsUploading(true);
         const fileName = `screens/${params.id}/${activeScreenId}_${device}_${Date.now()}.jpg`;
         const storageRef = ref(storage, fileName);
         
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error("TIMEOUT")), 60000); // 1 minute is plenty for small base64
-        });
-        
-        Promise.race([uploadString(storageRef, compressedDataUrl, 'data_url'), timeoutPromise]).then(() => {
+        uploadString(storageRef, compressedDataUrl, 'data_url').then(() => {
           getDownloadURL(storageRef).then((downloadUrl) => {
             updateActiveDeviceState({ actualImage: downloadUrl });
             setIsUploading(false);
@@ -276,11 +272,7 @@ export default function ScreenQA() {
         }).catch((err: any) => {
           console.error("Upload error:", err);
           setIsUploading(false);
-          if (err.message === "TIMEOUT") {
-            toast.error("업로드 시간이 초과되었습니다. 회사 네트워크 방화벽 문제이거나 인터넷이 불안정할 수 있습니다.");
-          } else {
-            toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
-          }
+          toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
         });
       }
     };
