@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { db, storage } from "@/lib/firebase";
 import { collection, doc, onSnapshot, setDoc, getDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
-import { ref, uploadString, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadString, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
@@ -268,10 +268,10 @@ export default function ScreenQA() {
           const storageRef = ref(storage, fileName);
           
           const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error("TIMEOUT")), 15000);
+            setTimeout(() => reject(new Error("TIMEOUT")), 60000);
           });
           
-          Promise.race([uploadBytes(storageRef, blob), timeoutPromise]).then(() => {
+          Promise.race([uploadBytesResumable(storageRef, blob), timeoutPromise]).then(() => {
             getDownloadURL(storageRef).then((downloadUrl) => {
               updateActiveDeviceState({ actualImage: downloadUrl });
               setIsUploading(false);
@@ -289,7 +289,7 @@ export default function ScreenQA() {
               toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
             }
           });
-        }, "image/jpeg", 0.60);
+        }, "image/jpeg", 0.70);
       }
     };
     img.src = dataUrl;
