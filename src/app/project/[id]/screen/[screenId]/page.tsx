@@ -238,16 +238,13 @@ export default function ScreenQA() {
       const canvas = document.createElement("canvas");
       let width = img.width;
       let height = img.height;
-      const MAX_WIDTH = width > height ? 1920 : 1080;
-      const MAX_HEIGHT = 8192;
+      const MAX_PIXELS = 1500000; // Cap at 1.5 megapixels
       
-      if (width > MAX_WIDTH) {
-        height = Math.round(height * (MAX_WIDTH / width));
-        width = MAX_WIDTH;
-      }
-      if (height > MAX_HEIGHT) {
-        width = Math.round(width * (MAX_HEIGHT / height));
-        height = MAX_HEIGHT;
+      const currentPixels = width * height;
+      if (currentPixels > MAX_PIXELS) {
+        const ratio = Math.sqrt(MAX_PIXELS / currentPixels);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
       }
       
       canvas.width = width;
@@ -268,7 +265,7 @@ export default function ScreenQA() {
           const storageRef = ref(storage, fileName);
           
           const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error("TIMEOUT")), 60000);
+            setTimeout(() => reject(new Error("TIMEOUT")), 180000); // 3 minutes
           });
           
           Promise.race([uploadBytesResumable(storageRef, blob), timeoutPromise]).then(() => {
@@ -289,7 +286,7 @@ export default function ScreenQA() {
               toast.error("이미지 업로드에 실패했습니다. 용량이 너무 크거나 네트워크 문제일 수 있습니다.");
             }
           });
-        }, "image/jpeg", 0.70);
+        }, "image/jpeg", 0.50);
       }
     };
     img.src = dataUrl;
