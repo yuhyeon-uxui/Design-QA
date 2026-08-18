@@ -1051,7 +1051,7 @@ export default function ScreenQA() {
         {/* Center: Split View (Figma vs Capture) */}
         {(() => {
           const isWidePCLayout = device === 'PC' && !isAppProject;
-          const wrapperClass = isWidePCLayout ? "flex-col overflow-y-auto gap-8 pb-12 px-8 items-center" : "flex-row overflow-x-auto gap-8 pb-2";
+          const wrapperClass = isWidePCLayout ? "flex-col overflow-y-auto gap-8 pb-12 px-8 items-center" : "flex-row justify-center overflow-x-auto gap-12 pb-2 px-8";
           const maxWClass = isWidePCLayout ? "max-w-5xl" : "max-w-[420px]";
           const aspectClass = isWidePCLayout ? "aspect-[16/9]" : "aspect-[9/19]";
           const headerContainerClass = isWidePCLayout ? "w-full mb-3 flex flex-col justify-end" : "w-full mb-5 h-[120px] flex flex-col justify-end";
@@ -1060,7 +1060,7 @@ export default function ScreenQA() {
             <div className={`flex-1 flex relative ${wrapperClass}`}>
               
               {/* Figma View (API Fetch Area) */}
-              <div className={`flex flex-col items-center w-full order-2 ${isWidePCLayout ? 'flex-none' : 'flex-1'}`}>
+              <div className={`flex flex-col w-full shrink-0 order-2 ${isWidePCLayout ? 'flex-none max-w-5xl' : 'max-w-[420px]'}`}>
                 <div className={`${isWidePCLayout ? 'w-full mb-3 flex flex-col justify-end' : 'w-full mb-5 h-[120px] flex flex-col justify-end'} ${maxWClass}`}>
               <div className={`bg-white px-5 py-3 border-x border-t shadow-sm flex items-center justify-between shrink-0 ${figmaImageUrl ? 'rounded-xl border-b mb-3' : 'rounded-t-xl'}`}>
                 <div className="flex items-center gap-2">
@@ -1128,7 +1128,7 @@ export default function ScreenQA() {
           </div>
 
           {/* Actual Capture View */}
-          <div className={`flex flex-col items-center w-full order-1 ${isWidePCLayout ? 'flex-none' : 'flex-1'}`}>
+          <div className={`flex flex-col w-full shrink-0 order-1 ${isWidePCLayout ? 'flex-none max-w-5xl' : 'max-w-[420px]'}`}>
             <div className={`${headerContainerClass} ${maxWClass}`}>
               <div className="bg-white px-5 py-3 rounded-xl border shadow-sm flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
