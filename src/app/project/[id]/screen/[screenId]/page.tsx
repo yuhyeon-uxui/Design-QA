@@ -8,13 +8,14 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Check, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings, RefreshCw } from "lucide-react";
+import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Check, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
 
 interface Comment {
   id: number;
@@ -60,6 +61,169 @@ const PRESET_MEMBERS = [
   { id: "o1", name: "외주사", role: "Partner" },
 ];
 
+function ScreenItem({ screen, index, activeScreenId, setActiveScreenId, device, screens, setScreens, params, db }: any) {
+  const moveUp = (e: any) => {
+    e.stopPropagation();
+    if (index === 0) return;
+    setScreens((prev: any) => {
+      const newItems = [...prev];
+      const temp = newItems[index];
+      newItems[index] = newItems[index - 1];
+      newItems[index - 1] = temp;
+      
+      const batch = import("firebase/firestore").then(({ writeBatch, doc }) => {
+        const batch = writeBatch(db);
+        newItems.forEach((item, i) => {
+          item.order = i;
+          if (params.id) {
+            batch.set(doc(db, "project_screens", params.id, "screens", item.id), { order: i }, { merge: true });
+          }
+        });
+        if (params.id) batch.commit().catch(console.error);
+      });
+      return newItems;
+    });
+  };
+
+  const moveDown = (e: any) => {
+    e.stopPropagation();
+    if (index === screens.length - 1) return;
+    setScreens((prev: any) => {
+      const newItems = [...prev];
+      const temp = newItems[index];
+      newItems[index] = newItems[index + 1];
+      newItems[index + 1] = temp;
+      
+      const batch = import("firebase/firestore").then(({ writeBatch, doc }) => {
+        const batch = writeBatch(db);
+        newItems.forEach((item, i) => {
+          item.order = i;
+          if (params.id) {
+            batch.set(doc(db, "project_screens", params.id, "screens", item.id), { order: i }, { merge: true });
+          }
+        });
+        if (params.id) batch.commit().catch(console.error);
+      });
+      return newItems;
+    });
+  };
+
+  return (
+    <div className="relative group flex items-center bg-white rounded-lg overflow-hidden">
+      <div className="flex flex-col border-r border-slate-100 bg-slate-50/50 items-center justify-center h-full w-8 shrink-0">
+        <button 
+          onClick={moveUp} 
+          disabled={index === 0}
+          className="flex-1 flex items-center justify-center w-full text-slate-400 hover:text-[#0064fa] hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
+        >
+          <ChevronUp className="w-4 h-4" />
+        </button>
+        <div className="h-px w-4 bg-slate-200"></div>
+        <button 
+          onClick={moveDown} 
+          disabled={index === screens.length - 1}
+          className="flex-1 flex items-center justify-center w-full text-slate-400 hover:text-[#0064fa] hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
+        >
+          <ChevronDown className="w-4 h-4" />
+        </button>
+      </div>
+      <div
+        onClick={() => setActiveScreenId(screen.id)}
+        className={`flex-1 text-left p-2.5 flex items-center gap-3 transition-colors pr-8 cursor-pointer ${
+          activeScreenId === screen.id 
+            ? "bg-[#EEF2FF] border-[#0064fa]/20 border ring-1 ring-[#0064fa]/10 shadow-sm" 
+            : "hover:bg-slate-50 border border-transparent"
+        }`}
+      >
+        <div className="w-11 h-16 bg-slate-200 rounded border shrink-0 overflow-hidden relative">
+           {screen[device].actualImage ? (
+             <img src={screen[device].actualImage} alt="" className="w-full h-full object-cover pointer-events-none" draggable={false} />
+           ) : (
+             <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 pointer-events-none"></div>
+           )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <input
+            className={`w-full bg-transparent text-sm font-semibold outline-none focus:ring-1 focus:ring-[#0064fa]/30 rounded px-1 -ml-1 ${activeScreenId === screen.id ? 'text-[#0064fa]' : 'text-slate-700'}`}
+            value={screen.name}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => {
+              setScreens((prev: any) => prev.map((s: any) => s.id === screen.id ? { ...s, name: e.target.value } : s));
+            }}
+            onBlur={() => {
+              if (params.id && screen.name.trim()) {
+                import("firebase/firestore").then(({ doc, setDoc }) => {
+                  setDoc(doc(db, "project_screens", params.id as string, "screens", screen.id), { name: screen.name }, { merge: true }).catch(console.error);
+                });
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.currentTarget.blur();
+              }
+            }}
+          />
+          <div className="mt-1.5">
+            {screen.issueCount === -1 ? (
+              <span className="inline-flex items-center text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5"></span>확인 대기
+              </span>
+            ) : screen.issueCount === 0 ? (
+              <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                <CheckCircle2 className="w-3 h-3 mr-1"/>완료됨
+              </span>
+            ) : (
+              <span className="inline-flex items-center text-[10px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded">
+                잔여 이슈 {screen.issueCount}건
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+      {screens.length > 1 && (
+        <button
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-all flex items-center justify-center rounded-md"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            setScreens((prev: any) => {
+              const nextScreens = prev.filter((s: any) => s.id !== screen.id);
+              if (params.id) {
+                import("firebase/firestore").then(({ doc, deleteDoc, setDoc }) => {
+                  deleteDoc(doc(db, "project_screens", params.id as string, "screens", screen.id)).catch(console.error);
+                  
+                  let totalIssues = 0;
+                  let totalCompleted = 0;
+                  let completedScreensCount = 0;
+                  nextScreens.forEach((s: any) => {
+                    if (s.issueCount === 0) completedScreensCount++;
+                    const allPins = s.PC ? (s.PC.pins ? [...s.PC.pins] : []) : [];
+                    if (s.Mobile && s.Mobile.pins) allPins.push(...s.Mobile.pins);
+                    totalIssues += allPins.length;
+                    totalCompleted += allPins.filter((p: any) => p.status === "완료됨").length;
+                  });
+                  setDoc(doc(db, "projects", params.id as string), {
+                    screensCount: nextScreens.length,
+                    completedScreensCount: completedScreensCount,
+                    issuesCount: totalIssues,
+                    completedCount: totalCompleted,
+                  }, { merge: true }).catch(console.error);
+                });
+              }
+              return nextScreens;
+            });
+            if (activeScreenId === screen.id) {
+              setActiveScreenId(screens.find((s: any) => s.id !== screen.id)?.id || "");
+            }
+          }}
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+  );
+}
 const renderTextWithMentions = (text: string) => {
   if (!text) return text;
   const membersRegex = new RegExp(`(@(?:${PRESET_MEMBERS.map(m => m.name.replace(/[-/\\\\^$*+?.()|[\\]{}]/g, '\\$&')).join('|')}))`, 'g');
@@ -81,6 +245,7 @@ interface ScreenData {
   issueCount: number;
   PC: ScreenDeviceState;
   Mobile: ScreenDeviceState;
+  order?: number;
 }
 
 const emptyDeviceState: ScreenDeviceState = {
@@ -136,6 +301,9 @@ export default function ScreenQA() {
   const [isMounted, setIsMounted] = useState(false);
   const [isExitAlertOpen, setIsExitAlertOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isOriginalView, setIsOriginalView] = useState(false);
+
+  
 
   useEffect(() => {
     setIsMounted(true);
@@ -154,7 +322,10 @@ export default function ScreenQA() {
           }
           return s;
         });
-        loaded.sort((a, b) => parseInt(a.id.replace('s','')) - parseInt(b.id.replace('s','')));
+        loaded.sort((a, b) => {
+          if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
+          return parseInt(a.id.replace('s','')) - parseInt(b.id.replace('s',''));
+        });
         setScreens(loaded);
         
         const completedScreensCount = loaded.filter(s => s.issueCount === 0).length;
@@ -389,7 +560,7 @@ export default function ScreenQA() {
   const handleSavePinDetails = () => {
     if (!activePinId) return;
 
-    if (!localForm.description?.trim()) {
+    if (localForm.status !== "특이사항 없음" && !localForm.description?.trim()) {
       toast.error("문제점 설명을 입력해주세요.", { id: "save-error" });
       return;
     }
@@ -746,10 +917,10 @@ export default function ScreenQA() {
             </div>
             <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-[#0064fa] hover:bg-slate-200" onClick={() => {
               const newId = `s${Date.now()}`;
-              const newScreen = { id: newId, name: "새로운 화면", issueCount: -1, PC: { ...emptyDeviceState }, Mobile: { ...emptyDeviceState } };
+              const newScreen: ScreenData = { id: newId, name: "새로운 화면", issueCount: -1, PC: { ...emptyDeviceState }, Mobile: { ...emptyDeviceState }, order: screens.length };
               
               setScreens(prev => {
-                const nextScreens = [newScreen, ...prev];
+                const nextScreens = [...prev, newScreen];
                 if (params.id) {
                   setDoc(doc(db, "project_screens", params.id as string, "screens", newId), newScreen, { merge: true }).catch(console.error);
                   
@@ -967,6 +1138,14 @@ export default function ScreenQA() {
                 {actualImage && (
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">클릭하여 핀 추가</span>
+                    <Button 
+                      variant={isOriginalView ? "default" : "outline"} 
+                      size="sm" 
+                      className={`h-7 text-xs px-3 ${isOriginalView ? "bg-[#0064fa] hover:bg-[#0064fa]/90 text-white" : "bg-white text-slate-600"}`} 
+                      onClick={() => setIsOriginalView(!isOriginalView)}
+                    >
+                      원본 보기
+                    </Button>
                     <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => setActualImage(null)}>
                       이미지 다시 올리기
                     </Button>
@@ -1032,7 +1211,7 @@ export default function ScreenQA() {
                   )}
                   
                   {/* Pins overlay (moved inside inner div to sync with image height) */}
-                  {pins.map((pin, index) => {
+                  {!isOriginalView && pins.map((pin, index) => {
                 const isBox = pin.width !== undefined && pin.height !== undefined && pin.width > 0.5 && pin.height > 0.5;
                 const isActive = activePinId === pin.id;
                 const isCompleted = pin.status === "완료됨";
@@ -1239,25 +1418,29 @@ export default function ScreenQA() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm font-bold text-slate-800">문제점 설명</Label>
-                    <Textarea 
-                      placeholder="시안과 다르게 구현된 부분을 적어주세요." 
-                      className="resize-none h-24 text-sm bg-slate-50/50" 
-                      value={localForm.description || ""}
-                      onChange={(e) => setLocalForm({...localForm, description: e.target.value})}
-                    />
-                  </div>
+                  {localForm.status !== "특이사항 없음" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-bold text-slate-800">문제점 설명</Label>
+                        <Textarea 
+                          placeholder="시안과 다르게 구현된 부분을 적어주세요." 
+                          className="resize-none h-24 text-sm bg-slate-50/50" 
+                          value={localForm.description || ""}
+                          onChange={(e) => setLocalForm({...localForm, description: e.target.value})}
+                        />
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm font-bold text-slate-800">수정 요청사항</Label>
-                    <Textarea 
-                      placeholder="어떻게 수정해야 하는지 구체적으로 적어주세요." 
-                      className="resize-none h-24 text-sm bg-slate-50/50" 
-                      value={localForm.request || ""}
-                      onChange={(e) => setLocalForm({...localForm, request: e.target.value})}
-                    />
-                  </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-bold text-slate-800">수정 요청사항</Label>
+                        <Textarea 
+                          placeholder="어떻게 수정해야 하는지 구체적으로 적어주세요." 
+                          className="resize-none h-24 text-sm bg-slate-50/50" 
+                          value={localForm.request || ""}
+                          onChange={(e) => setLocalForm({...localForm, request: e.target.value})}
+                        />
+                      </div>
+                    </>
+                  )}
 
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-800">개발자 피드백</Label>
@@ -1320,6 +1503,7 @@ export default function ScreenQA() {
                           <SelectItem value="확인/검토중">확인/검토중</SelectItem>
                           <SelectItem value="수정완료">수정완료</SelectItem>
                           <SelectItem value="완료됨">완료됨</SelectItem>
+                          <SelectItem value="특이사항 없음">특이사항 없음</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
