@@ -201,7 +201,7 @@ function ScreenItem({ screen, index, activeScreenId, setActiveScreenId, device, 
                     const allPins = s.PC ? (s.PC.pins ? [...s.PC.pins] : []) : [];
                     if (s.Mobile && s.Mobile.pins) allPins.push(...s.Mobile.pins);
                     totalIssues += allPins.length;
-                    totalCompleted += allPins.filter((p: any) => p.status === "완료됨").length;
+                    totalCompleted += allPins.filter((p: any) => (p.status === "완료됨" || p.status === "특이사항 없음")).length;
                   });
                   setDoc(doc(db, "projects", params.id as string), {
                     screensCount: nextScreens.length,
@@ -316,7 +316,7 @@ export default function ScreenQA() {
           const s = d.data() as ScreenData;
           const allPins = isAppProject ? [...(s.PC?.pins || [])] : [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
           if (allPins.length > 0) {
-            s.issueCount = allPins.filter(p => p.status !== "완료됨").length;
+            s.issueCount = allPins.filter(p => p.status !== "완료됨" && p.status !== "특이사항 없음").length;
           } else {
             s.issueCount = -1;
           }
@@ -470,7 +470,7 @@ export default function ScreenQA() {
           
           const allPins = isAppProject ? [...(newScreen.PC?.pins || [])] : [...(newScreen.PC?.pins || []), ...(newScreen.Mobile?.pins || [])];
           if (allPins.length > 0) {
-            newScreen.issueCount = allPins.filter(p => p.status !== "완료됨").length;
+            newScreen.issueCount = allPins.filter(p => p.status !== "완료됨" && p.status !== "특이사항 없음").length;
           } else {
             newScreen.issueCount = -1;
           }
@@ -495,7 +495,7 @@ export default function ScreenQA() {
           if (screen.issueCount === 0) completedScreensCount++;
           const allPins = isAppProject ? [...(screen.PC?.pins || [])] : [...(screen.PC?.pins || []), ...(screen.Mobile?.pins || [])];
           totalIssues += allPins.length;
-          totalCompleted += allPins.filter(p => p.status === "완료됨").length;
+          totalCompleted += allPins.filter(p => (p.status === "완료됨" || p.status === "특이사항 없음")).length;
         });
         const cleanProjectData = JSON.parse(JSON.stringify({
           screensCount: nextScreens.length,
@@ -631,7 +631,7 @@ export default function ScreenQA() {
   const completedScreens = screens.filter(s => s.issueCount === 0).length;
   const allPins = screens.flatMap(s => isAppProject ? [...(s.PC?.pins || [])] : [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])]);
   const totalIssues = allPins.length;
-  const completedIssues = allPins.filter(p => p.status === "완료됨").length;
+  const completedIssues = allPins.filter(p => (p.status === "완료됨" || p.status === "특이사항 없음")).length;
   const totalTasks = totalScreens + totalIssues;
   const completedTasks = completedScreens + completedIssues;
   const progressRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
@@ -931,7 +931,7 @@ export default function ScreenQA() {
                     if (s.issueCount === 0) completedScreensCount++;
                     const allPins = [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
                     totalIssues += allPins.length;
-                    totalCompleted += allPins.filter(p => p.status === "완료됨").length;
+                    totalCompleted += allPins.filter(p => (p.status === "완료됨" || p.status === "특이사항 없음")).length;
                   });
                   setDoc(doc(db, "projects", params.id as string), {
                     screensCount: nextScreens.length,
@@ -1022,7 +1022,7 @@ export default function ScreenQA() {
                               if (s.issueCount === 0) completedScreensCount++;
                               const allPins = isAppProject ? [...(s.PC?.pins || [])] : [...(s.PC?.pins || []), ...(s.Mobile?.pins || [])];
                               totalIssues += allPins.length;
-                              totalCompleted += allPins.filter(p => p.status === "완료됨").length;
+                              totalCompleted += allPins.filter(p => (p.status === "완료됨" || p.status === "특이사항 없음")).length;
                             });
                             setDoc(doc(db, "projects", params.id as string), {
                               screensCount: nextScreens.length,
@@ -1214,7 +1214,7 @@ export default function ScreenQA() {
                   {!isOriginalView && pins.map((pin, index) => {
                 const isBox = pin.width !== undefined && pin.height !== undefined && pin.width > 0.5 && pin.height > 0.5;
                 const isActive = activePinId === pin.id;
-                const isCompleted = pin.status === "완료됨";
+                const isCompleted = (pin.status === "완료됨" || pin.status === "특이사항 없음");
                 const pinNumber = index + 1;
                 
                 // Search filter logic
