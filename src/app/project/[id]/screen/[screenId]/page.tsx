@@ -1150,6 +1150,17 @@ export default function ScreenQA() {
                     <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => setIsReuploadAlertOpen(true)}>
                       이미지 다시 올리기
                     </Button>
+                    <Button variant="outline" size="sm" className="h-7 text-xs px-2 text-rose-500 border-rose-200 hover:bg-rose-50" onClick={() => {
+                      const validPins = pins.filter(p => p.x >= 0 && p.x <= 100 && p.y >= 0 && p.y <= 100);
+                      if (validPins.length !== pins.length) {
+                        setPins(validPins);
+                        alert("화면 밖으로 벗어난 유령 핀 " + (pins.length - validPins.length) + "개를 삭제했습니다.");
+                      } else {
+                        alert("숨겨진 유령 핀이 없습니다.");
+                      }
+                    }}>
+                      유령 핀 정리
+                    </Button>
                   </div>
                 )}
               </div>
@@ -1233,7 +1244,8 @@ export default function ScreenQA() {
                       key={pin.id}
                       className="absolute z-10 opacity-20 pointer-events-none transition-opacity"
                       style={{ 
-                        left: `${pin.x}%`, top: `${pin.y}%`,
+                      left: `${Math.max(0, Math.min(100, pin.x))}%`, 
+                      top: `${Math.max(0, Math.min(100, pin.y))}%`,
                         width: isBox ? `${pin.width}%` : undefined,
                         height: isBox ? `${pin.height}%` : undefined,
                       }}
@@ -1258,8 +1270,8 @@ export default function ScreenQA() {
                     key={pin.id}
                     className="absolute z-10 group"
                     style={{ 
-                      left: `${pin.x}%`, 
-                      top: `${pin.y}%`,
+                      left: `${Math.max(0, Math.min(100, pin.x))}%`, 
+                      top: `${Math.max(0, Math.min(100, pin.y))}%`,
                       width: isBox ? `${pin.width}%` : undefined,
                       height: isBox ? `${pin.height}%` : undefined,
                     }}
