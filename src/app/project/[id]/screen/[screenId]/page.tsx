@@ -300,6 +300,7 @@ export default function ScreenQA() {
   const [screens, setScreens] = useState(INITIAL_SCREENS);
   const [isMounted, setIsMounted] = useState(false);
   const [isExitAlertOpen, setIsExitAlertOpen] = useState(false);
+  const [isReuploadAlertOpen, setIsReuploadAlertOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isOriginalView, setIsOriginalView] = useState(false);
 
@@ -1146,7 +1147,7 @@ export default function ScreenQA() {
                     >
                       원본 보기
                     </Button>
-                    <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => setActualImage(null)}>
+                    <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => setIsReuploadAlertOpen(true)}>
                       이미지 다시 올리기
                     </Button>
                   </div>
@@ -1746,6 +1747,19 @@ export default function ScreenQA() {
         onCancel={() => setIsProjectDeleteAlertOpen(false)}
         onConfirm={confirmDeleteProject}
         variant="2-button"
+      />
+
+      <CustomAlert 
+        isOpen={isReuploadAlertOpen}
+        title="이미지 다시 올리기"
+        description={<>현재 올려둔 테스트 화면 이미지가 모두 지워집니다.<br/>정말 다시 올리시겠습니까?</>}
+        onCancel={() => setIsReuploadAlertOpen(false)}
+        onConfirm={() => {
+          setActualImage(null);
+          setIsReuploadAlertOpen(false);
+        }}
+        confirmText="다시 올리기"
+        cancelText="취소"
       />
 
       <CustomAlert 
