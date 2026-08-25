@@ -109,6 +109,7 @@ export default function Dashboard() {
         Mobile: { ...emptyDeviceState } 
       };
       await setDoc(doc(db, "project_screens", newId, "screens", "s1"), initialScreen);
+      trackEvent("click_add_project", { platform: newProject.platform });
 
       setIsModalOpen(false);
       setNewProjectName("");

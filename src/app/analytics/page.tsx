@@ -63,6 +63,23 @@ export default function AnalyticsDashboard() {
   const completedIssues = allPins.filter(pin => pin.status === "완료됨").length;
   const resolutionRate = totalIssues > 0 ? Math.round((completedIssues / totalIssues) * 100) : 0;
   
+  // 1-1. 평균 QA 소요 시간 (완료된 핀 기준)
+  const resolvedPinsWithTime = allPins.filter(pin => pin.status === "완료됨" && pin.createdAt && pin.updatedAt);
+  let averageResolutionHours = 0;
+  if (resolvedPinsWithTime.length > 0) {
+    const totalTimeDiff = resolvedPinsWithTime.reduce((acc, pin) => {
+      // updatedAt과 createdAt이 ISO string인지 확인
+      const start = new Date(pin.createdAt).getTime();
+      const end = new Date(pin.updatedAt).getTime();
+      if (!isNaN(start) && !isNaN(end) && end > start) {
+        return acc + (end - start);
+      }
+      return acc;
+    }, 0);
+    // 밀리초를 시간(hours)으로 변환
+    averageResolutionHours = Math.round(totalTimeDiff / resolvedPinsWithTime.length / (1000 * 60 * 60));
+  }
+  
   // 2. 이슈 상태별 분포 (Pie Chart)
   const statusCounts = allPins.reduce((acc, pin) => {
     if (pin.status === "특이사항 없음") return acc;
@@ -121,7 +138,7 @@ export default function AnalyticsDashboard() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="border-none shadow-sm">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -152,6 +169,17 @@ export default function AnalyticsDashboard() {
               <div>
                 <p className="text-sm font-medium text-slate-500">전체 해결률</p>
                 <p className="text-3xl font-bold text-slate-900">{resolutionRate}<span className="text-base font-medium text-slate-400 ml-1">%</span></p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
+                <PieChartIcon className="w-7 h-7" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-500">평균 해결 소요 시간</p>
+                <p className="text-3xl font-bold text-slate-900">{averageResolutionHours}<span className="text-base font-medium text-slate-400 ml-1">시간</span></p>
               </div>
             </CardContent>
           </Card>
