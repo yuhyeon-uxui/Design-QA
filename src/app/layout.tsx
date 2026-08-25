@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {/* GA4 Script */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-H1R2QM7HC2"
+          src="https://www.googletagmanager.com/gtag/js?id=G-PDZ4DBMPXC"
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -31,7 +31,7 @@ export default function RootLayout({
             function gtag(){window.dataLayer.push(arguments);}
             gtag('js', new Date());
 
-            gtag('config', 'G-H1R2QM7HC2');
+            gtag('config', 'G-PDZ4DBMPXC');
           `}
         </Script>
         {children}
