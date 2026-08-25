@@ -1,4 +1,9 @@
-"use client";
+const fs = require('fs');
+const file = 'src/app/login/page.tsx';
+let content = fs.readFileSync(file, 'utf8');
+
+// The new content for login page
+const newContent = `"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -149,3 +154,7 @@ export default function LoginPage() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync(file, newContent);
+console.log("Login page replaced successfully");

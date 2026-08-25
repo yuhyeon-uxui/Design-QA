@@ -1,5 +1,7 @@
 "use client";
 
+import { trackEvent } from "@/lib/analytics";
+
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
@@ -317,7 +319,8 @@ export default function Dashboard() {
             </h1>
             <p className="text-slate-500 mt-2 text-sm">전체 QA 프로젝트의 진행 상황과 지표를 확인합니다.</p>
           </div>
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          {isMaster && (
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger render={
               <Button className="bg-[#0064fa] hover:bg-[#0064fa]/90 h-12 px-6 rounded-xl text-base font-bold shadow-sm">
                 <Plus className="w-5 h-5 mr-2" /> 새 프로젝트 생성
@@ -401,6 +404,7 @@ export default function Dashboard() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          )}
         </div>
 
         {/* Stats Row */}
