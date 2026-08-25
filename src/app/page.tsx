@@ -129,7 +129,6 @@ export default function Dashboard() {
             <span className="font-bold text-lg tracking-tight">피닉스다트 Design QA Hub</span>
           </a>
           
-          {/* Global Search Bar */}
           <div className="flex-1 max-w-xl mx-8">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -143,6 +142,12 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-4 shrink-0">
+            <Link href="/analytics">
+              <Button variant="ghost" className="text-slate-600 hover:text-[#0064fa] font-semibold flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                통계 대시보드
+              </Button>
+            </Link>
             <Dialog>
               <DialogTrigger render={<span className="text-sm font-medium text-slate-500 hover:text-slate-800 cursor-pointer transition-colors px-2 py-1">도움말</span>} />
               <DialogContent className="sm:max-w-[600px] p-8">
