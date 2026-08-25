@@ -169,7 +169,7 @@ export default function Dashboard() {
             ) : (
               <Link href="/login" className="mr-2">
                 <Button variant="outline" size="sm" className="h-9 px-4 text-slate-600 font-semibold border-slate-200 hover:bg-slate-50">
-                  관리자 로그인
+                  로그인
                 </Button>
               </Link>
             )}

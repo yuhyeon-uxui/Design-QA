@@ -68,9 +68,11 @@ export default function LoginPage() {
           <div className="mx-auto w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-2">
             <Lock className="w-6 h-6 text-[#0064fa]" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight text-slate-900">관리자 로그인</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight text-slate-900">로그인</CardTitle>
           <CardDescription className="text-base">
-            대시보드 접근 및 관리자 권한을 위해 로그인하세요.
+            프로젝트 열람 및 QA 참여를 위해 로그인하세요.
+            <br />
+            <span className="text-xs text-slate-400">(관리자 권한은 등록된 이메일 로그인 시 자동 부여됩니다)</span>
           </CardDescription>
         </CardHeader>
         <CardContent>
