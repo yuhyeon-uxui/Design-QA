@@ -27,7 +27,11 @@ const INITIAL_PROJECTS: Array<{
   figmaProjectUrl?: string;
 }> = [];
 
+import { useAuthStore } from "@/store/useAuthStore";
+import { LogOut, User as UserIcon } from "lucide-react";
+
 export default function Dashboard() {
+  const { user, isMaster, signOut, isLoading } = useAuthStore();
   const [projects, setProjects] = useState<typeof INITIAL_PROJECTS>([]);
   const [allScreens, setAllScreens] = useState<any[]>([]);
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
@@ -142,12 +146,36 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-4 shrink-0">
-            <Link href="/analytics">
-              <Button variant="ghost" className="text-slate-600 hover:text-[#0064fa] font-semibold flex items-center gap-2">
-                <BarChart3 className="w-4 h-4" />
-                통계 대시보드
-              </Button>
-            </Link>
+            {isMaster && (
+              <Link href="/analytics">
+                <Button variant="ghost" className="text-slate-600 hover:text-[#0064fa] font-semibold flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  통계 대시보드
+                </Button>
+              </Link>
+            )}
+            
+            {/* 로그인 / 로그아웃 버튼 */}
+            {!isLoading && (
+              user ? (
+                <div className="flex items-center gap-2 mr-2 border-r pr-4 border-slate-200">
+                  <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
+                    <UserIcon className="w-4 h-4 text-slate-400" />
+                    <span className="font-medium max-w-[100px] truncate">{user.email?.split('@')[0]}</span>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => signOut()} className="w-8 h-8 text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="로그아웃">
+                    <LogOut className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Link href="/login" className="mr-2">
+                  <Button variant="outline" size="sm" className="h-9 px-4 text-slate-600 font-semibold border-slate-200 hover:bg-slate-50">
+                    관리자 로그인
+                  </Button>
+                </Link>
+              )
+            )}
+
             <Dialog>
               <DialogTrigger render={<span className="text-sm font-medium text-slate-500 hover:text-slate-800 cursor-pointer transition-colors px-2 py-1">도움말</span>} />
               <DialogContent className="sm:max-w-[600px] p-8">

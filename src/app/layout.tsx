@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 };
 
 import Script from "next/script";
+import { AuthProvider } from "@/components/AuthProvider";
 
 export default function RootLayout({
   children,
@@ -34,7 +35,9 @@ export default function RootLayout({
             gtag('config', 'G-PDZKQBMPXC');
           `}
         </Script>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

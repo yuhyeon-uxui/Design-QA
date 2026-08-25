@@ -7,13 +7,22 @@ import { collection, onSnapshot, query, orderBy, collectionGroup } from "firebas
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, PieChart as PieChartIcon, Activity, AlertCircle, Layout, LayoutGrid } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useRouter } from "next/navigation";
 
 export default function AnalyticsDashboard() {
+  const { isMaster, isLoading } = useAuthStore();
+  const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
   const [allPins, setAllPins] = useState<any[]>([]);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    if (!isLoading && !isMaster) {
+      router.push("/");
+      return;
+    }
+    
     setIsMounted(true);
     const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -43,9 +52,10 @@ export default function AnalyticsDashboard() {
       unsubscribe();
       unsubscribeScreens();
     };
-  }, []);
+  }, [isLoading, isMaster, router]);
 
-  if (!isMounted) return null;
+  if (!isMounted || isLoading) return null;
+  if (!isMaster) return null;
 
   // 1. KPI 계산
   const totalProjects = projects.length;
