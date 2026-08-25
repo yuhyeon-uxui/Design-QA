@@ -878,22 +878,24 @@ export default function ScreenQA() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-2 text-slate-700 hover:bg-slate-50 border-slate-200 h-9 font-bold transition-all"
-            onClick={() => {
-              setEditProjectName(projectTitle);
-              setEditProjectPlatform(projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)"));
-              setEditProjectStatus(projectStatus);
-              setEditProjectDueDate(projectDueDate);
-              setEditProjectFigmaUrl(projectFigmaUrl);
-              setIsProjectSettingsOpen(true);
-            }}
-          >
-            <Settings className="w-4 h-4" />
-            설정
-          </Button>
+          {isMaster && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 text-slate-700 hover:bg-slate-50 border-slate-200 h-9 font-bold transition-all"
+              onClick={() => {
+                setEditProjectName(projectTitle);
+                setEditProjectPlatform(projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)"));
+                setEditProjectStatus(projectStatus);
+                setEditProjectDueDate(projectDueDate);
+                setEditProjectFigmaUrl(projectFigmaUrl);
+                setIsProjectSettingsOpen(true);
+              }}
+            >
+              <Settings className="w-4 h-4" />
+              설정
+            </Button>
+          )}
           <Link href={projectFigmaUrl || "#"} target={projectFigmaUrl ? "_blank" : undefined} className={!projectFigmaUrl ? "pointer-events-none" : ""}>
             <Button variant="outline" size="sm" className="gap-2 text-[#0064fa] border-[#0064fa]/20 hover:bg-[#EEF2FF] h-9" disabled={!projectFigmaUrl}>
               <ExternalLink className="w-4 h-4" />
