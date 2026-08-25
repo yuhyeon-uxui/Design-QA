@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "피닉스다트 디자인 QA 허브입니다.",
 };
 
+import Script from "next/script";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -18,6 +20,20 @@ export default function RootLayout({
       className="h-full antialiased font-sans"
     >
       <body className="min-h-full flex flex-col">
+        {/* GA4 Script */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-H1R2QM7HC2"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-H1R2QM7HC2');
+          `}
+        </Script>
         {children}
         <Toaster />
       </body>
