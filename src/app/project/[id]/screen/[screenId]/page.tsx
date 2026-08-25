@@ -283,6 +283,7 @@ export default function ScreenQA() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isMaster, user } = useAuthStore();
   const [projectTitle, setProjectTitle] = useState("");
   const [projectPlatform, setProjectPlatform] = useState("");
   const [projectStatus, setProjectStatus] = useState("진행중");
@@ -724,22 +725,16 @@ export default function ScreenQA() {
   };
 
   const handleAddComment = () => {
-    if (!activePinId || !newComment.trim()) return;
+    if (!activePinId || !newComment.trim() || !user) return;
     
-    const currentUser = PRESET_MEMBERS.find(m => m.id === currentMemberId);
-    if (!currentUser) {
-      alert("작성자를 먼저 검색하고 선택해주세요.");
-      return;
-    }
-
     setPins(pins.map(p => {
       if (p.id === activePinId) {
         return {
           ...p,
           comments: [...p.comments, {
             id: Date.now(),
-            author: currentUser.name,
-            role: currentUser.role,
+            author: user.user_metadata?.full_name || "알 수 없음",
+            role: user.user_metadata?.team ? `${user.user_metadata.team} ${user.user_metadata.position || ""}` : "사용자",
             text: newComment,
             createdAt: new Date().toISOString()
           }]
@@ -918,7 +913,8 @@ export default function ScreenQA() {
               <LayoutGrid className="w-5 h-5 text-[#0064fa] mr-3" />
               <span className="text-sm font-bold text-slate-800">전체 화면 ({screens.length})</span>
             </div>
-            <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-[#0064fa] hover:bg-slate-200" onClick={() => {
+            {isMaster && (
+              <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-[#0064fa] hover:bg-slate-200" onClick={() => {
               const newId = `s${Date.now()}`;
               const newScreen: ScreenData = { id: newId, name: "새로운 화면", issueCount: -1, PC: { ...emptyDeviceState }, Mobile: { ...emptyDeviceState }, order: screens.length };
               
@@ -949,6 +945,7 @@ export default function ScreenQA() {
             }}>
               <span className="text-lg leading-none">+</span>
             </Button>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto">
             <div className="p-3 space-y-1.5">
@@ -1006,7 +1003,7 @@ export default function ScreenQA() {
                       </div>
                     </div>
                   </button>
-                  {screens.length > 1 && (
+                  {screens.length > 1 && isMaster && (
                     <Button
                       size="icon"
                       variant="ghost"
@@ -1360,7 +1357,7 @@ export default function ScreenQA() {
                   <span className="truncate">피그마 Inspect</span>
                 </Button>
               </Link>
-              {activePinId && (
+              {activePinId && isMaster && (
                 <Button variant="ghost" size="sm" onClick={handleDeletePin} className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 px-2.5 font-bold shrink-0">
                   <Trash2 className="w-4 h-4 mr-1.5" />
                   핀 삭제
@@ -1448,18 +1445,21 @@ export default function ScreenQA() {
 
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-800">개발자 피드백</Label>
-                    <Select value={localForm.devFeedback || "대기중"} onValueChange={(val) => setLocalForm({...localForm, devFeedback: val as string})}>
-                      <SelectTrigger className="h-10 text-sm bg-blue-50/40 border-blue-200 font-medium text-slate-800">
-                        <SelectValue placeholder="피드백 선택" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="대기중">대기중</SelectItem>
-                        <SelectItem value="수정완료 (확인요청)">수정완료 (확인요청)</SelectItem>
-                        <SelectItem value="이슈 아님 (정상작동)">이슈 아님 (정상작동)</SelectItem>
-                        <SelectItem value="디자인/기획 검토필요">디자인/기획 검토필요</SelectItem>
-                        <SelectItem value="기술적 구현불가">기술적 구현불가</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Select value={localForm.devFeedback || "대기중"} onValueChange={(val) => setLocalForm({...localForm, devFeedback: val as string})}>
+                        <SelectTrigger className="flex-1 h-10 text-sm bg-blue-50/40 border-blue-200 font-medium text-slate-800">
+                          <SelectValue placeholder="피드백 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="대기중">대기중</SelectItem>
+                          <SelectItem value="수정완료 (확인요청)">수정완료 (확인요청)</SelectItem>
+                          <SelectItem value="이슈 아님 (정상작동)">이슈 아님 (정상작동)</SelectItem>
+                          <SelectItem value="디자인/기획 검토필요">디자인/기획 검토필요</SelectItem>
+                          <SelectItem value="기술적 구현불가">기술적 구현불가</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button onClick={handleSavePinDetails} className="h-10 px-4 bg-[#0064fa] hover:bg-[#0064fa]/90 text-white font-bold shrink-0">저장</Button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-5">
@@ -1584,45 +1584,8 @@ export default function ScreenQA() {
                       )}
                     </div>
 
+                  {user ? (
                     <div className="flex items-center w-full bg-slate-50 border border-slate-200 rounded-lg focus-within:ring-2 focus-within:ring-[#0064fa]/30 overflow-visible h-10 px-1 gap-1 relative shadow-sm transition-all">
-                      <div className="relative w-[100px] shrink-0 h-full flex items-center">
-                        <Input 
-                          placeholder="작성자 검색" 
-                          className="border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 h-full text-xs font-bold text-[#0064fa] w-full placeholder:font-normal placeholder:text-slate-400" 
-                          value={authorSearch}
-                          onChange={(e) => {
-                            setAuthorSearch(e.target.value);
-                            setIsAuthorDropdownOpen(true);
-                          }}
-                          onFocus={() => setIsAuthorDropdownOpen(true)}
-                          onBlur={() => setTimeout(() => setIsAuthorDropdownOpen(false), 200)}
-                        />
-                        
-                        {isAuthorDropdownOpen && filteredMembers.length > 0 && (
-                          <div className="absolute bottom-full left-0 mb-1 w-[180px] bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden z-50 max-h-[220px] overflow-y-auto animate-in fade-in zoom-in-95">
-                            {filteredMembers.map(m => (
-                              <button
-                                key={m.id}
-                                className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 flex items-center justify-between border-b border-slate-50 last:border-0"
-                                onClick={() => {
-                                  setCurrentMemberId(m.id);
-                                  setAuthorSearch(m.name);
-                                  setIsAuthorDropdownOpen(false);
-                                }}
-                              >
-                                <span className="font-bold text-slate-800">
-                                  {m.name.split(new RegExp(`(${authorSearch})`, 'gi')).map((part, i) => 
-                                    part.toLowerCase() === authorSearch.toLowerCase() ? <span key={i} className="text-red-500">{part}</span> : part
-                                  )}
-                                </span>
-                                <span className="text-[10px] text-slate-400">{m.role}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="w-[1px] h-4 bg-slate-300 shrink-0" />
                       
                       {isMentionOpen && PRESET_MEMBERS.filter(m => m.name.includes(mentionQuery)).length > 0 && (
                         <div className="absolute bottom-full mb-1 left-24 w-[180px] bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden z-50 max-h-[220px] overflow-y-auto animate-in fade-in zoom-in-95">
@@ -1703,6 +1666,11 @@ export default function ScreenQA() {
                         <Send className="w-3.5 h-3.5" />
                       </Button>
                     </div>
+                  ) : (
+                    <div className="w-full text-center p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-500 mt-2">
+                      댓글을 달려면 <Link href="/login" className="text-[#0064fa] font-bold hover:underline">로그인</Link> 해주세요.
+                    </div>
+                  )}
                   </div>
 
                 </div>
@@ -1873,17 +1841,19 @@ export default function ScreenQA() {
           </div>
           <DialogFooter className="mt-8 !bg-transparent !border-none !p-0 !m-0 border-t border-slate-100 pt-6">
             <div className="flex justify-between w-full">
-              <Button 
-                variant="ghost" 
-                onClick={() => {
-                  setIsProjectSettingsOpen(false);
-                  setTimeout(() => setIsProjectDeleteAlertOpen(true), 150);
-                }} 
-                className="h-12 px-4 font-bold text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-all"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                프로젝트 삭제
-              </Button>
+              {isMaster ? (
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    setIsProjectSettingsOpen(false);
+                    setTimeout(() => setIsProjectDeleteAlertOpen(true), 150);
+                  }} 
+                  className="h-12 px-4 font-bold text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-all"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  프로젝트 삭제
+                </Button>
+              ) : <div></div>}
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => setIsProjectSettingsOpen(false)} className="h-12 px-6 font-semibold rounded-lg text-slate-600 hover:text-slate-800">취소</Button>
                 <Button 
