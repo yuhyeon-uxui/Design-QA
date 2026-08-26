@@ -155,7 +155,7 @@ export default function LoginPage() {
               {isLoading ? (isSignUpMode ? "가입 중..." : "로그인 중...") : (isSignUpMode ? "회원가입" : "로그인")}
             </Button>
             
-            <div className="text-center mt-4">
+            <div className="text-center mt-4 flex flex-col items-center gap-3">
               <button
                 type="button"
                 onClick={() => setIsSignUpMode(!isSignUpMode)}
@@ -163,6 +163,12 @@ export default function LoginPage() {
               >
                 {isSignUpMode ? "이미 계정이 있으신가요? 로그인" : "계정이 없으신가요? 회원가입"}
               </button>
+
+              {!isSignUpMode && (
+                <p className="text-xs text-slate-400">
+                  비밀번호를 까먹었다면 관리자에게 문의해주세요! 🙇‍♂️
+                </p>
+              )}
             </div>
           </form>
         </CardContent>
