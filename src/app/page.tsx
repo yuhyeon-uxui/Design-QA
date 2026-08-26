@@ -35,7 +35,7 @@ import { LogOut, User as UserIcon } from "lucide-react";
 import { NavigationSidebar } from "@/components/NavigationSidebar";
 
 export default function Dashboard() {
-  const { user, isMaster, signOut, isLoading } = useAuthStore();
+  const { user, canManageProjects, signOut, isLoading } = useAuthStore();
   const [projects, setProjects] = useState<typeof INITIAL_PROJECTS>([]);
   const [allScreens, setAllScreens] = useState<any[]>([]);
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
@@ -315,7 +315,7 @@ export default function Dashboard() {
             </h1>
             <p className="text-slate-500 mt-2 text-sm">전체 QA 프로젝트의 진행 상황과 지표를 확인합니다.</p>
           </div>
-          {isMaster && (
+          {canManageProjects && (
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger render={
               <Button className="bg-[#0064fa] hover:bg-[#0064fa]/90 h-12 px-6 rounded-xl text-base font-bold shadow-sm">

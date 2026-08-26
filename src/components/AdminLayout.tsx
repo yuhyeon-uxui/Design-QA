@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Palette, ChevronDown, ChevronRight, Activity, LayoutGrid, ArrowLeft } from "lucide-react";
+import { BarChart3, Palette, ChevronDown, ChevronRight, Activity, LayoutGrid, ArrowLeft, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState, useEffect } from "react";
@@ -64,6 +64,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <Link href="/analytics/metrics" className={`flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium ${pathname === "/analytics/metrics" ? 'text-[#0064fa] bg-[#0064fa]/5' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>
                 <Activity className="w-3.5 h-3.5 mr-2" />
                 유저 행동 지표
+              </Link>
+              
+              <Link href="/analytics/members" className={`flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium ${pathname === "/analytics/members" ? 'text-[#0064fa] bg-[#0064fa]/5' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>
+                <Users className="w-3.5 h-3.5 mr-2" />
+                멤버 및 권한 관리
               </Link>
             </CollapsibleContent>
           </Collapsible>

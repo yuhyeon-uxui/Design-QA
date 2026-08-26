@@ -4,9 +4,11 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Activity, MousePointerClick, Clock, UserMinus, Users, MonitorSmartphone, Trophy } from "lucide-react";
+import { Activity, MousePointerClick, Clock, UserMinus, Users, MonitorSmartphone, Trophy, Sparkles, Download } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { fetchAnalyticsData } from "@/app/actions/analytics";
+import { exportMetricsToExcel } from "@/lib/exportExcel";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 type DeviceData = { name: string; value: number };
@@ -18,6 +20,7 @@ type Metrics = {
   averageSessionDuration: number;
   devices: DeviceData[];
   topPages: PageData[];
+  insight?: string;
 };
 
 const COLORS = ['#0064fa', '#10b981', '#8b5cf6', '#f43f5e', '#f59e0b'];
@@ -33,8 +36,10 @@ export default function UserMetricsPage() {
     averageSessionDuration: 0,
     devices: [],
     topPages: [],
+    insight: "",
   });
   const [loadingMetrics, setLoadingMetrics] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isMaster) {
@@ -51,6 +56,17 @@ export default function UserMetricsPage() {
     }
   }, [isLoading, isMaster, router]);
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await exportMetricsToExcel(metrics);
+    } catch (e) {
+      console.error("Export failed:", e);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (!isMounted || isLoading) return null;
   if (!isMaster) return null;
 
@@ -63,6 +79,15 @@ export default function UserMetricsPage() {
               <Activity className="w-6 h-6 text-[#0064fa]" />
               <span className="text-lg">유저 행동 지표 (GA4 연동됨)</span>
             </div>
+            <Button 
+              variant="outline" 
+              className="gap-2 text-slate-600 bg-white" 
+              onClick={handleExport}
+              disabled={loadingMetrics || isExporting}
+            >
+              <Download className="w-4 h-4" />
+              {isExporting ? "다운로드 중..." : "Excel 다운로드"}
+            </Button>
           </div>
         </header>
 
@@ -73,6 +98,28 @@ export default function UserMetricsPage() {
             구글 애널리틱스(GA4)에서 실시간으로 불러온 실제 웹사이트 트래픽 데이터(최근 30일)입니다.
           </p>
         </div>
+
+        {/* AI Insight Card */}
+        <Card className="border-none shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50 mb-8 border-l-4 border-l-[#0064fa]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg text-[#0064fa] flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              Gemini AI 자동 분석 리포트
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingMetrics ? (
+              <div className="flex items-center gap-3 text-slate-500 font-medium py-2">
+                <div className="w-4 h-4 rounded-full border-2 border-slate-300 border-t-[#0064fa] animate-spin"></div>
+                AI가 지난 30일간의 트래픽 패턴을 분석하고 있습니다...
+              </div>
+            ) : (
+              <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                {metrics.insight}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="border-none shadow-sm bg-white">

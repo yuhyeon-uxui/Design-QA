@@ -283,7 +283,7 @@ export default function ScreenQA() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isMaster, user } = useAuthStore();
+  const { isMaster, canManageProjects, canManagePins, canEditDevFeedback, canComment, user, role } = useAuthStore();
   const [projectTitle, setProjectTitle] = useState("");
   const [projectPlatform, setProjectPlatform] = useState("");
   const [projectStatus, setProjectStatus] = useState("진행중");
@@ -645,7 +645,7 @@ export default function ScreenQA() {
   const [currentRect, setCurrentRect] = useState<{x: number, y: number, w: number, h: number} | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!actualImage) return;
+    if (!canManagePins || !actualImage) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -879,7 +879,7 @@ export default function ScreenQA() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {isMaster && (
+          {canManageProjects && (
             <Button 
               variant="outline" 
               size="sm" 
@@ -916,7 +916,7 @@ export default function ScreenQA() {
               <LayoutGrid className="w-5 h-5 text-[#0064fa] mr-3" />
               <span className="text-sm font-bold text-slate-800">전체 화면 ({screens.length})</span>
             </div>
-            {isMaster && (
+            {canManageProjects && (
               <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-[#0064fa] hover:bg-slate-200" onClick={() => {
               const newId = `s${Date.now()}`;
               const newScreen: ScreenData = { id: newId, name: "새로운 화면", issueCount: -1, PC: { ...emptyDeviceState }, Mobile: { ...emptyDeviceState }, order: screens.length };
@@ -1006,7 +1006,7 @@ export default function ScreenQA() {
                       </div>
                     </div>
                   </button>
-                  {screens.length > 1 && isMaster && (
+                  {screens.length > 1 && canManageProjects && (
                     <Button
                       size="icon"
                       variant="ghost"
@@ -1360,7 +1360,7 @@ export default function ScreenQA() {
                   <span className="truncate">피그마 Inspect</span>
                 </Button>
               </Link>
-              {activePinId && isMaster && (
+              {activePinId && canManagePins && (
                 <Button variant="ghost" size="sm" onClick={handleDeletePin} className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 px-2.5 font-bold shrink-0">
                   <Trash2 className="w-4 h-4 mr-1.5" />
                   핀 삭제
@@ -1392,8 +1392,8 @@ export default function ScreenQA() {
                   <div className="grid grid-cols-2 gap-5">
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">이슈 유형</Label>
-                      <Select value={localForm.issueType || "레이아웃/간격"} onValueChange={(val) => val && setLocalForm({...localForm, issueType: val})}>
-                        <SelectTrigger className="h-10 text-sm bg-white font-medium">
+                      <Select disabled={!canManagePins} value={localForm.issueType || "레이아웃/간격"} onValueChange={(val) => val && setLocalForm({...localForm, issueType: val})}>
+                        <SelectTrigger className="h-10 text-sm bg-white font-medium disabled:opacity-50">
                           <SelectValue placeholder="유형 선택" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1407,8 +1407,8 @@ export default function ScreenQA() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">적용 언어(다국어)</Label>
-                      <Select value={localForm.language || "한국어 (KR)"} onValueChange={(val) => val && setLocalForm({...localForm, language: val})}>
-                        <SelectTrigger className="h-10 text-sm bg-white font-medium">
+                      <Select disabled={!canManagePins} value={localForm.language || "한국어 (KR)"} onValueChange={(val) => val && setLocalForm({...localForm, language: val})}>
+                        <SelectTrigger className="h-10 text-sm bg-white font-medium disabled:opacity-50">
                           <SelectValue placeholder="언어 선택" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1427,8 +1427,9 @@ export default function ScreenQA() {
                       <div className="space-y-2">
                         <Label className="text-sm font-bold text-slate-800">문제점 설명</Label>
                         <Textarea 
+                          disabled={!canManagePins}
                           placeholder="시안과 다르게 구현된 부분을 적어주세요." 
-                          className="resize-none h-24 text-sm bg-slate-50/50" 
+                          className="resize-none h-24 text-sm bg-slate-50/50 disabled:opacity-50" 
                           value={localForm.description || ""}
                           onChange={(e) => setLocalForm({...localForm, description: e.target.value})}
                         />
@@ -1437,8 +1438,9 @@ export default function ScreenQA() {
                       <div className="space-y-2">
                         <Label className="text-sm font-bold text-slate-800">수정 요청사항</Label>
                         <Textarea 
+                          disabled={!canManagePins}
                           placeholder="어떻게 수정해야 하는지 구체적으로 적어주세요." 
-                          className="resize-none h-24 text-sm bg-slate-50/50" 
+                          className="resize-none h-24 text-sm bg-slate-50/50 disabled:opacity-50" 
                           value={localForm.request || ""}
                           onChange={(e) => setLocalForm({...localForm, request: e.target.value})}
                         />
@@ -1449,8 +1451,8 @@ export default function ScreenQA() {
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-800">개발자 피드백</Label>
                     <div className="flex gap-2">
-                      <Select value={localForm.devFeedback || "대기중"} onValueChange={(val) => setLocalForm({...localForm, devFeedback: val as string})}>
-                        <SelectTrigger className="flex-1 h-10 text-sm bg-blue-50/40 border-blue-200 font-medium text-slate-800">
+                      <Select disabled={!canEditDevFeedback} value={localForm.devFeedback || "대기중"} onValueChange={(val) => setLocalForm({...localForm, devFeedback: val as string})}>
+                        <SelectTrigger className="flex-1 h-10 text-sm bg-blue-50/40 border-blue-200 font-medium text-slate-800 disabled:opacity-50">
                           <SelectValue placeholder="피드백 선택" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1461,15 +1463,15 @@ export default function ScreenQA() {
                           <SelectItem value="기술적 구현불가">기술적 구현불가</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button onClick={handleSavePinDetails} className="h-10 px-4 bg-[#0064fa] hover:bg-[#0064fa]/90 text-white font-bold shrink-0">저장</Button>
+                      <Button disabled={!canManagePins && !canEditDevFeedback} onClick={handleSavePinDetails} className="h-10 px-4 bg-[#0064fa] hover:bg-[#0064fa]/90 text-white font-bold shrink-0">저장</Button>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-5">
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">우선순위</Label>
-                      <Select value={localForm.priority || "High (크리티컬)"} onValueChange={(val) => val && setLocalForm({...localForm, priority: val})}>
-                        <SelectTrigger className="h-10 text-sm bg-white font-medium">
+                      <Select disabled={!canManagePins} value={localForm.priority || "High (크리티컬)"} onValueChange={(val) => val && setLocalForm({...localForm, priority: val})}>
+                        <SelectTrigger className="h-10 text-sm bg-white font-medium disabled:opacity-50">
                           <div className="flex items-center gap-2">
                             {localForm.priority === "High (크리티컬)" && <span className="w-1 h-1 rounded-full bg-rose-500 shrink-0"></span>}
                             {localForm.priority === "Medium (일반)" && <span className="w-1 h-1 rounded-full bg-amber-500 shrink-0"></span>}
@@ -1501,8 +1503,8 @@ export default function ScreenQA() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">상태</Label>
-                      <Select value={localForm.status || "이슈발생"} onValueChange={(val) => val && setLocalForm({...localForm, status: val})}>
-                        <SelectTrigger className="h-10 text-sm bg-white font-medium">
+                      <Select disabled={!canManagePins} value={localForm.status || "이슈발생"} onValueChange={(val) => val && setLocalForm({...localForm, status: val})}>
+                        <SelectTrigger className="h-10 text-sm bg-white font-medium disabled:opacity-50">
                           <SelectValue placeholder="상태 선택" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1517,7 +1519,8 @@ export default function ScreenQA() {
                   </div>
 
                   <Button 
-                    className="w-full bg-[#0064fa] hover:bg-[#0064fa]/90 text-white font-bold h-12 text-sm shadow-md rounded-lg mt-2 transition-all active:scale-[0.98]"
+                    disabled={!canManagePins && !canEditDevFeedback}
+                    className="w-full bg-[#0064fa] hover:bg-[#0064fa]/90 text-white font-bold h-12 text-sm shadow-md rounded-lg mt-2 transition-all active:scale-[0.98] disabled:opacity-50"
                     onClick={handleSavePinDetails}
                   >
                     내용 저장하기
@@ -1844,7 +1847,7 @@ export default function ScreenQA() {
           </div>
           <DialogFooter className="mt-8 !bg-transparent !border-none !p-0 !m-0 border-t border-slate-100 pt-6">
             <div className="flex justify-between w-full">
-              {isMaster ? (
+              {canManageProjects ? (
                 <Button 
                   variant="ghost" 
                   onClick={() => {

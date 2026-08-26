@@ -3,18 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Menu, BarChart3, Palette, ChevronDown, ChevronRight, Activity, LayoutGrid } from "lucide-react";
+import { Menu, BarChart3, Palette, ChevronDown, ChevronRight, Activity, LayoutGrid, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 
 export function NavigationSidebar() {
-  const { isMaster } = useAuthStore();
+  const { canViewAdminMenu } = useAuthStore();
   const pathname = usePathname();
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(pathname.startsWith("/analytics"));
 
-  if (!isMaster) return null;
+  if (!canViewAdminMenu) return null;
 
   return (
     <Sheet>
@@ -64,6 +64,15 @@ export function NavigationSidebar() {
                 >
                   <Activity className="w-4 h-4 mr-2" />
                   유저 행동 지표
+                </SheetClose>
+              </Link>
+              
+              <Link href="/analytics/members">
+                <SheetClose 
+                  className={`inline-flex items-center whitespace-nowrap rounded-md transition-colors w-full justify-start h-9 pl-9 text-sm font-medium ${pathname === "/analytics/members" ? 'text-[#0064fa] bg-[#0064fa]/5' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  멤버 및 권한 관리
                 </SheetClose>
               </Link>
             </CollapsibleContent>
