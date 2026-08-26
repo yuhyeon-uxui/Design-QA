@@ -84,16 +84,16 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </CollapsibleTrigger>
             
             <CollapsibleContent className="pt-1 pb-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
-              <Link href="/design-system#colors" className="flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100">
+              <Link href="/design-system/colors" className={`flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium ${pathname === "/design-system/colors" ? 'text-primary bg-primary/5' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>
                 Colors
               </Link>
-              <Link href="/design-system#typography" className="flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100">
+              <Link href="/design-system/typography" className={`flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium ${pathname === "/design-system/typography" ? 'text-primary bg-primary/5' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>
                 Typography
               </Link>
-              <Link href="/design-system#components" className="flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100">
+              <Link href="/design-system/components" className={`flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium ${pathname === "/design-system/components" ? 'text-primary bg-primary/5' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>
                 Components
               </Link>
-              <Link href="/design-system#interactions" className="flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100">
+              <Link href="/design-system/interactions" className={`flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium ${pathname === "/design-system/interactions" ? 'text-primary bg-primary/5' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>
                 Interactions
               </Link>
             </CollapsibleContent>
