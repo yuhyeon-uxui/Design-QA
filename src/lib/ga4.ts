@@ -10,25 +10,29 @@ const client = new BetaAnalyticsDataClient({
 });
 
 export async function getGA4Metrics() {
+  const fallback = {
+    activeUsers: 0,
+    sessions: 0,
+    bounceRate: 0,
+    averageSessionDuration: 0,
+    devices: [],
+    topPages: [],
+  };
+
   if (!propertyId || !process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
     console.warn("GA4 credentials are missing.");
-    return {
-      activeUsers: 0,
-      sessions: 0,
-      bounceRate: 0,
-      averageSessionDuration: 0,
-    };
+    return fallback;
   }
 
   try {
-    const [response] = await client.runReport({
+    const commonRequest = {
       property: `properties/${propertyId}`,
-      dateRanges: [
-        {
-          startDate: '30daysAgo',
-          endDate: 'today',
-        },
-      ],
+      dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+    };
+
+    // 1. Basic Metrics
+    const [basicResponse] = await client.runReport({
+      ...commonRequest,
       metrics: [
         { name: 'activeUsers' },
         { name: 'sessions' },
@@ -37,30 +41,53 @@ export async function getGA4Metrics() {
       ],
     });
 
-    const rows = response.rows;
-    if (!rows || rows.length === 0) {
-      return {
-        activeUsers: 0,
-        sessions: 0,
-        bounceRate: 0,
-        averageSessionDuration: 0,
+    // 2. Device Breakdown
+    const [deviceResponse] = await client.runReport({
+      ...commonRequest,
+      dimensions: [{ name: 'deviceCategory' }],
+      metrics: [{ name: 'activeUsers' }],
+    });
+
+    // 3. Top Pages
+    const [pageResponse] = await client.runReport({
+      ...commonRequest,
+      dimensions: [{ name: 'pageTitle' }, { name: 'pagePath' }],
+      metrics: [{ name: 'screenPageViews' }],
+      orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+      limit: 5,
+    });
+
+    const basicRows = basicResponse.rows;
+    let basicData = { activeUsers: 0, sessions: 0, bounceRate: 0, averageSessionDuration: 0 };
+    
+    if (basicRows && basicRows.length > 0) {
+      const vals = basicRows[0].metricValues;
+      basicData = {
+        activeUsers: parseInt(vals?.[0]?.value || '0'),
+        sessions: parseInt(vals?.[1]?.value || '0'),
+        bounceRate: parseFloat(vals?.[2]?.value || '0') * 100,
+        averageSessionDuration: parseFloat(vals?.[3]?.value || '0'),
       };
     }
 
-    const metricValues = rows[0].metricValues;
+    const devices = (deviceResponse.rows || []).map(row => ({
+      name: row.dimensionValues?.[0]?.value || 'Unknown',
+      value: parseInt(row.metricValues?.[0]?.value || '0'),
+    }));
+
+    const topPages = (pageResponse.rows || []).map(row => ({
+      title: row.dimensionValues?.[0]?.value || 'Unknown',
+      path: row.dimensionValues?.[1]?.value || '/',
+      views: parseInt(row.metricValues?.[0]?.value || '0'),
+    }));
+
     return {
-      activeUsers: parseInt(metricValues?.[0]?.value || '0'),
-      sessions: parseInt(metricValues?.[1]?.value || '0'),
-      bounceRate: parseFloat(metricValues?.[2]?.value || '0') * 100, // GA returns ratio e.g. 0.45 for 45%
-      averageSessionDuration: parseFloat(metricValues?.[3]?.value || '0'), // In seconds
+      ...basicData,
+      devices,
+      topPages,
     };
   } catch (error) {
     console.error("Error fetching GA4 metrics:", error);
-    return {
-      activeUsers: 0,
-      sessions: 0,
-      bounceRate: 0,
-      averageSessionDuration: 0,
-    };
+    return fallback;
   }
 }
