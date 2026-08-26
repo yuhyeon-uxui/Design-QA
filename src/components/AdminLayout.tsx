@@ -68,11 +68,36 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Design System Link */}
-          <Link href="/design-system" className={`flex items-center whitespace-nowrap rounded-md transition-colors w-full h-10 px-3 font-medium ${pathname === "/design-system" ? 'bg-[#EEF2FF] text-[#0064fa] font-semibold' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}>
-            <Palette className="w-4 h-4 mr-3 shrink-0" />
-            디자인 시스템
-          </Link>
+          {/* Design System Accordion */}
+          <Collapsible
+            open={pathname.startsWith("/design-system")}
+            className="w-full"
+          >
+            <CollapsibleTrigger 
+              className={`inline-flex items-center whitespace-nowrap rounded-md text-sm transition-colors w-full justify-between h-10 px-3 ${pathname.startsWith("/design-system") ? 'bg-[#EEF2FF] text-[#0064fa] font-semibold' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium'}`}
+            >
+              <div className="flex items-center gap-3">
+                <Palette className="w-4 h-4 shrink-0" />
+                <span>디자인 시스템</span>
+              </div>
+              {pathname.startsWith("/design-system") ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+            </CollapsibleTrigger>
+            
+            <CollapsibleContent className="pt-1 pb-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+              <Link href="/design-system#colors" className="flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100">
+                Colors
+              </Link>
+              <Link href="/design-system#typography" className="flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100">
+                Typography
+              </Link>
+              <Link href="/design-system#components" className="flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100">
+                Components
+              </Link>
+              <Link href="/design-system#interactions" className="flex items-center whitespace-nowrap rounded-md transition-colors w-full h-9 pl-10 text-sm font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100">
+                Interactions
+              </Link>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </aside>
 

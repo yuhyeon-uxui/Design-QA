@@ -47,7 +47,7 @@ export default function DesignSystemPage() {
           </div>
 
           {/* Colors */}
-          <section className="space-y-6">
+          <section id="colors" className="space-y-6">
             <div className="flex items-center gap-2 border-b pb-2">
               <Layers className="w-5 h-5 text-slate-400" />
               <h2 className="text-2xl font-bold text-slate-800">Colors (색상)</h2>
@@ -55,28 +55,28 @@ export default function DesignSystemPage() {
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <div className="h-24 rounded-lg bg-[#0064fa] shadow-sm border flex items-end p-3">
-                  <span className="text-white font-mono text-sm font-bold">#0064fa</span>
+                <div className="h-24 rounded-lg bg-primary shadow-sm border flex items-end p-3">
+                  <span className="text-primary-foreground font-mono text-sm font-bold">bg-primary</span>
                 </div>
                 <div>
                   <p className="font-bold text-slate-800">Primary (Brand)</p>
-                  <p className="text-sm text-slate-500">주요 버튼, 강조색, 활성화 상태</p>
+                  <p className="text-sm text-slate-500">주요 버튼, 강조색</p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <div className="h-24 rounded-lg bg-[#F8FAFC] shadow-sm border border-slate-200 flex items-end p-3">
-                  <span className="text-slate-600 font-mono text-sm font-bold">#F8FAFC</span>
+                <div className="h-24 rounded-lg bg-background shadow-sm border border-slate-200 flex items-end p-3">
+                  <span className="text-slate-600 font-mono text-sm font-bold">bg-background</span>
                 </div>
                 <div>
                   <p className="font-bold text-slate-800">Background</p>
-                  <p className="text-sm text-slate-500">앱 기본 배경색 (slate-50)</p>
+                  <p className="text-sm text-slate-500">앱 기본 배경색</p>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="h-24 rounded-lg bg-emerald-500 shadow-sm border flex items-end p-3">
-                  <span className="text-white font-mono text-sm font-bold">#10b981</span>
+                  <span className="text-white font-mono text-sm font-bold">bg-emerald-500</span>
                 </div>
                 <div>
                   <p className="font-bold text-slate-800">Success</p>
@@ -85,19 +85,19 @@ export default function DesignSystemPage() {
               </div>
 
               <div className="space-y-2">
-                <div className="h-24 rounded-lg bg-rose-500 shadow-sm border flex items-end p-3">
-                  <span className="text-white font-mono text-sm font-bold">#f43f5e</span>
+                <div className="h-24 rounded-lg bg-destructive shadow-sm border flex items-end p-3">
+                  <span className="text-destructive-foreground font-mono text-sm font-bold">bg-destructive</span>
                 </div>
                 <div>
                   <p className="font-bold text-slate-800">Danger / Error</p>
-                  <p className="text-sm text-slate-500">경고, 에러 메시지, 진행중 상태</p>
+                  <p className="text-sm text-slate-500">경고, 에러 메시지</p>
                 </div>
               </div>
             </div>
           </section>
 
           {/* Typography */}
-          <section className="space-y-6">
+          <section id="typography" className="space-y-6">
             <div className="flex items-center gap-2 border-b pb-2">
               <Type className="w-5 h-5 text-slate-400" />
               <h2 className="text-2xl font-bold text-slate-800">Typography (타이포그래피)</h2>
@@ -129,97 +129,96 @@ export default function DesignSystemPage() {
             </Card>
           </section>
 
-          {/* Buttons */}
-          <section className="space-y-6">
+          {/* Components */}
+          <section id="components" className="space-y-6">
             <div className="flex items-center gap-2 border-b pb-2">
               <MousePointerClick className="w-5 h-5 text-slate-400" />
-              <h2 className="text-2xl font-bold text-slate-800">Buttons (버튼)</h2>
+              <h2 className="text-2xl font-bold text-slate-800">Components (컴포넌트)</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Card className="shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg">Primary & Outline</CardTitle>
+                  <CardTitle className="text-lg">Buttons</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <Button className="bg-[#0064fa] hover:bg-[#0064fa]/90 text-white font-bold h-10 px-6">Primary Button</Button>
-                    <Button className="bg-[#0064fa] hover:bg-[#0064fa]/90 text-white font-bold h-10 px-6 opacity-50 cursor-not-allowed">Disabled</Button>
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6">Primary</Button>
+                    <Button variant="outline" className="border-primary/30 text-primary hover:bg-primary/10 font-bold h-10 px-6">Outline</Button>
                   </div>
                   <div className="flex items-center gap-4">
-                    <Button variant="outline" className="border-slate-200 text-slate-700 hover:bg-slate-50 font-bold h-10 px-6">Outline Button</Button>
-                    <Button variant="outline" className="border-[#0064fa]/30 text-[#0064fa] hover:bg-[#EEF2FF] font-bold h-10 px-6">Brand Outline</Button>
+                    <Button variant="ghost" className="text-primary hover:bg-primary/10 font-medium h-10 px-6">Ghost</Button>
+                    <Button variant="destructive" className="font-bold h-10 px-6">Destructive</Button>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg">Ghost & Destructive</CardTitle>
+                  <CardTitle className="text-lg">Form Controls</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Button variant="ghost" className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium h-10 px-6">Ghost Button</Button>
-                    <Button variant="ghost" className="text-[#0064fa] hover:text-[#0064fa] hover:bg-[#EEF2FF] font-medium h-10 px-6">Brand Ghost</Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="ds-input" className="font-semibold text-slate-700">Text Input</Label>
+                    <Input id="ds-input" placeholder="텍스트 입력" className="h-10 bg-slate-50" />
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Button variant="destructive" className="bg-rose-500 hover:bg-rose-600 font-bold h-10 px-6">Destructive</Button>
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Checkbox id="ds-check1" defaultChecked />
+                    <label htmlFor="ds-check1" className="text-sm font-medium leading-none text-slate-600">Checked Checkbox</label>
                   </div>
                 </CardContent>
               </Card>
             </div>
           </section>
 
-          {/* Form Controls */}
-          <section className="space-y-6">
+          {/* Interactions */}
+          <section id="interactions" className="space-y-6">
             <div className="flex items-center gap-2 border-b pb-2">
               <CheckSquare className="w-5 h-5 text-slate-400" />
-              <h2 className="text-2xl font-bold text-slate-800">Form Controls (입력 폼)</h2>
+              <h2 className="text-2xl font-bold text-slate-800">Interactions (인터랙션)</h2>
             </div>
             
-            <Card className="shadow-sm">
-              <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="ds-input" className="font-semibold text-slate-700">Text Input (Default)</Label>
-                    <Input id="ds-input" placeholder="텍스트를 입력하세요" className="h-11 bg-slate-50 border-slate-200" />
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg">Modals & Dialogs</CardTitle>
+                  <CardDescription>사용자 피드백 및 알림을 위한 모달 인터랙션</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button variant="outline" className="w-full justify-start h-12 px-4 text-slate-700 bg-white hover:bg-slate-50 border-slate-200">
+                    <span className="flex-1 text-left font-medium">다이얼로그 열기 (Dialog)</span>
+                    <MousePointerClick className="w-4 h-4 text-slate-400" />
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start h-12 px-4 text-slate-700 bg-white hover:bg-slate-50 border-slate-200">
+                    <span className="flex-1 text-left font-medium">하단 시트 열기 (Sheet)</span>
+                    <MousePointerClick className="w-4 h-4 text-slate-400" />
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg">Toasts & Dropdowns</CardTitle>
+                  <CardDescription>알림 메시지 및 팝오버 인터랙션</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button variant="outline" className="w-full justify-start h-12 px-4 text-slate-700 bg-white hover:bg-slate-50 border-slate-200">
+                    <span className="flex-1 text-left font-medium">성공 알림 띄우기 (Toast)</span>
+                    <MousePointerClick className="w-4 h-4 text-slate-400" />
+                  </Button>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="ds-input-error" className="font-semibold text-slate-700">Text Input (Error)</Label>
-                    <Input id="ds-input-error" value="잘못된 입력값" className="h-11 bg-slate-50 border-rose-500 focus-visible:ring-rose-500" readOnly />
-                    <p className="text-xs text-rose-500 font-medium mt-1">올바른 값을 입력해주세요.</p>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label className="font-semibold text-slate-700">Select Dropdown</Label>
-                    <Select defaultValue="option1">
-                      <SelectTrigger className="w-full h-11 bg-slate-50 border-slate-200">
-                        <SelectValue placeholder="옵션 선택" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="option1">디자인 1팀</SelectItem>
-                        <SelectItem value="option2">개발팀</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-3 pt-2">
-                    <Label className="font-semibold text-slate-700 block mb-2">Checkboxes</Label>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="ds-check1" defaultChecked />
-                      <label htmlFor="ds-check1" className="text-sm font-medium leading-none text-slate-600">Checked state</label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="ds-check2" />
-                      <label htmlFor="ds-check2" className="text-sm font-medium leading-none text-slate-600">Unchecked state</label>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <Select defaultValue="option1">
+                    <SelectTrigger className="w-full h-12 bg-slate-50 border-slate-200">
+                      <SelectValue placeholder="드롭다운 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="option1">옵션 1 (Hover 시 스타일 변화)</SelectItem>
+                      <SelectItem value="option2">옵션 2 (클릭 시 액션)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            </div>
           </section>
         </main>
       </div>
