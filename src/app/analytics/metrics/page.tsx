@@ -3,7 +3,7 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { NavigationSidebar } from "@/components/NavigationSidebar";
+import { AdminLayout } from "@/components/AdminLayout";
 import Link from "next/link";
 import { ArrowLeft, Activity, MousePointerClick, Clock, UserMinus, MonitorPlay } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,25 +25,16 @@ export default function UserMetricsPage() {
   if (!isMaster) return null;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-12">
-      <header className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center">
-              <NavigationSidebar />
-              <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors">
-                <ArrowLeft className="w-5 h-5" />
-                <span className="font-semibold text-sm">홈으로</span>
-              </Link>
-            </div>
-            <div className="h-6 w-px bg-slate-200"></div>
+    <AdminLayout>
+      <div className="pb-12">
+        <header className="bg-white border-b sticky top-0 z-10">
+          <div className="px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3 text-slate-800 font-bold">
               <Activity className="w-6 h-6 text-[#0064fa]" />
               <span className="text-lg">유저 행동 지표 (Mock)</span>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
       <main className="container mx-auto px-6 py-8">
         <div className="mb-8">
@@ -109,6 +100,7 @@ export default function UserMetricsPage() {
           </CardContent>
         </Card>
       </main>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
