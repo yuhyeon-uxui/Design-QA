@@ -10,11 +10,13 @@ import { useState, useEffect } from "react";
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [isDesignSystemOpen, setIsDesignSystemOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
     setIsAnalyticsOpen(pathname.startsWith("/analytics"));
+    setIsDesignSystemOpen(pathname.startsWith("/design-system"));
   }, [pathname]);
 
   if (!isMounted) return null;
@@ -75,17 +77,18 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
           {/* Design System Accordion */}
           <Collapsible
-            open={pathname.startsWith("/design-system")}
+            open={isDesignSystemOpen}
+            onOpenChange={setIsDesignSystemOpen}
             className="w-full"
           >
             <CollapsibleTrigger 
-              className={`inline-flex items-center whitespace-nowrap rounded-md text-sm transition-colors w-full justify-between h-10 px-3 ${pathname.startsWith("/design-system") ? 'bg-[#EEF2FF] text-[#0064fa] font-semibold' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium'}`}
+              className={`inline-flex items-center whitespace-nowrap rounded-md text-sm transition-colors w-full justify-between h-10 px-3 ${isDesignSystemOpen || pathname.startsWith("/design-system") ? 'bg-[#EEF2FF] text-[#0064fa] font-semibold' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium'}`}
             >
               <div className="flex items-center gap-3">
                 <Palette className="w-4 h-4 shrink-0" />
                 <span>디자인 시스템</span>
               </div>
-              {pathname.startsWith("/design-system") ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+              {isDesignSystemOpen ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
             </CollapsibleTrigger>
             
             <CollapsibleContent className="pt-1 pb-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
