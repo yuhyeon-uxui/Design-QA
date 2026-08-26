@@ -21,15 +21,22 @@ export default function LoginPage() {
   const [isExternal, setIsExternal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUpMode, setIsSignUpMode] = useState(false);
+  const [formErrors, setFormErrors] = useState<{name?: string, email?: string, password?: string}>({});
   const router = useRouter();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isSignUpMode && !name.trim()) {
-      toast.error("실명을 입력해주세요.");
+    const errors: any = {};
+    if (isSignUpMode && !name.trim()) errors.name = "이 입력란을 작성하세요.";
+    if (!email.trim()) errors.email = "이 입력란을 작성하세요.";
+    if (!password.trim()) errors.password = "이 입력란을 작성하세요.";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
+    setFormErrors({});
 
     setIsLoading(true);
     
@@ -98,14 +105,15 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             
             {isSignUpMode && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-sm font-semibold text-slate-700">실명 (필수)</Label>
-                    <Input id="name" placeholder="홍길동" value={name} onChange={(e) => setName(e.target.value)} required={isSignUpMode} className="h-11 bg-slate-50 border-slate-200" />
+                    <Input id="name" placeholder="홍길동" value={name} onChange={(e) => {setName(e.target.value); setFormErrors(prev => ({...prev, name: undefined}))}} className={`h-11 bg-slate-50 border-slate-200 ${formErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}`} />
+                    {formErrors.name && <p className="text-xs text-red-500 mt-1">{formErrors.name}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="position" className="text-sm font-semibold text-slate-700">직급 (선택)</Label>
@@ -130,16 +138,18 @@ export default function LoginPage() {
             <div className={`space-y-2 ${isSignUpMode ? 'pt-2 border-t border-slate-100' : ''}`}>
               <Label htmlFor="email" className="text-sm font-semibold text-slate-700">이메일 주소</Label>
               <Input
-                id="email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required
-                className="h-12 px-4 bg-slate-50 border-slate-200"
+                id="email" type="email" placeholder="name@example.com" value={email} onChange={(e) => {setEmail(e.target.value); setFormErrors(prev => ({...prev, email: undefined}))}}
+                className={`h-12 px-4 bg-slate-50 border-slate-200 ${formErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
+              {formErrors.email && <p className="text-xs text-red-500 mt-1">{formErrors.email}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-semibold text-slate-700">비밀번호</Label>
               <Input
-                id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required
-                className="h-12 px-4 bg-slate-50 border-slate-200"
+                id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => {setPassword(e.target.value); setFormErrors(prev => ({...prev, password: undefined}))}}
+                className={`h-12 px-4 bg-slate-50 border-slate-200 ${formErrors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
+              {formErrors.password && <p className="text-xs text-red-500 mt-1">{formErrors.password}</p>}
             </div>
             <Button type="submit" className="w-full h-12 text-base font-bold bg-[#0064fa] hover:bg-[#0064fa]/90 mt-4" disabled={isLoading}>
               {isLoading ? (isSignUpMode ? "가입 중..." : "로그인 중...") : (isSignUpMode ? "회원가입" : "로그인")}

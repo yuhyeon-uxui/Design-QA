@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
+import { NavigationSidebar } from "@/components/NavigationSidebar";
 
 interface Comment {
   id: number;
@@ -828,6 +828,7 @@ export default function ScreenQA() {
     <div className="flex flex-col h-screen overflow-hidden bg-[#F4F7FB]">
       <header className="h-16 border-b bg-white px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
         <div className="flex items-center">
+          <NavigationSidebar />
           <button 
             onClick={() => router.push("/")}
             className="flex items-center justify-center hover:bg-slate-100 w-10 h-10 rounded-full transition-colors mr-1"

@@ -10,6 +10,8 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
 
+import { NavigationSidebar } from "@/components/NavigationSidebar";
+
 export default function AnalyticsDashboard() {
   const { isMaster, isLoading } = useAuthStore();
   const router = useRouter();
@@ -117,11 +119,14 @@ export default function AnalyticsDashboard() {
     <div className="min-h-screen bg-[#F8FAFC] pb-12">
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-              <span className="font-semibold text-sm">홈으로</span>
-            </Link>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center">
+              <NavigationSidebar />
+              <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors">
+                <ArrowLeft className="w-5 h-5" />
+                <span className="font-semibold text-sm">홈으로</span>
+              </Link>
+            </div>
             <div className="h-6 w-px bg-slate-200"></div>
             <div className="flex items-center gap-3 text-slate-800 font-bold">
               <PieChartIcon className="w-6 h-6 text-[#0064fa]" />

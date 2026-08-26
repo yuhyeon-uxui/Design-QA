@@ -32,6 +32,8 @@ const INITIAL_PROJECTS: Array<{
 import { useAuthStore } from "@/store/useAuthStore";
 import { LogOut, User as UserIcon } from "lucide-react";
 
+import { NavigationSidebar } from "@/components/NavigationSidebar";
+
 export default function Dashboard() {
   const { user, isMaster, signOut, isLoading } = useAuthStore();
   const [projects, setProjects] = useState<typeof INITIAL_PROJECTS>([]);
@@ -129,12 +131,15 @@ export default function Dashboard() {
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3 text-[#0064fa] hover:opacity-80 transition-opacity cursor-pointer shrink-0">
-            <div className="w-8 h-8 rounded bg-[#0064fa] text-white flex items-center justify-center font-bold">
-              QA
-            </div>
-            <span className="font-bold text-lg tracking-tight">피닉스다트 Design QA Hub</span>
-          </a>
+          <div className="flex items-center">
+            <NavigationSidebar />
+            <a href="/" className="flex items-center gap-3 text-[#0064fa] hover:opacity-80 transition-opacity cursor-pointer shrink-0">
+              <div className="w-8 h-8 rounded bg-[#0064fa] text-white flex items-center justify-center font-bold">
+                QA
+              </div>
+              <span className="font-bold text-lg tracking-tight">피닉스다트 Design QA Hub</span>
+            </a>
+          </div>
           
           <div className="flex-1 max-w-xl mx-8">
             <div className="relative">
@@ -149,15 +154,6 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-4 shrink-0">
-            {isMaster && (
-              <Link href="/analytics">
-                <Button variant="ghost" className="text-slate-600 hover:text-[#0064fa] font-semibold flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  통계 대시보드
-                </Button>
-              </Link>
-            )}
-            
             {/* 로그인 / 로그아웃 버튼 */}
             {user ? (
               <div className="flex items-center gap-2 mr-2 border-r pr-4 border-slate-200">
