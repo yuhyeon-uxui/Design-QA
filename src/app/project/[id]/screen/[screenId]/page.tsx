@@ -1072,17 +1072,21 @@ export default function ScreenQA() {
                 </div>
                 {figmaImageUrl && (
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" className="h-7 px-3 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-full" onClick={fetchFigmaImage} disabled={isLoadingFigma}>
-                      {isLoadingFigma ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
-                      시안 새로고침
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-7 px-3 text-xs font-medium text-slate-600 bg-white" onClick={() => setFigmaImageUrl(null)}>
-                      링크 다시 입력
-                    </Button>
+                    {canManagePins && (
+                      <>
+                        <Button variant="ghost" size="sm" className="h-7 px-3 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-full" onClick={fetchFigmaImage} disabled={isLoadingFigma}>
+                          {isLoadingFigma ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+                          시안 새로고침
+                        </Button>
+                        <Button variant="outline" size="sm" className="h-7 px-3 text-xs font-medium text-slate-600 bg-white" onClick={() => setFigmaImageUrl(null)}>
+                          링크 다시 입력
+                        </Button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
-              {!figmaImageUrl && (
+              {!figmaImageUrl && canManagePins && (
                 <div className="bg-white border-x border-b shadow-sm rounded-b-xl p-4 flex gap-2">
                   <div className="relative flex-1">
                     <LinkIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -1122,7 +1126,9 @@ export default function ScreenQA() {
                       <ImageIcon className="w-8 h-8" />
                     </div>
                     <h3 className="text-base font-bold text-slate-800">피그마 시안 렌더링 영역</h3>
-                    <p className="text-xs mt-2 text-slate-500 leading-relaxed">상단에 피그마 링크를 입력하고<br/>불러오기 버튼을 눌러주세요.</p>
+                    <p className="text-xs mt-2 text-slate-500 leading-relaxed">
+                      {canManagePins ? <>상단에 피그마 링크를 입력하고<br/>불러오기 버튼을 눌러주세요.</> : "아직 등록된 시안이 없습니다."}
+                    </p>
                     <div className="h-10 mt-6" aria-hidden="true"></div>
                   </div>
                 </>
@@ -1140,7 +1146,9 @@ export default function ScreenQA() {
                 </div>
                 {actualImage && (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">클릭하여 핀 추가</span>
+                    {canManagePins && (
+                      <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">클릭하여 핀 추가</span>
+                    )}
                     <Button 
                       variant={isOriginalView ? "default" : "outline"} 
                       size="sm" 
@@ -1149,9 +1157,11 @@ export default function ScreenQA() {
                     >
                       원본 보기
                     </Button>
-                    <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => setIsReuploadAlertOpen(true)}>
-                      이미지 다시 올리기
-                    </Button>
+                    {canManagePins && (
+                      <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => setIsReuploadAlertOpen(true)}>
+                        이미지 다시 올리기
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -1163,21 +1173,24 @@ export default function ScreenQA() {
               className="hidden" 
               ref={fileInputRef} 
               onChange={handleFileUpload} 
+              disabled={!canManagePins}
             />
             <div className={`w-full bg-slate-50 border border-slate-200 shadow-md rounded-2xl relative overflow-y-auto overflow-x-hidden group ring-1 ring-black/5 custom-scrollbar ${maxWClass} ${aspectClass}`}>
               {!actualImage && !isUploading ? (
                 // 파일 업로드 UI
                 <div className="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center hover:bg-slate-100 transition-colors">
-                  <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4 shadow-sm border border-blue-100 cursor-pointer hover:scale-105 transition-transform" onClick={() => fileInputRef.current?.click()}>
+                  <div className={`w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4 shadow-sm border border-blue-100 ${canManagePins ? 'cursor-pointer hover:scale-105' : ''} transition-transform`} onClick={() => canManagePins && fileInputRef.current?.click()}>
                     <UploadCloud className="w-8 h-8" />
                   </div>
                   <h3 className="text-base font-bold text-slate-800">테스트 화면 업로드</h3>
                   <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                    실제 구현된 앱/웹의 캡처 화면을<br/>이곳에 업로드해 주세요.
+                    {canManagePins ? <>실제 구현된 앱/웹의 캡처 화면을<br/>이곳에 업로드해 주세요.</> : "아직 등록된 테스트 화면이 없습니다."}
                   </p>
-                  <Button className="mt-6 font-bold bg-[#0064fa] hover:bg-[#0064fa]/90 text-white shadow-sm" onClick={() => fileInputRef.current?.click()}>
-                    내 PC에서 파일 찾기
-                  </Button>
+                  {canManagePins && (
+                    <Button className="mt-6 font-bold bg-[#0064fa] hover:bg-[#0064fa]/90 text-white shadow-sm" onClick={() => fileInputRef.current?.click()}>
+                      내 PC에서 파일 찾기
+                    </Button>
+                  )}
                 </div>
               ) : isUploading ? (
                 <div className="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center z-50">
