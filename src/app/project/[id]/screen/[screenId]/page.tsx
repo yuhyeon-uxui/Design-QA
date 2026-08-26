@@ -237,6 +237,7 @@ interface ScreenDeviceState {
   figmaUrl: string;
   figmaImageUrl: string | null;
   pins: Pin[];
+  testUrl?: string;
 }
 
 interface ScreenData {
@@ -522,6 +523,13 @@ export default function ScreenQA() {
 
   const figmaImageUrl = activeDeviceState.figmaImageUrl;
   const setFigmaImageUrl = (url: string | null) => updateActiveDeviceState({ figmaImageUrl: url });
+
+  const testUrl = activeDeviceState.testUrl || "";
+  const setTestUrl = (url: string) => updateActiveDeviceState({ testUrl: url });
+  const [testUrlInput, setTestUrlInput] = useState(testUrl);
+  useEffect(() => {
+    setTestUrlInput(activeDeviceState.testUrl || "");
+  }, [activeDeviceState.testUrl]);
 
   const pins = activeDeviceState.pins;
   const setPins = (newPins: Pin[] | ((prev: Pin[]) => Pin[])) => {
@@ -1145,32 +1153,70 @@ export default function ScreenQA() {
           {/* Actual Capture View */}
           <div className={`flex flex-col w-full shrink-0 order-1 ${isWidePCLayout ? 'flex-none max-w-5xl' : 'max-w-[420px]'}`}>
             <div className={`${headerContainerClass} ${maxWClass}`}>
-              <div className="bg-white px-5 py-3 rounded-xl border shadow-sm flex items-center justify-between shrink-0">
+              <div className={`bg-white px-5 py-3 border-x border-t shadow-sm flex items-center justify-between shrink-0 ${(!testUrl && !isAppProject && canManagePins) ? 'rounded-t-xl' : 'rounded-xl border-b mb-3'}`}>
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></span>
                   <span className="text-sm font-bold text-slate-800">테스트 화면</span>
                 </div>
-                {actualImage && (
-                  <div className="flex items-center gap-2">
-                    {canManagePins && (
-                      <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">클릭하여 핀 추가</span>
-                    )}
-                    <Button 
-                      variant={isOriginalView ? "default" : "outline"} 
-                      size="sm" 
-                      className={`h-7 text-xs px-3 ${isOriginalView ? "bg-[#0064fa] hover:bg-[#0064fa]/90 text-white" : "bg-white text-slate-600"}`} 
-                      onClick={() => setIsOriginalView(!isOriginalView)}
-                    >
-                      원본 보기
-                    </Button>
-                    {canManagePins && (
-                      <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => setIsReuploadAlertOpen(true)}>
-                        이미지 다시 올리기
+                <div className="flex items-center gap-2">
+                  {testUrl && !isAppProject && (
+                    <>
+                      <Link href={testUrl} target="_blank" className="flex-1">
+                        <Button variant="ghost" size="sm" className="h-7 px-3 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full">
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          테스트 링크 열기
+                        </Button>
+                      </Link>
+                      {canManagePins && (
+                        <Button variant="outline" size="sm" className="h-7 px-3 text-xs font-medium text-slate-600 bg-white" onClick={() => setTestUrl("")}>
+                          링크 다시 입력
+                        </Button>
+                      )}
+                    </>
+                  )}
+                  {actualImage && (
+                    <>
+                      {canManagePins && (
+                        <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md ml-2">클릭하여 핀 추가</span>
+                      )}
+                      <Button 
+                        variant={isOriginalView ? "default" : "outline"} 
+                        size="sm" 
+                        className={`h-7 text-xs px-3 ml-1 ${isOriginalView ? "bg-[#0064fa] hover:bg-[#0064fa]/90 text-white" : "bg-white text-slate-600"}`} 
+                        onClick={() => setIsOriginalView(!isOriginalView)}
+                      >
+                        원본 보기
                       </Button>
-                    )}
-                  </div>
-                )}
+                      {canManagePins && (
+                        <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => setIsReuploadAlertOpen(true)}>
+                          이미지 다시 올리기
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
+              {!testUrl && !isAppProject && canManagePins && (
+                <div className="bg-white border-x border-b shadow-sm rounded-b-xl p-4 flex gap-2">
+                  <div className="relative flex-1">
+                    <LinkIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <Input 
+                      placeholder="테스트 웹페이지 URL (http://...)" 
+                      className="h-9 pl-9 text-xs bg-slate-50 border-slate-200 focus-visible:ring-blue-500/30"
+                      value={testUrlInput}
+                      onChange={(e) => setTestUrlInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && testUrlInput) {
+                          setTestUrl(testUrlInput);
+                        }
+                      }}
+                    />
+                  </div>
+                  <Button size="sm" className="h-9 text-xs font-semibold bg-blue-600 hover:bg-blue-700 shadow-sm px-4 text-white" onClick={() => testUrlInput && setTestUrl(testUrlInput)} disabled={!testUrlInput}>
+                    등록
+                  </Button>
+                </div>
+              )}
             </div>
 
             <input 
