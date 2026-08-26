@@ -86,35 +86,116 @@ export default function ComponentsPage() {
             </CardContent>
           </Card>
 
-          {/* QA Pin Mock */}
+          {/* QA Pin Mock - Interactive */}
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg">QA Issue Pin (마커)</CardTitle>
-              <CardDescription>화면 위에 찍히는 이슈 핀 컴포넌트</CardDescription>
+              <CardTitle className="text-lg">Interactive QA Pin (마커)</CardTitle>
+              <CardDescription>화면을 클릭하여 핀을 추가하고 드래그하여 이동해보세요.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="relative h-48 bg-slate-100 rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center">
-                <p className="text-slate-400 font-medium absolute top-4 left-4">가상의 웹 화면 영역</p>
-                
-                {/* Unresolved Pin */}
-                <div className="absolute top-1/3 left-1/3 w-8 h-8 bg-rose-500 text-white rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-rose-500/30 ring-2 ring-white ring-offset-2 ring-offset-rose-500/10 cursor-pointer animate-bounce">
-                  1
-                </div>
-
-                {/* Resolved Pin */}
-                <div className="absolute top-1/2 right-1/3 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-emerald-500/30 ring-2 ring-white cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
-                  2
-                </div>
-              </div>
-              <div className="mt-4 flex gap-4 text-sm font-medium text-slate-600 justify-center">
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-rose-500"></div> 미해결 이슈</div>
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-emerald-500"></div> 해결됨</div>
-              </div>
+              <InteractivePinArea />
             </CardContent>
           </Card>
 
         </div>
       </div>
     </section>
+  );
+}
+
+// Interactive Pin Area Component
+import React, { useState, useRef } from "react";
+
+function InteractivePinArea() {
+  const [pins, setPins] = useState<{ id: number; x: number; y: number; isResolved: boolean }[]>([
+    { id: 1, x: 33, y: 33, isResolved: false },
+    { id: 2, x: 66, y: 50, isResolved: true },
+  ]);
+  const [draggingPinId, setDraggingPinId] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleContainerClick = (e: React.MouseEvent) => {
+    // 핀을 드래그 중이거나 클릭한 대상이 핀 자체일 때는 무시
+    if (draggingPinId !== null || (e.target as HTMLElement).closest('.qa-pin')) return;
+
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    const newPin = {
+      id: Date.now(),
+      x,
+      y,
+      isResolved: false,
+    };
+    setPins([...pins, newPin]);
+  };
+
+  const handlePinMouseDown = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDraggingPinId(id);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (draggingPinId === null || !containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    let x = ((e.clientX - rect.left) / rect.width) * 100;
+    let y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    // 영역 이탈 방지
+    x = Math.max(0, Math.min(x, 100));
+    y = Math.max(0, Math.min(y, 100));
+
+    setPins(pins.map(pin => pin.id === draggingPinId ? { ...pin, x, y } : pin));
+  };
+
+  const handleMouseUp = () => {
+    setDraggingPinId(null);
+  };
+
+  const togglePinStatus = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // 드래그 중이 아닐 때만 토글 (간단한 클릭 감지를 위해)
+    setPins(pins.map(pin => pin.id === id ? { ...pin, isResolved: !pin.isResolved } : pin));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div 
+        ref={containerRef}
+        onClick={handleContainerClick}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        className="relative h-64 bg-slate-100 rounded-xl border border-slate-200 overflow-hidden cursor-crosshair select-none"
+      >
+        <p className="text-slate-400 font-medium absolute top-4 left-4 pointer-events-none">가상의 웹 화면 영역</p>
+        
+        {pins.map((pin, idx) => (
+          <div
+            key={pin.id}
+            onMouseDown={(e) => handlePinMouseDown(pin.id, e)}
+            onClick={(e) => togglePinStatus(pin.id, e)}
+            className={`qa-pin absolute w-8 h-8 -ml-4 -mt-4 rounded-full flex items-center justify-center font-bold text-sm cursor-grab active:cursor-grabbing transition-colors
+              ${pin.isResolved 
+                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 ring-2 ring-white opacity-80 hover:opacity-100' 
+                : 'bg-rose-500 text-white shadow-lg shadow-rose-500/30 ring-2 ring-white ring-offset-2 ring-offset-rose-500/10 animate-in zoom-in'
+              }
+              ${draggingPinId === pin.id ? 'scale-110 shadow-xl opacity-100' : ''}
+            `}
+            style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
+          >
+            {idx + 1}
+          </div>
+        ))}
+      </div>
+      
+      <div className="flex gap-4 text-sm font-medium text-slate-600 justify-center">
+        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-rose-500"></div> 미해결 이슈 (생성됨)</div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-emerald-500"></div> 해결됨 (클릭 시 전환)</div>
+      </div>
+    </div>
   );
 }
