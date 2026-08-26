@@ -971,24 +971,30 @@ export default function ScreenQA() {
                        )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <input
-                        className={`w-full bg-transparent text-sm font-semibold outline-none focus:ring-1 focus:ring-[#0064fa]/30 rounded px-1 -ml-1 ${activeScreenId === screen.id ? 'text-[#0064fa]' : 'text-slate-700'}`}
-                        value={screen.name}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={(e) => {
-                          setScreens(prev => prev.map(s => s.id === screen.id ? { ...s, name: e.target.value } : s));
-                        }}
-                        onBlur={() => {
-                          if (params.id && screen.name.trim()) {
-                            setDoc(doc(db, "project_screens", params.id as string, "screens", screen.id), { name: screen.name }, { merge: true }).catch(console.error);
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.currentTarget.blur();
-                          }
-                        }}
-                      />
+                      {canManageProjects ? (
+                        <input
+                          className={`w-full bg-transparent text-sm font-semibold outline-none focus:ring-1 focus:ring-[#0064fa]/30 rounded px-1 -ml-1 ${activeScreenId === screen.id ? 'text-[#0064fa]' : 'text-slate-700'}`}
+                          value={screen.name}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => {
+                            setScreens(prev => prev.map(s => s.id === screen.id ? { ...s, name: e.target.value } : s));
+                          }}
+                          onBlur={() => {
+                            if (params.id && screen.name.trim()) {
+                              setDoc(doc(db, "project_screens", params.id as string, "screens", screen.id), { name: screen.name }, { merge: true }).catch(console.error);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.currentTarget.blur();
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className={`w-full text-sm font-semibold truncate px-1 -ml-1 py-[1px] ${activeScreenId === screen.id ? 'text-[#0064fa]' : 'text-slate-700'}`}>
+                          {screen.name}
+                        </div>
+                      )}
                       <div className="mt-1.5">
                         {screen.issueCount === -1 ? (
                           <span className="inline-flex items-center text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
