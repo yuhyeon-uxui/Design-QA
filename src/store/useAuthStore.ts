@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export type UserRole = 'MASTER' | 'SUB_MASTER' | 'DEVELOPER' | 'GENERAL';
 
@@ -39,12 +39,16 @@ const fetchRoleFromFirestore = async (email?: string): Promise<UserRole> => {
   if (email === MASTER_EMAIL) return 'MASTER'; // Hardcoded fallback for owner
   
   try {
-    const userDoc = await getDoc(doc(db, 'users', email));
+    const userRef = doc(db, 'users', email);
+    const userDoc = await getDoc(userRef);
     if (userDoc.exists()) {
       const data = userDoc.data();
       if (['MASTER', 'SUB_MASTER', 'DEVELOPER', 'GENERAL'].includes(data.role)) {
         return data.role as UserRole;
       }
+    } else {
+      // Auto-register existing/new users into the users collection so the admin can see them
+      await setDoc(userRef, { role: 'GENERAL', createdAt: Date.now() });
     }
   } catch (err) {
     console.error("Failed to fetch role:", err);

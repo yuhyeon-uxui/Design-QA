@@ -167,15 +167,15 @@ export default function MembersRolePage() {
 
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="bg-slate-50/50 border-b pb-4">
-              <CardTitle className="text-lg">등록된 권한 목록</CardTitle>
-              <CardDescription>현재 특별한 권한이 부여된 사용자 목록입니다.</CardDescription>
+              <CardTitle className="text-lg">가입된 전체 회원 목록</CardTitle>
+              <CardDescription>우리 서비스에 접속(로그인/가입)했던 모든 사용자 목록입니다.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {isLoading ? (
                 <div className="p-12 text-center text-slate-500">목록을 불러오는 중입니다...</div>
               ) : roles.length === 0 ? (
                 <div className="p-12 text-center text-slate-500 bg-slate-50/30">
-                  <p>등록된 권한 목록이 없습니다.</p>
+                  <p>아직 등록된 사용자가 없습니다. (사용자가 로그인하면 자동으로 이곳에 추가됩니다!)</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
