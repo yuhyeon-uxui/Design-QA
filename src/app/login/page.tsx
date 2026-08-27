@@ -28,8 +28,14 @@ export default function LoginPage() {
     e.preventDefault();
     
     const errors: any = {};
-    if (isSignUpMode && !name.trim()) errors.name = "이 입력란을 작성하세요.";
-    if (!email.trim()) errors.email = "이 입력란을 작성하세요.";
+    if (isSignUpMode && !name.trim()) {
+      errors.name = "이 입력란을 작성하세요.";
+    }
+    if (!email.trim()) {
+      errors.email = "이 입력란을 작성하세요.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "올바른 이메일 주소를 입력해주세요.";
+    }
     if (!password.trim()) {
       errors.password = "이 입력란을 작성하세요.";
     } else if (password.length < 6) {
@@ -121,25 +127,25 @@ export default function LoginPage() {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-semibold text-slate-700">실명 (필수)</Label>
+                    <Label htmlFor="name" className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">실명 <span className="text-xs font-medium text-slate-400">필수</span></Label>
                     <Input id="name" placeholder="홍길동" value={name} onChange={(e) => {setName(e.target.value); setFormErrors(prev => ({...prev, name: undefined}))}} className={`h-11 bg-slate-50 border-slate-200 ${formErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}`} />
                     {formErrors.name && <p className="text-xs text-red-500 mt-1">{formErrors.name}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="position" className="text-sm font-semibold text-slate-700">직급 (선택)</Label>
+                    <Label htmlFor="position" className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">직급 <span className="text-xs font-medium text-slate-400">선택</span></Label>
                     <Input id="position" placeholder="예: 선임, 프로" value={position} onChange={(e) => setPosition(e.target.value)} className="h-11 bg-slate-50 border-slate-200" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="team" className="text-sm font-semibold text-slate-700">소속 팀명 (선택)</Label>
+                  <Label htmlFor="team" className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">소속 팀명 <span className="text-xs font-medium text-slate-400">선택</span></Label>
                   <Input id="team" placeholder="예: 디자인 1팀, 개발팀" value={team} onChange={(e) => setTeam(e.target.value)} className="h-11 bg-slate-50 border-slate-200" />
                 </div>
 
                 <div className="flex items-center space-x-2 py-1">
                   <Checkbox id="external" checked={isExternal} onCheckedChange={(checked) => setIsExternal(checked === true)} />
-                  <label htmlFor="external" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-600">
-                    외주사 직원입니다 (선택)
+                  <label htmlFor="external" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-600 flex items-center gap-1.5">
+                    외주사 직원입니다 <span className="text-xs font-medium text-slate-400">선택</span>
                   </label>
                 </div>
               </>
@@ -159,16 +165,15 @@ export default function LoginPage() {
                 id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => {setPassword(e.target.value); setFormErrors(prev => ({...prev, password: undefined}))}}
                 className={`h-12 px-4 bg-slate-50 border-slate-200 ${formErrors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
-              {isSignUpMode && (
-                password.length >= 6 ? (
-                  <p className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> 6자 이상 입력 완료
-                  </p>
-                ) : (
-                  <p className="text-xs text-slate-400 font-medium">최소 6자 이상 입력해주세요.</p>
-                )
+              {isSignUpMode && password.length >= 6 && (
+                <p className="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> 6자 이상 입력 완료
+                </p>
               )}
-              {formErrors.password && (!isSignUpMode || password.length < 6) && (
+              {isSignUpMode && password.length < 6 && !formErrors.password && (
+                <p className="text-xs text-slate-400 font-medium mt-1">최소 6자 이상 입력해주세요.</p>
+              )}
+              {formErrors.password && (
                 <p className="text-xs text-red-500 mt-1">{formErrors.password}</p>
               )}
             </div>

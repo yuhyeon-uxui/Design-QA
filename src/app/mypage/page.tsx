@@ -98,14 +98,14 @@ export default function MyPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-semibold text-slate-700">실명 (필수)</Label>
+                <Label htmlFor="name" className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">실명 <span className="text-xs font-medium text-slate-400">필수</span></Label>
                 <Input
                   id="name" placeholder="홍길동" value={name} onChange={(e) => setName(e.target.value)}
                   className="h-12 px-4 bg-slate-50 border-slate-200"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="position" className="text-sm font-semibold text-slate-700">직급 (선택)</Label>
+                <Label htmlFor="position" className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">직급 <span className="text-xs font-medium text-slate-400">선택</span></Label>
                 <Input
                   id="position" placeholder="예: 선임, 프로" value={position} onChange={(e) => setPosition(e.target.value)}
                   className="h-12 px-4 bg-slate-50 border-slate-200"
@@ -114,7 +114,7 @@ export default function MyPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="team" className="text-sm font-semibold text-slate-700">소속 팀명 (선택)</Label>
+              <Label htmlFor="team" className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">소속 팀명 <span className="text-xs font-medium text-slate-400">선택</span></Label>
               <Input
                 id="team" placeholder="예: 디자인 1팀, 개발팀" value={team} onChange={(e) => setTeam(e.target.value)}
                 className="h-12 px-4 bg-slate-50 border-slate-200"
@@ -123,8 +123,8 @@ export default function MyPage() {
 
             <div className="flex items-center space-x-2 pt-2">
               <Checkbox id="external" checked={isExternal} onCheckedChange={(checked) => setIsExternal(checked === true)} />
-              <label htmlFor="external" className="text-sm font-medium leading-none text-slate-600 cursor-pointer">
-                외주사 직원입니다 (선택)
+              <label htmlFor="external" className="text-sm font-medium leading-none text-slate-600 cursor-pointer flex items-center gap-1.5">
+                외주사 직원입니다 <span className="text-xs font-medium text-slate-400">선택</span>
               </label>
             </div>
 
