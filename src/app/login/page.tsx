@@ -156,7 +156,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-semibold text-slate-700">비밀번호</Label>
               <Input
-                id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => {setPassword(e.target.value); setFormErrors(prev => ({...prev, password: undefined}))}}
+                id="password" type="password" placeholder={isSignUpMode ? "최소 6자 이상" : "••••••••"} value={password} onChange={(e) => {setPassword(e.target.value); setFormErrors(prev => ({...prev, password: undefined}))}}
                 className={`h-12 px-4 bg-slate-50 border-slate-200 ${formErrors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
               {formErrors.password && <p className="text-xs text-red-500 mt-1">{formErrors.password}</p>}
