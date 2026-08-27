@@ -30,7 +30,11 @@ export default function LoginPage() {
     const errors: any = {};
     if (isSignUpMode && !name.trim()) errors.name = "이 입력란을 작성하세요.";
     if (!email.trim()) errors.email = "이 입력란을 작성하세요.";
-    if (!password.trim()) errors.password = "이 입력란을 작성하세요.";
+    if (!password.trim()) {
+      errors.password = "이 입력란을 작성하세요.";
+    } else if (password.length < 6) {
+      errors.password = "비밀번호는 최소 6자 이상이어야 합니다.";
+    }
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -56,7 +60,13 @@ export default function LoginPage() {
         });
         
         if (signUpRes.error) {
-          toast.error(signUpRes.error.message);
+          let errorMsg = signUpRes.error.message;
+          if (errorMsg.includes("Password should be at least 6 characters")) {
+            errorMsg = "비밀번호는 최소 6자 이상이어야 합니다.";
+          } else if (errorMsg.includes("User already registered")) {
+            errorMsg = "이미 가입된 이메일입니다.";
+          }
+          toast.error(errorMsg);
         } else {
           toast.success("회원가입이 완료되었습니다.");
           router.push("/");
