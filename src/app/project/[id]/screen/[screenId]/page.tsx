@@ -980,7 +980,8 @@ export default function ScreenQA() {
               <PanelLeftClose className="w-4 h-4" />
             </Button>
           </div>
-          <div className="flex-1 overflow-y-auto">
+        </div>
+        <div className="flex-1 overflow-y-auto">
             <div className="p-3 space-y-1.5">
               {screens.map((screen) => (
                 <div key={screen.id} className="relative group">
