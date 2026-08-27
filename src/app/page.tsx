@@ -506,6 +506,9 @@ export default function Dashboard() {
               if (platform.includes("App")) return "bg-emerald-50 text-emerald-700 border border-emerald-100";
               return "bg-slate-100 text-slate-700 border border-slate-200";
             };
+            const isDerivedCompleted = project.status === '진행중' && project.issuesCount > 0 && project.issuesCount === project.completedCount;
+            const displayStatus = isDerivedCompleted ? 'QA 완료' : project.status;
+            
             return (
               <Card key={project.id} className="border-none shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden group">
                 <CardHeader className="pb-4 border-b bg-slate-50/50">
@@ -522,10 +525,10 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center">
                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                        project.status === '진행중' ? 'bg-blue-100 text-blue-700' : 
-                        project.status === 'QA 완료' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+                        displayStatus === '진행중' ? 'bg-blue-100 text-blue-700' : 
+                        displayStatus === 'QA 완료' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
                       }`}>
-                        {project.status === '진행중' && project.issuesCount > 0 && project.issuesCount === project.completedCount ? 'QA 완료' : project.status}
+                        {displayStatus}
                       </span>
                     </div>
                   </div>
