@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Lock } from "lucide-react";
+import { ArrowLeft, Lock, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -154,15 +154,23 @@ export default function LoginPage() {
               {formErrors.email && <p className="text-xs text-red-500 mt-1">{formErrors.email}</p>}
             </div>
             <div className="space-y-2">
-              <div className="flex justify-between items-end">
-                <Label htmlFor="password" className="text-sm font-semibold text-slate-700">비밀번호</Label>
-                {isSignUpMode && <span className="text-xs text-slate-400 font-medium">최소 6자 이상</span>}
-              </div>
+              <Label htmlFor="password" className="text-sm font-semibold text-slate-700">비밀번호</Label>
               <Input
-                id="password" type="password" placeholder={isSignUpMode ? "최소 6자 이상" : "••••••••"} value={password} onChange={(e) => {setPassword(e.target.value); setFormErrors(prev => ({...prev, password: undefined}))}}
+                id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => {setPassword(e.target.value); setFormErrors(prev => ({...prev, password: undefined}))}}
                 className={`h-12 px-4 bg-slate-50 border-slate-200 ${formErrors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
-              {formErrors.password && <p className="text-xs text-red-500 mt-1">{formErrors.password}</p>}
+              {isSignUpMode && (
+                password.length >= 6 ? (
+                  <p className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> 6자 이상 입력 완료
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-400 font-medium">최소 6자 이상 입력해주세요.</p>
+                )
+              )}
+              {formErrors.password && (!isSignUpMode || password.length < 6) && (
+                <p className="text-xs text-red-500 mt-1">{formErrors.password}</p>
+              )}
             </div>
             <Button type="submit" className="w-full h-12 text-base font-bold bg-[#0064fa] hover:bg-[#0064fa]/90 mt-4" disabled={isLoading}>
               {isLoading ? (isSignUpMode ? "가입 중..." : "로그인 중...") : (isSignUpMode ? "회원가입" : "로그인")}
