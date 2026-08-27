@@ -29,17 +29,17 @@ export default function LoginPage() {
     
     const errors: any = {};
     if (isSignUpMode && !name.trim()) {
-      errors.name = "이 입력란을 작성하세요.";
+      errors.name = "필수 입력이 필요해요.";
     }
     if (!email.trim()) {
-      errors.email = "이 입력란을 작성하세요.";
+      errors.email = "필수 입력이 필요해요.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = "올바른 이메일 주소를 입력해주세요.";
+      errors.email = "올바른 이메일 형식이 아니에요.";
     }
     if (!password.trim()) {
-      errors.password = "이 입력란을 작성하세요.";
+      errors.password = "필수 입력이 필요해요.";
     } else if (password.length < 6) {
-      errors.password = "비밀번호는 최소 6자 이상이어야 합니다.";
+      errors.password = "비밀번호는 최소 6자 이상이어야 해요.";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -68,13 +68,13 @@ export default function LoginPage() {
         if (signUpRes.error) {
           let errorMsg = signUpRes.error.message;
           if (errorMsg.includes("Password should be at least 6 characters")) {
-            errorMsg = "비밀번호는 최소 6자 이상이어야 합니다.";
+            errorMsg = "비밀번호는 최소 6자 이상이어야 해요.";
           } else if (errorMsg.includes("User already registered")) {
-            errorMsg = "이미 가입된 이메일입니다.";
+            errorMsg = "이미 가입된 이메일이에요.";
           }
           toast.error(errorMsg);
         } else {
-          toast.success("회원가입이 완료되었습니다.");
+          toast.success("회원가입이 완료되었어요.");
           router.push("/");
         }
       } else {
@@ -84,14 +84,14 @@ export default function LoginPage() {
         });
 
         if (error) {
-          toast.error("로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.");
+          toast.error("로그인에 실패했어요. 이메일과 비밀번호를 확인해 주세요.");
         } else if (data.user) {
-          toast.success("로그인 성공!");
+          toast.success("로그인 성공했어요!");
           router.push("/");
         }
       }
     } catch (error) {
-      toast.error("오류가 발생했습니다.");
+      toast.error("오류가 발생했어요.");
     } finally {
       setIsLoading(false);
     }

@@ -38,7 +38,7 @@ export default function MyPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      toast.error("실명을 입력해주세요.");
+      toast.error("실명을 입력해 주세요.");
       return;
     }
 
@@ -56,9 +56,9 @@ export default function MyPage() {
     setIsLoading(false);
 
     if (error) {
-      toast.error("정보 수정에 실패했습니다: " + error.message);
+      toast.error("정보 수정에 실패했어요: " + error.message);
     } else {
-      toast.success("내 정보가 성공적으로 저장되었습니다!");
+      toast.success("내 정보가 성공적으로 저장되었어요!");
       // useAuthStore will automatically update since it listens to onAuthStateChange
       router.push("/");
     }
