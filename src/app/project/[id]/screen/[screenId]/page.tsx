@@ -581,6 +581,27 @@ export default function ScreenQA() {
     toast.success("내용 저장완료!", { id: "save-success" });
   };
 
+  const safeNavigate = (action: () => void) => {
+    if (activePin) {
+      const isDirty = 
+        (localForm.device !== undefined && localForm.device !== (activePin.device || "PC/Mobile 공통")) ||
+        (localForm.issueType !== undefined && localForm.issueType !== (activePin.issueType || "레이아웃/간격")) ||
+        (localForm.language !== undefined && localForm.language !== (activePin.language || "한국어 (KR)")) ||
+        (localForm.description !== undefined && localForm.description !== (activePin.description || "")) ||
+        (localForm.request !== undefined && localForm.request !== (activePin.request || "")) ||
+        (localForm.devFeedback !== undefined && localForm.devFeedback !== (activePin.devFeedback || "대기중")) ||
+        (localForm.priority !== undefined && localForm.priority !== (activePin.priority || "High (크리티컬)")) ||
+        (localForm.status !== undefined && localForm.status !== (activePin.status || "이슈발생"));
+        
+      if (isDirty) {
+        if (!window.confirm("저장하지 않은 변경사항이 있습니다.\n저장하지 않고 이동하시겠습니까?")) {
+          return;
+        }
+      }
+    }
+    action();
+  };
+
   const [newComment, setNewComment] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editCommentText, setEditCommentText] = useState("");
@@ -654,12 +675,14 @@ export default function ScreenQA() {
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!canManagePins || !actualImage) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setIsDrawing(true);
-    setDrawStart({ x, y });
-    setCurrentRect({ x, y, w: 0, h: 0 });
+    safeNavigate(() => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      setIsDrawing(true);
+      setDrawStart({ x, y });
+      setCurrentRect({ x, y, w: 0, h: 0 });
+    });
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -841,7 +864,7 @@ export default function ScreenQA() {
         <div className="flex items-center">
           <NavigationSidebar />
           <button 
-            onClick={() => router.push("/")}
+            onClick={() => safeNavigate(() => router.push("/"))}
             className="flex items-center justify-center hover:bg-slate-100 w-10 h-10 rounded-full transition-colors mr-1"
           >
             <ChevronLeft className="w-6 h-6 text-slate-700" />
@@ -856,7 +879,7 @@ export default function ScreenQA() {
                 {!isAppProject && (
                   <div className="flex items-center bg-slate-100 rounded-lg p-0.5 ml-2">
                     <button
-                      onClick={() => setDevice("PC")}
+                      onClick={() => safeNavigate(() => setDevice("PC"))}
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
                         device === "PC" ? "bg-white text-[#0064fa] shadow-sm" : "text-slate-500 hover:text-slate-700"
                       }`}
@@ -864,7 +887,7 @@ export default function ScreenQA() {
                       <Monitor className="w-3.5 h-3.5" /> PC
                     </button>
                     <button
-                      onClick={() => setDevice("Mobile")}
+                      onClick={() => safeNavigate(() => setDevice("Mobile"))}
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
                         device === "Mobile" ? "bg-white text-[#0064fa] shadow-sm" : "text-slate-500 hover:text-slate-700"
                       }`}
@@ -986,7 +1009,7 @@ export default function ScreenQA() {
               {screens.map((screen) => (
                 <div key={screen.id} className="relative group">
                   <button
-                    onClick={() => setActiveScreenId(screen.id)}
+                    onClick={() => safeNavigate(() => setActiveScreenId(screen.id))}
                     className={`w-full text-left p-2.5 rounded-lg flex items-center gap-3 transition-colors pr-8 ${
                       activeScreenId === screen.id 
                         ? "bg-[#EEF2FF] border-[#0064fa]/20 border ring-1 ring-[#0064fa]/10 shadow-sm" 
@@ -1367,7 +1390,7 @@ export default function ScreenQA() {
                               ? 'border-2 border-slate-400 bg-slate-400/20 opacity-70 hover:opacity-100 hover:bg-slate-400/30'
                               : 'border border-rose-400 bg-rose-400/10 hover:bg-rose-400/20'
                         }`}
-                        onMouseDown={(e) => { e.stopPropagation(); setActivePinId(pin.id); }}
+                        onMouseDown={(e) => { e.stopPropagation(); safeNavigate(() => setActivePinId(pin.id)); }}
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div 
@@ -1393,7 +1416,7 @@ export default function ScreenQA() {
                         }`}
                         onMouseDown={(e) => {
                           e.stopPropagation();
-                          setActivePinId(pin.id);
+                          safeNavigate(() => setActivePinId(pin.id));
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
