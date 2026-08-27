@@ -8,7 +8,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Check, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings, RefreshCw, ChevronUp, ChevronDown, GripVertical } from "lucide-react";
+import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Check, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings, RefreshCw, ChevronUp, ChevronDown, GripVertical, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -789,6 +789,7 @@ export default function ScreenQA() {
   };
 
   const [rightPanelWidth, setRightPanelWidth] = useState(420);
+  const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(true);
 
   const fetchFigmaImage = async () => {
     if (!figmaUrl) return;
@@ -919,15 +920,31 @@ export default function ScreenQA() {
       {/* Main Content Area - 레이아웃 간격 넓힘 (p-4 gap-4 추가) */}
       <div className="flex flex-1 overflow-hidden p-6 gap-6">
         
+        {!isLeftPanelOpen && (
+          <div className="flex flex-col h-full items-start shrink-0 z-10 animate-in fade-in zoom-in duration-200">
+            <Button 
+              size="icon" 
+              variant="outline" 
+              className="h-10 w-10 rounded-full bg-white shadow-md border-slate-200 text-slate-500 hover:text-[#0064fa] hover:bg-blue-50 transition-colors"
+              onClick={() => setIsLeftPanelOpen(true)}
+              title="화면 목록 열기"
+            >
+              <PanelLeftOpen className="w-5 h-5" />
+            </Button>
+          </div>
+        )}
+
         {/* Leftmost: Screen Thumbnail Sidebar */}
-        <div className="w-[260px] bg-white border rounded-xl flex flex-col shrink-0 shadow-sm overflow-hidden">
-          <div className="h-14 border-b flex items-center justify-between px-5 bg-slate-50/50 shrink-0">
+        {isLeftPanelOpen && (
+        <div className="w-[260px] bg-white border rounded-xl flex flex-col shrink-0 shadow-sm overflow-hidden animate-in slide-in-from-left-4 duration-300">
+          <div className="h-14 border-b flex items-center justify-between px-4 bg-slate-50/50 shrink-0">
             <div className="flex items-center">
               <LayoutGrid className="w-5 h-5 text-[#0064fa] mr-3" />
               <span className="text-sm font-bold text-slate-800">전체 화면 ({screens.length})</span>
             </div>
-            {canManageProjects && (
-              <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-[#0064fa] hover:bg-slate-200" onClick={() => {
+            <div className="flex items-center gap-0.5">
+              {canManageProjects && (
+                <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-[#0064fa] hover:bg-slate-200" onClick={() => {
               const newId = `s${Date.now()}`;
               const newScreen: ScreenData = { id: newId, name: "새로운 화면", issueCount: -1, PC: { ...emptyDeviceState }, Mobile: { ...emptyDeviceState }, order: screens.length };
               
@@ -959,6 +976,9 @@ export default function ScreenQA() {
               <span className="text-lg leading-none">+</span>
             </Button>
             )}
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-400 hover:text-slate-700 hover:bg-slate-200" onClick={() => setIsLeftPanelOpen(false)}>
+              <PanelLeftClose className="w-4 h-4" />
+            </Button>
           </div>
           <div className="flex-1 overflow-y-auto">
             <div className="p-3 space-y-1.5">
@@ -1066,6 +1086,7 @@ export default function ScreenQA() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Center: Split View (Figma vs Capture) */}
         {(() => {
