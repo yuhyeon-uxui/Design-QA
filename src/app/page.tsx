@@ -210,6 +210,14 @@ export default function Dashboard() {
                       우측 패널에서 담당자를 지정하고 <strong className="text-slate-800">구체적인 수정 요청사항</strong>을 적어주세요. 작업이 완료되면 핀 상태를 <span className="text-green-600 font-semibold bg-green-50 px-1.5 py-0.5 rounded">'해결됨'</span>으로 변경하여 트래킹합니다.
                     </p>
                   </div>
+                  
+                  {/* 추가: 최적 해상도 안내 */}
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg flex gap-3">
+                    <span className="text-blue-500 text-lg">🖥️</span>
+                    <p className="text-sm text-blue-700 leading-relaxed">
+                      <strong>권장 사용 환경:</strong> 원활한 양방향 시안 비교(피그마-테스트화면)를 위해 <strong>PC 환경(최소 가로 해상도 1440px 이상, 권장 1920x1080)</strong>에서의 사용을 권장합니다. 화면이 좁을 경우 우측 패널의 경계선을 드래그하여 크기를 조절할 수 있습니다!
+                    </p>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>

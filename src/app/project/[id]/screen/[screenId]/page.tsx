@@ -788,6 +788,8 @@ export default function ScreenQA() {
     setCommentToDelete(null);
   };
 
+  const [rightPanelWidth, setRightPanelWidth] = useState(420);
+
   const fetchFigmaImage = async () => {
     if (!figmaUrl) return;
     setIsLoadingFigma(true);
@@ -1387,8 +1389,38 @@ export default function ScreenQA() {
         )
         })()}
 
+        {/* Right Panel Resizer */}
+        <div 
+          className="w-2 hover:bg-[#0064fa] bg-transparent cursor-col-resize transition-colors shrink-0 z-20 group relative -mx-4 flex items-center justify-center rounded-full opacity-50 hover:opacity-100"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            const startX = e.clientX;
+            const startWidth = rightPanelWidth;
+            
+            const handlePointerMove = (e: PointerEvent) => {
+              const delta = startX - e.clientX;
+              // Limit width between 280px and 800px
+              const newWidth = Math.max(280, Math.min(800, startWidth + delta));
+              setRightPanelWidth(newWidth);
+            };
+            
+            const handlePointerUp = () => {
+              window.removeEventListener("pointermove", handlePointerMove);
+              window.removeEventListener("pointerup", handlePointerUp);
+            };
+            
+            window.addEventListener("pointermove", handlePointerMove);
+            window.addEventListener("pointerup", handlePointerUp);
+          }}
+        >
+          <div className="w-1 h-12 bg-slate-300 rounded-full group-hover:bg-white transition-colors"></div>
+        </div>
+
         {/* Right: Issue Form Panel */}
-        <div className="w-[420px] bg-white border rounded-xl flex flex-col shrink-0 shadow-sm z-10 overflow-hidden">
+        <div 
+          className="bg-white border rounded-xl flex flex-col shrink-0 shadow-sm z-10 overflow-hidden" 
+          style={{ width: rightPanelWidth }}
+        >
           {/* Search Bar for Pins */}
           <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50">
             <div className="relative">
