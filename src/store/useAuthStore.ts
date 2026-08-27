@@ -23,13 +23,14 @@ interface AuthState {
 
 const MASTER_EMAIL = 'aayhh1127@gmail.com';
 
-function computePermissions(role: UserRole) {
+function computePermissions(role: UserRole, user: User | null = null) {
+  const isExternal = user?.user_metadata?.is_external === true;
   return {
     isMaster: role === 'MASTER',
     canViewAdminMenu: role === 'MASTER',
     canManageProjects: role === 'MASTER' || role === 'SUB_MASTER',
     canManagePins: role === 'MASTER' || role === 'SUB_MASTER',
-    canEditDevFeedback: role === 'MASTER' || role === 'SUB_MASTER' || role === 'DEVELOPER',
+    canEditDevFeedback: role === 'MASTER' || role === 'SUB_MASTER' || role === 'DEVELOPER' || isExternal,
     canComment: true,
   };
 }
@@ -64,18 +65,20 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setUser: async (user) => {
     const role = await fetchRoleFromFirestore(user?.email);
-    set({ user, role, ...computePermissions(role), isLoading: false });
+    set({ user, role, ...computePermissions(role, user), isLoading: false });
   },
 
   initializeAuth: () => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       const role = await fetchRoleFromFirestore(session?.user?.email);
-      set({ user: session?.user ?? null, role, ...computePermissions(role), isLoading: false });
+      const user = session?.user ?? null;
+      set({ user, role, ...computePermissions(role, user), isLoading: false });
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const role = await fetchRoleFromFirestore(session?.user?.email);
-      set({ user: session?.user ?? null, role, ...computePermissions(role), isLoading: false });
+      const user = session?.user ?? null;
+      set({ user, role, ...computePermissions(role, user), isLoading: false });
     });
 
     return () => {
