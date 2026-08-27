@@ -8,8 +8,9 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Check, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings, RefreshCw, ChevronUp, ChevronDown, GripVertical, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Check, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings, RefreshCw, ChevronUp, ChevronDown, GripVertical, PanelLeftClose, PanelLeftOpen, LogOut, User as UserIcon } from "lucide-react";
 import Link from "next/link";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -284,7 +285,7 @@ export default function ScreenQA() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isMaster, canManageProjects, canManagePins, canEditDevFeedback, canComment, user, role } = useAuthStore();
+  const { isMaster, canManageProjects, canManagePins, canEditDevFeedback, canComment, user, role, signOut } = useAuthStore();
   const [projectTitle, setProjectTitle] = useState("");
   const [projectPlatform, setProjectPlatform] = useState("");
   const [projectStatus, setProjectStatus] = useState("진행중");
@@ -913,6 +914,23 @@ export default function ScreenQA() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {user ? (
+            <div className="flex items-center gap-2 mr-2 border-r pr-4 border-slate-200">
+              <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
+                <UserIcon className="w-4 h-4 text-slate-400" />
+                <span className="font-medium max-w-[100px] truncate">{user.email?.split('@')[0]}</span>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => signOut()} className="w-8 h-8 text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="로그아웃">
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <Link href="/login" className="mr-2 border-r pr-4 border-slate-200">
+              <Button variant="outline" size="sm" className="h-9 px-4 text-slate-600 font-semibold border-slate-200 hover:bg-slate-50">
+                로그인
+              </Button>
+            </Link>
+          )}
           {canManageProjects && (
             <Button 
               variant="outline" 
