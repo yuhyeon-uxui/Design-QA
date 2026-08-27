@@ -915,10 +915,12 @@ export default function ScreenQA() {
         <div className="flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-2 mr-2 border-r pr-4 border-slate-200">
-              <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
-                <UserIcon className="w-4 h-4 text-slate-400" />
-                <span className="font-medium max-w-[100px] truncate">{user.email?.split('@')[0]}</span>
-              </div>
+              <Link href="/mypage">
+                <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-full border border-slate-100 transition-colors cursor-pointer" title="마이페이지">
+                  <UserIcon className="w-4 h-4 text-slate-400" />
+                  <span className="font-medium max-w-[100px] truncate">{user.user_metadata?.full_name || user.email?.split('@')[0]}</span>
+                </div>
+              </Link>
               <Button variant="ghost" size="icon" onClick={() => signOut()} className="w-8 h-8 text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="로그아웃">
                 <LogOut className="w-4 h-4" />
               </Button>
