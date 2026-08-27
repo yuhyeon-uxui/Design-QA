@@ -8,7 +8,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/ui/custom-alert";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Check, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
+import { ExternalLink, ChevronLeft, Image as ImageIcon, LayoutGrid, CheckCircle2, Check, Loader2, Link as LinkIcon, Trash2, Send, MessageSquare, UploadCloud, Monitor, Smartphone, Plus, Settings, RefreshCw, ChevronUp, ChevronDown, GripVertical } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1391,20 +1391,23 @@ export default function ScreenQA() {
 
         {/* Right Panel Resizer */}
         <div 
-          className="w-2 hover:bg-[#0064fa] bg-transparent cursor-col-resize transition-colors shrink-0 z-20 group relative -mx-4 flex items-center justify-center rounded-full opacity-50 hover:opacity-100"
+          className="w-4 flex items-center justify-center cursor-col-resize shrink-0 z-20 group relative -mx-5 px-2"
           onPointerDown={(e) => {
             e.preventDefault();
+            // Capture pointer to ensure dragging works even if cursor leaves the handle
+            (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+            
             const startX = e.clientX;
             const startWidth = rightPanelWidth;
             
-            const handlePointerMove = (e: PointerEvent) => {
+            const handlePointerMove = (e: globalThis.PointerEvent) => {
               const delta = startX - e.clientX;
               // Limit width between 280px and 800px
               const newWidth = Math.max(280, Math.min(800, startWidth + delta));
               setRightPanelWidth(newWidth);
             };
             
-            const handlePointerUp = () => {
+            const handlePointerUp = (upEvent: globalThis.PointerEvent) => {
               window.removeEventListener("pointermove", handlePointerMove);
               window.removeEventListener("pointerup", handlePointerUp);
             };
@@ -1413,7 +1416,13 @@ export default function ScreenQA() {
             window.addEventListener("pointerup", handlePointerUp);
           }}
         >
-          <div className="w-1 h-12 bg-slate-300 rounded-full group-hover:bg-white transition-colors"></div>
+          {/* Default state: subtle thin line */}
+          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-slate-200 group-hover:bg-[#0064fa] transition-colors"></div>
+          
+          {/* Hover state: pill with grip icon */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-7 h-12 bg-white border border-slate-200 shadow-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 text-slate-400 group-hover:text-[#0064fa]">
+            <GripVertical className="w-4 h-4" />
+          </div>
         </div>
 
         {/* Right: Issue Form Panel */}
