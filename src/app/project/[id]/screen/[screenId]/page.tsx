@@ -1226,36 +1226,46 @@ export default function ScreenQA() {
                 </div>
                 <div className="flex items-center gap-2">
                   {testUrl && !isAppProject && (
-                    <>
-                      <Link href={testUrl} target="_blank" className="flex-1">
-                        <Button variant="ghost" size="sm" className="h-7 px-3 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full">
-                          <ExternalLink className="w-3 h-3 mr-1" />
-                          테스트 링크 열기
-                        </Button>
-                      </Link>
-                      {canManagePins && (
-                        <Button variant="outline" size="sm" className="h-7 px-3 text-xs font-medium text-slate-600 bg-white" onClick={() => setTestUrl("")}>
-                          링크 다시 입력
-                        </Button>
-                      )}
-                    </>
+                    <Link href={testUrl} target="_blank" className="flex-1">
+                      <Button variant="ghost" size="sm" className="h-7 px-3 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full">
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        테스트 링크 열기
+                      </Button>
+                    </Link>
                   )}
                   {actualImage && (
-                    <>
-                      <Button 
-                        variant={isOriginalView ? "default" : "outline"} 
-                        size="sm" 
-                        className={`h-7 text-xs px-3 ml-1 ${isOriginalView ? "bg-[#0064fa] hover:bg-[#0064fa]/90 text-white" : "bg-white text-slate-600"}`} 
-                        onClick={() => setIsOriginalView(!isOriginalView)}
-                      >
-                        원본 보기
-                      </Button>
-                      {canManagePins && (
-                        <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => setIsReuploadAlertOpen(true)}>
-                          이미지 다시 올리기
+                    <Button 
+                      variant={isOriginalView ? "default" : "outline"} 
+                      size="sm" 
+                      className={`h-7 text-xs px-3 ml-1 ${isOriginalView ? "bg-[#0064fa] hover:bg-[#0064fa]/90 text-white" : "bg-white text-slate-600"}`} 
+                      onClick={() => setIsOriginalView(!isOriginalView)}
+                    >
+                      원본 보기
+                    </Button>
+                  )}
+                  {canManagePins && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 w-7 p-0 bg-white ml-1 shadow-sm">
+                          <MoreVertical className="h-4 w-4 text-slate-600" />
                         </Button>
-                      )}
-                    </>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        {(!isAppProject && testUrl) && (
+                          <DropdownMenuItem onClick={() => setTestUrl("")} className="cursor-pointer">
+                            <LinkIcon className="mr-2 h-4 w-4" />
+                            <span>링크 다시 입력</span>
+                          </DropdownMenuItem>
+                        )}
+                        {(!isAppProject && testUrl) && actualImage && <DropdownMenuSeparator />}
+                        {actualImage && (
+                          <DropdownMenuItem onClick={() => setIsReuploadAlertOpen(true)} className="cursor-pointer text-slate-700">
+                            <UploadCloud className="mr-2 h-4 w-4" />
+                            <span>이미지 다시 올리기</span>
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                 </div>
               </div>
