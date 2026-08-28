@@ -282,6 +282,39 @@ const formatTimeAgo = (dateString: string) => {
 };
 
 
+function CategoryInput({ initialCategory, screenId, setScreens, params }: any) {
+  const [val, setVal] = useState(initialCategory || "");
+  
+  useEffect(() => {
+    setVal(initialCategory || "");
+  }, [initialCategory]);
+
+  return (
+    <input
+      className="w-full bg-transparent text-[10px] font-bold outline-none text-slate-400 placeholder:text-slate-300 px-1 -ml-1 mb-0.5 focus:text-[#0064fa]"
+      placeholder="분류 (예: PC, MO)"
+      value={val}
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => setVal(e.target.value)}
+      onBlur={() => {
+        if (val !== (initialCategory || "")) {
+          setScreens((prev: any) => prev.map((s: any) => s.id === screenId ? { ...s, category: val } : s));
+          if (params.id) {
+            import("firebase/firestore").then(({ setDoc, doc }) => {
+              setDoc(doc(db, "project_screens", params.id as string, "screens", screenId), { category: val }, { merge: true }).catch(console.error);
+            });
+          }
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.currentTarget.blur();
+        }
+      }}
+    />
+  );
+}
+
 export default function ScreenQA() {
   const params = useParams();
   const router = useRouter();
@@ -1062,21 +1095,7 @@ export default function ScreenQA() {
                           </div>
                           <div className="flex-1 min-w-0 flex flex-col justify-center">
                             {canManageProjects ? (
-                              <input
-                                className="w-full bg-transparent text-[10px] font-bold outline-none text-slate-400 placeholder:text-slate-300 px-1 -ml-1 mb-0.5 focus:text-[#0064fa]"
-                                placeholder="분류 (예: PC, MO)"
-                                value={screen.category || ""}
-                                onClick={(e) => e.stopPropagation()}
-                                onChange={(e) => setScreens(prev => prev.map(s => s.id === screen.id ? { ...s, category: e.target.value } : s))}
-                                onBlur={() => {
-                                  if (params.id) {
-                                    import("firebase/firestore").then(({ setDoc, doc }) => {
-                                      setDoc(doc(db, "project_screens", params.id as string, "screens", screen.id), { category: screen.category || "" }, { merge: true }).catch(console.error);
-                                    });
-                                  }
-                                }}
-                                onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-                              />
+                              <CategoryInput initialCategory={screen.category} screenId={screen.id} setScreens={setScreens} params={params} db={db} />
                             ) : (
                               screen.category && <div className="w-full text-[10px] font-bold text-slate-400 px-1 -ml-1 mb-0.5 truncate">{screen.category}</div>
                             )}
