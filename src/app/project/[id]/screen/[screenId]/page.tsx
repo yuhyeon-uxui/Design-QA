@@ -250,6 +250,7 @@ interface ScreenData {
   Mobile: ScreenDeviceState;
   order?: number;
   category?: string;
+  deviceType?: "PC" | "Mobile";
 }
 
 const emptyDeviceState: ScreenDeviceState = {
@@ -494,12 +495,23 @@ export default function ScreenQA() {
   const [pinToDelete, setPinToDelete] = useState<number | null>(null);
   const filteredMembers = PRESET_MEMBERS.filter(m => m.name.includes(authorSearch) || m.role.toLowerCase().includes(authorSearch.toLowerCase()));
   type Device = "PC" | "Mobile";
-  const [device, setDevice] = useState<Device>("PC");
   const [pinSearchQuery, setPinSearchQuery] = useState("");
 
   const activeScreenIndex = screens.findIndex(s => s.id === activeScreenId);
   const activeScreen = activeScreenIndex >= 0 ? screens[activeScreenIndex] : screens[0];
-  const activeDeviceState = activeScreen[device];
+  
+  const device = (activeScreen?.deviceType || "PC") as Device;
+  const setDevice = (newDevice: Device) => {
+    if (!activeScreen) return;
+    setScreens(prev => prev.map(s => s.id === activeScreen.id ? { ...s, deviceType: newDevice } : s));
+    if (params.id) {
+      import("firebase/firestore").then(({ setDoc, doc }) => {
+        setDoc(doc(db, "project_screens", params.id as string, "screens", activeScreen.id), { deviceType: newDevice }, { merge: true }).catch(console.error);
+      });
+    }
+  };
+
+  const activeDeviceState = activeScreen ? activeScreen[device] : emptyDeviceState;
 
   const updateActiveDeviceState = (updates: Partial<ScreenDeviceState>) => {
     setScreens(prev => {
@@ -1086,9 +1098,9 @@ export default function ScreenQA() {
                           }`}
                         >
                           <div className="w-11 h-16 bg-slate-200 rounded border shrink-0 overflow-hidden relative">
-                             {screen[device].actualImage ? (
+                             {screen[screen.deviceType || "PC"].actualImage ? (
                                // eslint-disable-next-line @next/next/no-img-element
-                               <img src={screen[device].actualImage!} alt="" className="w-full h-full object-cover" />
+                               <img src={screen[screen.deviceType || "PC"].actualImage!} alt="" className="w-full h-full object-cover" />
                              ) : (
                                <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200"></div>
                              )}
