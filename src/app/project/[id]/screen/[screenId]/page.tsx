@@ -1246,10 +1246,8 @@ export default function ScreenQA() {
                   )}
                   {canManagePins && (
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-7 w-7 p-0 bg-white ml-1 shadow-sm">
-                          <MoreVertical className="h-4 w-4 text-slate-600" />
-                        </Button>
+                      <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-200 bg-white hover:bg-slate-50 h-7 w-7 ml-1 shadow-sm text-slate-600 outline-none">
+                        <MoreVertical className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
                         {(!isAppProject && testUrl) && (
