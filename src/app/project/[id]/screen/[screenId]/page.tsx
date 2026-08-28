@@ -1242,9 +1242,6 @@ export default function ScreenQA() {
                   )}
                   {actualImage && (
                     <>
-                      {canManagePins && (
-                        <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md ml-2">클릭하여 핀 추가</span>
-                      )}
                       <Button 
                         variant={isOriginalView ? "default" : "outline"} 
                         size="sm" 
