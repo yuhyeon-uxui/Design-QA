@@ -249,6 +249,7 @@ interface ScreenData {
   PC: ScreenDeviceState;
   Mobile: ScreenDeviceState;
   order?: number;
+  category?: string;
 }
 
 const emptyDeviceState: ScreenDeviceState = {
@@ -989,7 +990,7 @@ export default function ScreenQA() {
               {canManageProjects && (
                 <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-[#0064fa] hover:bg-slate-200" onClick={() => {
               const newId = `s${Date.now()}`;
-              const newScreen: ScreenData = { id: newId, name: "새로운 화면", issueCount: -1, PC: { ...emptyDeviceState }, Mobile: { ...emptyDeviceState }, order: screens.length };
+              const newScreen: ScreenData = { id: newId, name: "새로운 화면", category: "", issueCount: -1, PC: { ...emptyDeviceState }, Mobile: { ...emptyDeviceState }, order: screens.length };
               
               setScreens(prev => {
                 const nextScreens = [...prev, newScreen];
@@ -1025,50 +1026,87 @@ export default function ScreenQA() {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
-            <div className="p-3 space-y-1.5">
-              {screens.map((screen) => (
-                <div key={screen.id} className="relative group">
-                  <button
-                    onClick={() => safeNavigate(() => setActiveScreenId(screen.id))}
-                    className={`w-full text-left p-2.5 rounded-lg flex items-center gap-3 transition-colors pr-8 ${
-                      activeScreenId === screen.id 
-                        ? "bg-[#EEF2FF] border-[#0064fa]/20 border ring-1 ring-[#0064fa]/10 shadow-sm" 
-                        : "hover:bg-slate-100 border border-transparent"
-                    }`}
-                  >
-                    <div className="w-11 h-16 bg-slate-200 rounded border shrink-0 overflow-hidden relative">
-                       {screen[device].actualImage ? (
-                         // eslint-disable-next-line @next/next/no-img-element
-                         <img src={screen[device].actualImage!} alt="" className="w-full h-full object-cover" />
-                       ) : (
-                         <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200"></div>
-                       )}
+            <div className="p-3">
+              {Object.entries(
+                screens.reduce((acc, screen) => {
+                  const cat = screen.category?.trim() || "";
+                  if (!acc[cat]) acc[cat] = [];
+                  acc[cat].push(screen);
+                  return acc;
+                }, {} as Record<string, typeof screens>)
+              ).map(([category, catScreens]) => (
+                <div key={category} className="mb-4 last:mb-0">
+                  {(category || canManageProjects) && (
+                    <div className="px-1 mb-2 flex items-center">
+                      <span className="text-xs font-bold text-slate-400 px-1">{category || "미분류 화면"}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      {canManageProjects ? (
-                        <input
-                          className={`w-full bg-transparent text-sm font-semibold outline-none focus:ring-1 focus:ring-[#0064fa]/30 rounded px-1 -ml-1 ${activeScreenId === screen.id ? 'text-[#0064fa]' : 'text-slate-700'}`}
-                          value={screen.name}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => {
-                            setScreens(prev => prev.map(s => s.id === screen.id ? { ...s, name: e.target.value } : s));
-                          }}
-                          onBlur={() => {
-                            if (params.id && screen.name.trim()) {
-                              setDoc(doc(db, "project_screens", params.id as string, "screens", screen.id), { name: screen.name }, { merge: true }).catch(console.error);
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.currentTarget.blur();
-                            }
-                          }}
-                        />
-                      ) : (
-                        <div className={`w-full text-sm font-semibold truncate px-1 -ml-1 py-[1px] ${activeScreenId === screen.id ? 'text-[#0064fa]' : 'text-slate-700'}`}>
-                          {screen.name}
-                        </div>
-                      )}
+                  )}
+                  <div className="space-y-1.5">
+                    {catScreens.map((screen) => (
+                      <div key={screen.id} className="relative group">
+                        <button
+                          onClick={() => safeNavigate(() => setActiveScreenId(screen.id))}
+                          className={`w-full text-left p-2.5 rounded-lg flex items-center gap-3 transition-colors pr-8 ${
+                            activeScreenId === screen.id 
+                              ? "bg-[#EEF2FF] border-[#0064fa]/20 border ring-1 ring-[#0064fa]/10 shadow-sm" 
+                              : "hover:bg-slate-100 border border-transparent"
+                          }`}
+                        >
+                          <div className="w-11 h-16 bg-slate-200 rounded border shrink-0 overflow-hidden relative">
+                             {screen[device].actualImage ? (
+                               // eslint-disable-next-line @next/next/no-img-element
+                               <img src={screen[device].actualImage!} alt="" className="w-full h-full object-cover" />
+                             ) : (
+                               <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200"></div>
+                             )}
+                          </div>
+                          <div className="flex-1 min-w-0 flex flex-col justify-center">
+                            {canManageProjects ? (
+                              <input
+                                className="w-full bg-transparent text-[10px] font-bold outline-none text-slate-400 placeholder:text-slate-300 px-1 -ml-1 mb-0.5 focus:text-[#0064fa]"
+                                placeholder="분류 (예: PC, MO)"
+                                value={screen.category || ""}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => setScreens(prev => prev.map(s => s.id === screen.id ? { ...s, category: e.target.value } : s))}
+                                onBlur={() => {
+                                  if (params.id) {
+                                    import("firebase/firestore").then(({ setDoc, doc }) => {
+                                      setDoc(doc(db, "project_screens", params.id as string, "screens", screen.id), { category: screen.category || "" }, { merge: true }).catch(console.error);
+                                    });
+                                  }
+                                }}
+                                onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                              />
+                            ) : (
+                              screen.category && <div className="w-full text-[10px] font-bold text-slate-400 px-1 -ml-1 mb-0.5 truncate">{screen.category}</div>
+                            )}
+                            
+                            {canManageProjects ? (
+                              <input
+                                className={`w-full bg-transparent text-sm font-semibold outline-none focus:ring-1 focus:ring-[#0064fa]/30 rounded px-1 -ml-1 ${activeScreenId === screen.id ? 'text-[#0064fa]' : 'text-slate-700'}`}
+                                value={screen.name}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => {
+                                  setScreens(prev => prev.map(s => s.id === screen.id ? { ...s, name: e.target.value } : s));
+                                }}
+                                onBlur={() => {
+                                  if (params.id && screen.name.trim()) {
+                                    import("firebase/firestore").then(({ setDoc, doc }) => {
+                                      setDoc(doc(db, "project_screens", params.id as string, "screens", screen.id), { name: screen.name }, { merge: true }).catch(console.error);
+                                    });
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.currentTarget.blur();
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <div className={`w-full text-sm font-semibold truncate px-1 -ml-1 py-[1px] ${activeScreenId === screen.id ? 'text-[#0064fa]' : 'text-slate-700'}`}>
+                                {screen.name}
+                              </div>
+                            )}
                       <div className="mt-1.5">
                         {screen.issueCount === -1 ? (
                           <span className="inline-flex items-center text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
@@ -1127,10 +1165,13 @@ export default function ScreenQA() {
                   )}
                 </div>
               ))}
+              </div>
             </div>
+          ))}
           </div>
         </div>
-        )}
+      </div>
+      )}
 
         {/* Center: Split View (Figma vs Capture) */}
         {(() => {
