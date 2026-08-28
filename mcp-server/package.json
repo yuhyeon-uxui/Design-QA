@@ -1,0 +1,14 @@
+{
+  "name": "design-qa-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server for Design QA",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "firebase": "^10.12.2"
+  }
+}

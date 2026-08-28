@@ -14,6 +14,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { GitHubSyncButton } from "@/components/GitHubSyncButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -1766,13 +1767,16 @@ export default function ScreenQA() {
                     </div>
                   </div>
 
-                  <Button 
-                    disabled={!canManagePins && !canEditDevFeedback}
-                    className="w-full bg-[#0064fa] hover:bg-[#0064fa]/90 text-white font-bold h-12 text-sm shadow-md rounded-lg mt-2 transition-all active:scale-[0.98] disabled:opacity-50"
-                    onClick={handleSavePinDetails}
-                  >
-                    내용 저장하기
-                  </Button>
+                  <div className="flex flex-col gap-2 mt-4">
+                    <Button 
+                      disabled={!canManagePins && !canEditDevFeedback}
+                      className="w-full bg-[#0064fa] hover:bg-[#0064fa]/90 text-white font-bold h-12 text-sm shadow-md rounded-lg transition-all active:scale-[0.98] disabled:opacity-50"
+                      onClick={handleSavePinDetails}
+                    >
+                      내용 저장하기
+                    </Button>
+                    <GitHubSyncButton pin={localForm} screenName={activeScreen?.name || ""} />
+                  </div>
 
                   {/* 댓글 (Comments) 섹션 */}
                   <div className="mt-10 pt-6 border-t border-slate-200">
