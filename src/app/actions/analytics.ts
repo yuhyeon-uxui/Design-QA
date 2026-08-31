@@ -6,16 +6,27 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 export async function fetchAnalyticsData() {
   const metrics = await getGA4Metrics();
   
-  let insight = "데이터를 분석하는 중입니다...";
+  let insight = {
+    summary: "데이터를 분석하는 중입니다...",
+    positive: "",
+    improvement: ""
+  };
 
   if (!process.env.GEMINI_API_KEY) {
-    insight = "Gemini API Key가 설정되지 않아 AI 분석을 건너뛰었습니다. 환경 변수에 GEMINI_API_KEY를 추가해주세요.";
+    insight = {
+      summary: "Gemini API Key가 설정되지 않아 AI 분석을 건너뛰었습니다. 환경 변수에 GEMINI_API_KEY를 추가해주세요.",
+      positive: "",
+      improvement: ""
+    };
     return { ...metrics, insight };
   }
 
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-3.6-flash",
+      generationConfig: { responseMimeType: "application/json" }
+    });
 
     const prompt = `
 너는 웹사이트 트래픽 전문 데이터 분석가야.
@@ -29,14 +40,25 @@ export async function fetchAnalyticsData() {
 - 상위 인기 페이지 Top 3:
 ${metrics.topPages.slice(0, 3).map((p, i) => `  ${i+1}. ${p.title} (${p.views} views)`).join('\n')}
 
-이 데이터를 바탕으로 현재 웹사이트의 상태를 진단하고, 긍정적인 점 1개와 개선해야 할 점 1개를 합쳐서 **총 3문장 이내의 짧고 명확한 한국어 분석 리포트**를 작성해줘.
+이 데이터를 바탕으로 현재 웹사이트의 상태를 진단해줘. 
+반드시 아래 JSON 스키마 형식에 맞춰서 3가지 항목(summary, positive, improvement)을 각각 1문장으로 명확하게 한국어로 작성해줘.
+
+{
+  "summary": "전반적인 트래픽 상태 요약 한 문장",
+  "positive": "데이터에서 발견한 가장 긍정적인 지표와 그 의미 한 문장",
+  "improvement": "데이터에서 발견한 가장 시급하게 개선해야 할 점 한 문장"
+}
     `;
 
     const result = await model.generateContent(prompt);
-    insight = result.response.text();
+    insight = JSON.parse(result.response.text());
   } catch (error) {
     console.error("Gemini AI API Error:", error);
-    insight = "AI 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+    insight = {
+      summary: "AI 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+      positive: "",
+      improvement: ""
+    };
   }
 
   return { ...metrics, insight };

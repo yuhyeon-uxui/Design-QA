@@ -13,6 +13,12 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 type DeviceData = { name: string; value: number };
 type PageData = { title: string; path: string; views: number };
+type InsightData = {
+  summary: string;
+  positive: string;
+  improvement: string;
+};
+
 type Metrics = {
   activeUsers: number;
   sessions: number;
@@ -20,7 +26,7 @@ type Metrics = {
   averageSessionDuration: number;
   devices: DeviceData[];
   topPages: PageData[];
-  insight?: string;
+  insight?: InsightData;
 };
 
 const COLORS = ['#0064fa', '#10b981', '#8b5cf6', '#f43f5e', '#f59e0b'];
@@ -36,7 +42,7 @@ export default function UserMetricsPage() {
     averageSessionDuration: 0,
     devices: [],
     topPages: [],
-    insight: "",
+    insight: { summary: "", positive: "", improvement: "" },
   });
   const [loadingMetrics, setLoadingMetrics] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
@@ -100,22 +106,51 @@ export default function UserMetricsPage() {
         </div>
 
         {/* AI Insight Card */}
-        <Card className="border-none shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50 mb-8 border-l-4 border-l-[#0064fa]">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-[#0064fa] flex items-center gap-2">
-              <Sparkles className="w-5 h-5" />
+        <Card className="border-none shadow-sm bg-gradient-to-br from-[#f8faff] to-[#eff4ff] mb-8 ring-1 ring-blue-500/10">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg text-[#0064fa] flex items-center gap-2 font-bold">
+              <Sparkles className="w-5 h-5 text-blue-500" />
               Gemini AI 자동 분석 리포트
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loadingMetrics ? (
-              <div className="flex items-center gap-3 text-slate-500 font-medium py-2">
-                <div className="w-4 h-4 rounded-full border-2 border-slate-300 border-t-[#0064fa] animate-spin"></div>
+              <div className="flex items-center gap-3 text-blue-600/60 font-medium py-6 px-4">
+                <div className="w-5 h-5 rounded-full border-2 border-blue-200 border-t-[#0064fa] animate-spin"></div>
                 AI가 지난 30일간의 트래픽 패턴을 분석하고 있습니다...
               </div>
             ) : (
-              <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">
-                {metrics.insight}
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1 bg-white/60 p-6 rounded-xl border border-blue-100/50 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-md">종합 요약</span>
+                  </div>
+                  <p className="text-slate-800 font-medium leading-relaxed">
+                    {metrics.insight?.summary}
+                  </p>
+                </div>
+                
+                <div className="flex-1 flex flex-col gap-4">
+                  <div className="bg-white/60 p-5 rounded-xl border border-emerald-100/50 flex gap-4 items-start">
+                    <div className="w-10 h-10 bg-emerald-100/50 rounded-lg flex items-center justify-center shrink-0">
+                      <span className="text-emerald-600 text-xl">📈</span>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-emerald-800 mb-1">긍정적 지표</h4>
+                      <p className="text-sm text-slate-600 leading-relaxed">{metrics.insight?.positive}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/60 p-5 rounded-xl border border-rose-100/50 flex gap-4 items-start">
+                    <div className="w-10 h-10 bg-rose-100/50 rounded-lg flex items-center justify-center shrink-0">
+                      <span className="text-rose-600 text-xl">🚨</span>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-rose-800 mb-1">개선 필요 지표</h4>
+                      <p className="text-sm text-slate-600 leading-relaxed">{metrics.insight?.improvement}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
