@@ -107,7 +107,8 @@ export default function Dashboard() {
       completedCount: 0,
       screensCount: 1,
       completedScreensCount: 0,
-      lastUpdated: newProjectDueDate || new Date().toISOString().split('T')[0],
+      lastUpdated: new Date().toISOString().split('T')[0],
+      dueDate: newProjectDueDate || "",
       createdAt: Date.now(),
       figmaProjectUrl: newProjectFigmaUrl || ""
     };
@@ -393,7 +394,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="space-y-2.5">
-                    <Label htmlFor="dueDate" className="text-sm font-bold text-slate-800">요청일</Label>
+                    <Label htmlFor="dueDate" className="text-sm font-bold text-slate-800">마감일 (Due Date)</Label>
                     <Input
                       id="dueDate"
                       type="date"
@@ -522,21 +523,49 @@ export default function Dashboard() {
             const isDerivedCompleted = project.status === '진행중' && project.issuesCount > 0 && project.issuesCount === project.completedCount;
             const displayStatus = isDerivedCompleted ? 'QA 완료' : project.status;
             
+            // D-Day 계산 로직
+            const dueDateStr = (project as any).dueDate;
+            let dDayBadge = null;
+            if (dueDateStr && displayStatus !== 'QA 완료' && displayStatus !== '완료됨') {
+              const due = new Date(dueDateStr);
+              const today = new Date();
+              today.setHours(0,0,0,0);
+              const diffTime = due.getTime() - today.getTime();
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              
+              if (diffDays < 0) {
+                dDayBadge = <span className="bg-rose-100 text-rose-700 font-bold px-2 py-0.5 rounded text-xs animate-pulse">기한 지남 (D+{Math.abs(diffDays)})</span>;
+              } else if (diffDays <= 3) {
+                dDayBadge = <span className="bg-orange-100 text-orange-700 font-bold px-2 py-0.5 rounded text-xs">마감 임박 (D-{diffDays})</span>;
+              } else {
+                dDayBadge = <span className="bg-blue-50 text-[#0064fa] font-bold px-2 py-0.5 rounded text-xs">D-{diffDays}</span>;
+              }
+            }
+            
             return (
               <Card key={project.id} className="border-none shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden group">
                 <CardHeader className="pb-4 border-b bg-slate-50/50">
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-[#0064fa] transition-colors">{project.name}</CardTitle>
-                      <CardDescription className="pt-2 flex items-center gap-2.5">
+                      <CardDescription className="pt-2 flex flex-wrap items-center gap-2.5">
                         <span className={`px-2 py-0.5 rounded text-xs font-bold ${getPlatformColor(project.platform)}`}>{project.platform}</span>
                         <span className="text-slate-300">|</span>
                         <span className="text-slate-500 font-medium">화면 {project.screensCount}장</span>
                         <span className="text-slate-300">|</span>
-                        <span className="text-slate-500 font-medium flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {project.lastUpdated}</span>
+                        <span className="text-slate-500 font-medium flex items-center gap-1.5" title="시작일(최근 업데이트일)"><Calendar className="w-3.5 h-3.5" /> {project.lastUpdated}</span>
+                        {dueDateStr && (
+                          <>
+                            <span className="text-slate-300">|</span>
+                            <span className="text-slate-600 font-semibold flex items-center gap-1.5" title="QA 마감일">
+                              마감: {dueDateStr}
+                            </span>
+                            {dDayBadge}
+                          </>
+                        )}
                       </CardDescription>
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex items-center shrink-0 ml-2">
                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                         displayStatus === '진행중' ? 'bg-blue-100 text-blue-700' : 
                         displayStatus === 'QA 완료' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
