@@ -1735,6 +1735,7 @@ export default function ScreenQA() {
                         </SelectContent>
                       </Select>
                       <Button disabled={!canManagePins && !canEditDevFeedback} onClick={handleSavePinDetails} className="h-10 px-4 bg-[#0064fa] hover:bg-[#0064fa]/90 text-white font-bold shrink-0">저장</Button>
+                      <GitHubSyncButton pin={localForm} screenName={activeScreen?.name || ""} />
                     </div>
                   </div>
 
@@ -1799,13 +1800,7 @@ export default function ScreenQA() {
                     </Button>
                   </div>
                   
-                  {/* External Links */}
-                  <div className="mt-8 pt-6 border-t border-slate-200">
-                    <h3 className="text-xs font-bold text-slate-500 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
-                      External Links
-                    </h3>
-                    <GitHubSyncButton pin={localForm} screenName={activeScreen?.name || ""} />
-                  </div>
+
 
                   {/* 댓글 (Comments) 섹션 */}
                   <div className="mt-10 pt-6 border-t border-slate-200">
