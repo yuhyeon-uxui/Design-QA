@@ -105,7 +105,7 @@ export default function AiReportPage() {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl">✨</div>
             </div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">데이터를 엮어내고 있습니다...</h3>
-            <p className="text-slate-500">병목 원인과 팀 효율을 다각도로 진단 중입니다.</p>
+            <p className="text-slate-500">정체구간 원인과 팀 효율을 다각도로 진단 중입니다.</p>
           </div>
         )}
 
@@ -122,13 +122,13 @@ export default function AiReportPage() {
                 <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center mb-6">
                   <span className="text-2xl">🚨</span>
                 </div>
-                <h3 className="text-lg font-bold text-rose-900 mb-4">병목 프로젝트 및 리소스 진단</h3>
+                <h3 className="text-lg font-bold text-rose-900 mb-4">정체구간 프로젝트 및 리소스 진단</h3>
                 <div className="space-y-4">
                   <p className="text-slate-700 leading-relaxed font-medium">
                     현재 <strong className="text-rose-600 bg-rose-50 px-1">사내 그룹웨어 리뉴얼 QA</strong> 프로젝트에 미해결 이슈의 65%가 집중되어 있습니다.
                   </p>
                   <p className="text-slate-600 text-sm leading-relaxed">
-                    특히 모바일 뷰(Mobile) 관련 이슈의 해결 속도가 눈에 띄게 저하되었습니다. 프론트엔드 개발자 리소스의 병목 현상이 의심되므로, 해당 프로젝트에 대한 즉각적인 리소스 재분배 혹은 마감일 연장을 권장합니다.
+                    특히 모바일 뷰(Mobile) 관련 이슈의 해결 속도가 눈에 띄게 저하되었습니다. 프론트엔드 개발자 리소스의 정체구간 현상이 의심되므로, 해당 프로젝트에 대한 즉각적인 리소스 재분배 혹은 마감일 연장을 권장합니다.
                   </p>
                 </div>
               </div>
