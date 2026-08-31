@@ -83,6 +83,7 @@ export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectPlatform, setNewProjectPlatform] = useState("");
+  const [newProjectStartDate, setNewProjectStartDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [newProjectDueDate, setNewProjectDueDate] = useState("");
   const [newProjectFigmaUrl, setNewProjectFigmaUrl] = useState("");
   const [filter, setFilter] = useState<"all" | "ongoing" | "unresolved" | "resolved">("all");
@@ -107,7 +108,7 @@ export default function Dashboard() {
       completedCount: 0,
       screensCount: 1,
       completedScreensCount: 0,
-      lastUpdated: new Date().toISOString().split('T')[0],
+      lastUpdated: newProjectStartDate || new Date().toISOString().split('T')[0],
       dueDate: newProjectDueDate || "",
       createdAt: Date.now(),
       figmaProjectUrl: newProjectFigmaUrl || ""
@@ -132,6 +133,7 @@ export default function Dashboard() {
       setIsModalOpen(false);
       setNewProjectName("");
       setNewProjectPlatform("");
+      setNewProjectStartDate(new Date().toISOString().split('T')[0]);
       setNewProjectDueDate("");
       setNewProjectFigmaUrl("");
     } catch (e) {
@@ -374,7 +376,7 @@ export default function Dashboard() {
                     className="h-11"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-6">
                   <div className="space-y-3">
                     <Label className="text-sm font-bold text-slate-800">플랫폼 유형</Label>
                     <div className="flex flex-wrap gap-2">
@@ -394,15 +396,25 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="space-y-2.5">
-                    <Label htmlFor="dueDate" className="text-sm font-bold text-slate-800">마감일 (Due Date)</Label>
-                    <Input
-                      id="dueDate"
-                      type="date"
-                      value={newProjectDueDate}
-                      onChange={(e) => setNewProjectDueDate(e.target.value)}
-                      className="h-11 w-full"
-                    />
-                    <p className="text-[11px] text-slate-400 mt-1.5 font-medium tracking-tight">※ 미설정 시 오늘 날짜로 지정됩니다.</p>
+                    <Label className="text-sm font-bold text-slate-800">프로젝트 기간</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="date"
+                        value={newProjectStartDate}
+                        onChange={(e) => setNewProjectStartDate(e.target.value)}
+                        className="h-11 flex-1"
+                        title="시작일"
+                      />
+                      <span className="text-slate-400 font-bold">~</span>
+                      <Input
+                        type="date"
+                        value={newProjectDueDate}
+                        onChange={(e) => setNewProjectDueDate(e.target.value)}
+                        className="h-11 flex-1"
+                        title="마감일 (선택)"
+                      />
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-1.5 font-medium tracking-tight">※ 마감일은 미정일 경우 비워둘 수 있습니다.</p>
                   </div>
                 </div>
               </div>
@@ -553,13 +565,13 @@ export default function Dashboard() {
                         <span className="text-slate-300">|</span>
                         <span className="text-slate-500 font-medium">화면 {project.screensCount}장</span>
                         <span className="text-slate-300">|</span>
-                        <span className="text-slate-500 font-medium flex items-center gap-1.5" title="시작일(최근 업데이트일)"><Calendar className="w-3.5 h-3.5" /> {project.lastUpdated}</span>
-                        {dueDateStr && (
+                        <span className="text-slate-500 font-medium flex items-center gap-1.5" title="프로젝트 기간">
+                          <Calendar className="w-3.5 h-3.5" /> 
+                          {project.lastUpdated.replace(/-/g, '.').substring(2)} ~ {dueDateStr ? dueDateStr.replace(/-/g, '.').substring(2) : '미정'}
+                        </span>
+                        {dDayBadge && (
                           <>
                             <span className="text-slate-300">|</span>
-                            <span className="text-slate-600 font-semibold flex items-center gap-1.5" title="QA 마감일">
-                              마감: {dueDateStr}
-                            </span>
                             {dDayBadge}
                           </>
                         )}

@@ -326,11 +326,13 @@ export default function ScreenQA() {
   const [projectTitle, setProjectTitle] = useState("");
   const [projectPlatform, setProjectPlatform] = useState("");
   const [projectStatus, setProjectStatus] = useState("진행중");
+  const [projectStartDate, setProjectStartDate] = useState("");
   const [projectDueDate, setProjectDueDate] = useState("");
   const [isProjectSettingsOpen, setIsProjectSettingsOpen] = useState(false);
   const [editProjectName, setEditProjectName] = useState("");
   const [editProjectPlatform, setEditProjectPlatform] = useState("");
   const [editProjectStatus, setEditProjectStatus] = useState("진행중");
+  const [editProjectStartDate, setEditProjectStartDate] = useState("");
   const [editProjectDueDate, setEditProjectDueDate] = useState("");
   const [projectFigmaUrl, setProjectFigmaUrl] = useState("");
   const [editProjectFigmaUrl, setEditProjectFigmaUrl] = useState("");
@@ -393,6 +395,7 @@ export default function ScreenQA() {
         setProjectTitle(currentProject.name);
         setProjectPlatform(currentProject.platform);
         if (currentProject.status) setProjectStatus(currentProject.status);
+        if (currentProject.lastUpdated) setProjectStartDate(currentProject.lastUpdated);
         if (currentProject.dueDate) setProjectDueDate(currentProject.dueDate);
         else if (currentProject.lastUpdated) setProjectDueDate(currentProject.lastUpdated);
         if (currentProject.figmaProjectUrl) setProjectFigmaUrl(currentProject.figmaProjectUrl);
@@ -427,11 +430,13 @@ export default function ScreenQA() {
         platform: editProjectPlatform,
         status: editProjectStatus,
         figmaProjectUrl: editProjectFigmaUrl,
+        lastUpdated: editProjectStartDate || new Date().toISOString().split('T')[0],
         dueDate: editProjectDueDate,
       }, { merge: true });
       setProjectTitle(editProjectName);
       setProjectPlatform(editProjectPlatform);
       setProjectStatus(editProjectStatus);
+      setProjectStartDate(editProjectStartDate || new Date().toISOString().split('T')[0]);
       setProjectDueDate(editProjectDueDate);
       setProjectFigmaUrl(editProjectFigmaUrl);
       setIsProjectSettingsOpen(false);
@@ -972,7 +977,7 @@ export default function ScreenQA() {
               <div className="flex items-center gap-3 mt-0.5">
                 <p className="text-xs font-medium text-slate-500">
                   {projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)")} · {projectStatus}
-                  {projectDueDate && ` · 마감일: ${projectDueDate}`}
+                  {projectStartDate && ` · 기간: ${projectStartDate.replace(/-/g, '.')} ~ ${projectDueDate ? projectDueDate.replace(/-/g, '.') : '미정'}`}
                 </p>
                 <div className="flex items-center gap-2 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
                   <div className="w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
@@ -1013,6 +1018,7 @@ export default function ScreenQA() {
                 setEditProjectName(projectTitle);
                 setEditProjectPlatform(projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)"));
                 setEditProjectStatus(projectStatus);
+                setEditProjectStartDate(projectStartDate);
                 setEditProjectDueDate(projectDueDate);
                 setEditProjectFigmaUrl(projectFigmaUrl);
                 setIsProjectSettingsOpen(true);
@@ -2111,14 +2117,24 @@ export default function ScreenQA() {
               </div>
             </div>
             <div className="space-y-2.5">
-              <Label htmlFor="edit-date" className="text-sm font-bold text-slate-800">마감일 (Due Date)</Label>
-              <Input
-                id="edit-date"
-                type="date"
-                value={editProjectDueDate}
-                onChange={(e) => setEditProjectDueDate(e.target.value)}
-                className="h-11"
-              />
+              <Label className="text-sm font-bold text-slate-800">프로젝트 기간</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="date"
+                  value={editProjectStartDate}
+                  onChange={(e) => setEditProjectStartDate(e.target.value)}
+                  className="h-11 flex-1"
+                  title="시작일"
+                />
+                <span className="text-slate-400 font-bold">~</span>
+                <Input
+                  type="date"
+                  value={editProjectDueDate}
+                  onChange={(e) => setEditProjectDueDate(e.target.value)}
+                  className="h-11 flex-1"
+                  title="마감일 (선택)"
+                />
+              </div>
             </div>
           </div>
           <DialogFooter className="mt-8 !bg-transparent !border-none !p-0 !m-0 border-t border-slate-100 pt-6">
