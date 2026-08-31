@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 export default function AiReportPage() {
   const [selectedWeek, setSelectedWeek] = useState("8월 4주차 (08.24 ~ 08.30)");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isReportReady, setIsReportReady] = useState(false);
+  const [isReportReady, setIsReportReady] = useState(true); // 처음 접속 시 바로 보여주기 위해 true로 변경
 
   const handleGenerate = () => {
     setIsGenerating(true);
@@ -44,8 +44,8 @@ export default function AiReportPage() {
       <main className="container mx-auto px-6 py-8 max-w-4xl">
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-base font-bold text-slate-800 mb-1">분석 기간 선택</h2>
-            <p className="text-sm text-slate-500">원하시는 주차를 선택하고 AI 진단을 시작해보세요.</p>
+            <h2 className="text-base font-bold text-slate-800 mb-1">히스토리 조회</h2>
+            <p className="text-sm text-slate-500">과거 주차를 선택하면 해당 주차의 진단 리포트를 불러옵니다.</p>
           </div>
           
           <div className="flex items-center gap-3 w-full md:w-auto">
@@ -55,7 +55,13 @@ export default function AiReportPage() {
                 value={selectedWeek}
                 onChange={(e) => {
                   setSelectedWeek(e.target.value);
+                  // 주차 변경 시 자동으로 로딩 애니메이션 실행
+                  setIsGenerating(true);
                   setIsReportReady(false);
+                  setTimeout(() => {
+                    setIsGenerating(false);
+                    setIsReportReady(true);
+                  }, 1500);
                 }}
               >
                 {weeks.map(w => (
@@ -78,7 +84,7 @@ export default function AiReportPage() {
               ) : (
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
-                  진단하기
+                  최신 데이터로 재진단
                 </div>
               )}
             </Button>
