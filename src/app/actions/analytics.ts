@@ -15,7 +15,7 @@ export async function fetchAnalyticsData() {
 
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     const prompt = `
 너는 웹사이트 트래픽 전문 데이터 분석가야.
