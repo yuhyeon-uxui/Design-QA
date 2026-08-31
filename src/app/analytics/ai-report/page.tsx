@@ -180,7 +180,14 @@ export default function AiReportPage() {
                 <h3 className="text-lg font-bold text-rose-900 mb-4">정체구간 프로젝트 및 리소스 진단</h3>
                 <div className="space-y-4 flex-1">
                   <p className="text-slate-700 leading-relaxed font-medium">
-                    현재 <strong className="text-rose-600 bg-rose-50 px-1">{reportData.bottleneck.project}</strong> 프로젝트에 미해결 이슈의 {reportData.bottleneck.issueRatio}%가 집중되어 있습니다.
+                    현재 
+                    <Link 
+                      href={`/project/${reportData.bottleneck.projectId}/screen/${reportData.bottleneck.screenId}`}
+                      className="inline-flex items-center gap-1 text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md hover:bg-rose-100 transition-colors cursor-pointer font-bold mx-1 border border-rose-200/50"
+                    >
+                      {reportData.bottleneck.project}
+                    </Link>
+                    프로젝트에 미해결 이슈의 {reportData.bottleneck.issueRatio}%가 집중되어 있습니다.
                   </p>
                   <p className="text-slate-600 text-sm leading-relaxed">
                     {reportData.bottleneck.insight}
@@ -198,12 +205,21 @@ export default function AiReportPage() {
                 <div className="space-y-5 mb-6 flex-1">
                   {reportData.issuePatterns.map((pattern: any, idx: number) => (
                     <div key={idx} className="space-y-2">
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between items-center group relative cursor-help">
                         <div className="flex items-center gap-2">
                           <span className={idx === 0 ? "bg-amber-200 text-amber-800 text-[10px] font-black px-1.5 py-0.5 rounded" : idx === 1 ? "bg-slate-200 text-slate-600 text-[10px] font-black px-1.5 py-0.5 rounded" : "bg-amber-100/50 text-amber-700/60 text-[10px] font-black px-1.5 py-0.5 rounded border border-amber-200/50"}>{pattern.rank}위</span>
-                          <p className="text-slate-700 text-sm font-semibold">{pattern.title}</p>
+                          <p className="text-slate-700 text-sm font-semibold border-b border-dashed border-slate-300 pb-0.5">{pattern.title}</p>
                         </div>
                         <span className={idx === 0 ? "text-xs font-bold text-amber-600" : idx === 1 ? "text-xs font-bold text-slate-500" : "text-xs font-bold text-slate-400"}>{pattern.count}건 ({pattern.percentage}%)</span>
+                        
+                        {/* Tooltip */}
+                        <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-72 z-50 animate-in fade-in zoom-in-95 duration-200">
+                          <div className="bg-slate-800 text-white text-xs p-3 rounded-lg shadow-xl border border-slate-700">
+                            <p className="font-semibold text-slate-200 mb-1">상세 예시:</p>
+                            <p className="leading-relaxed text-slate-300">{pattern.example}</p>
+                            <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-slate-800 border-b border-r border-slate-700 rotate-45"></div>
+                          </div>
+                        </div>
                       </div>
                       <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                         <div className={idx === 0 ? "bg-amber-400 h-full rounded-full" : idx === 1 ? "bg-slate-300 h-full rounded-full" : "bg-amber-200/60 h-full rounded-full"} style={{ width: `${pattern.percentage}%` }}></div>
