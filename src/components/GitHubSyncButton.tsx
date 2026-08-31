@@ -85,12 +85,12 @@ ${pin.devFeedback || '대기중'}
     <>
       <Button 
         variant="outline" 
-        className="w-full bg-[#24292F] hover:bg-[#24292F]/90 text-white font-bold h-12 text-sm shadow-md rounded-lg mt-2 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 border-0"
+        className="w-full h-8 text-xs font-medium text-slate-600 bg-transparent border-slate-200 hover:bg-slate-50 hover:text-slate-900 border-dashed justify-center flex items-center gap-1.5 transition-colors"
         onClick={handleSync}
         disabled={isLoading}
       >
-        <Send className="w-5 h-5" />
-        {isLoading ? "동기화 중..." : "GitHub 이슈로 내보내기"}
+        <Send className="w-3.5 h-3.5" />
+        {isLoading ? "동기화 중..." : "GitHub 이슈로 등록"}
       </Button>
 
       {isOpen && (

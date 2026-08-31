@@ -1775,6 +1775,13 @@ export default function ScreenQA() {
                     >
                       내용 저장하기
                     </Button>
+                  </div>
+                  
+                  {/* External Links */}
+                  <div className="mt-8 pt-6 border-t border-slate-200">
+                    <h3 className="text-xs font-bold text-slate-500 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
+                      External Links
+                    </h3>
                     <GitHubSyncButton pin={localForm} screenName={activeScreen?.name || ""} />
                   </div>
 
