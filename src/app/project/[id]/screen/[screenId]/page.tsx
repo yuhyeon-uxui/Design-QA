@@ -393,7 +393,8 @@ export default function ScreenQA() {
         setProjectTitle(currentProject.name);
         setProjectPlatform(currentProject.platform);
         if (currentProject.status) setProjectStatus(currentProject.status);
-        if (currentProject.lastUpdated) setProjectDueDate(currentProject.lastUpdated);
+        if (currentProject.dueDate) setProjectDueDate(currentProject.dueDate);
+        else if (currentProject.lastUpdated) setProjectDueDate(currentProject.lastUpdated);
         if (currentProject.figmaProjectUrl) setProjectFigmaUrl(currentProject.figmaProjectUrl);
       } else {
         if (params.id === "p1") {
@@ -426,7 +427,7 @@ export default function ScreenQA() {
         platform: editProjectPlatform,
         status: editProjectStatus,
         figmaProjectUrl: editProjectFigmaUrl,
-        lastUpdated: editProjectDueDate || new Date().toISOString().split('T')[0],
+        dueDate: editProjectDueDate,
       }, { merge: true });
       setProjectTitle(editProjectName);
       setProjectPlatform(editProjectPlatform);
@@ -971,7 +972,7 @@ export default function ScreenQA() {
               <div className="flex items-center gap-3 mt-0.5">
                 <p className="text-xs font-medium text-slate-500">
                   {projectPlatform || (isAppProject ? "App (iOS/Android)" : "Web (반응형)")} · {projectStatus}
-                  {projectDueDate && ` · 요청일: ${projectDueDate}`}
+                  {projectDueDate && ` · 마감일: ${projectDueDate}`}
                 </p>
                 <div className="flex items-center gap-2 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
                   <div className="w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
@@ -2110,7 +2111,7 @@ export default function ScreenQA() {
               </div>
             </div>
             <div className="space-y-2.5">
-              <Label htmlFor="edit-date" className="text-sm font-bold text-slate-800">요청일</Label>
+              <Label htmlFor="edit-date" className="text-sm font-bold text-slate-800">마감일 (Due Date)</Label>
               <Input
                 id="edit-date"
                 type="date"
