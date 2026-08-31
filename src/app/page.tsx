@@ -40,6 +40,7 @@ export default function Dashboard() {
   const [allScreens, setAllScreens] = useState<any[]>([]);
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [isMounted, setIsMounted] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -61,11 +62,23 @@ export default function Dashboard() {
       setAllScreens(screensData);
     });
 
+    const hideUntil = localStorage.getItem("hideUpdateModalUntil_v1");
+    if (!hideUntil || Date.now() > parseInt(hideUntil, 10)) {
+      setShowUpdateModal(true);
+    }
+
     return () => {
       unsubscribe();
       unsubscribeScreens();
     };
   }, []);
+
+  const handleHideUpdateModal = () => {
+    // 7 days in ms
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    localStorage.setItem("hideUpdateModalUntil_v1", (Date.now() + sevenDays).toString());
+    setShowUpdateModal(false);
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
@@ -562,6 +575,59 @@ export default function Dashboard() {
         )}
       </main>
 
+      {/* Update Modal */}
+      <Dialog open={showUpdateModal && isMounted} onOpenChange={setShowUpdateModal}>
+        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden">
+          <div className="bg-[#0064fa] p-6 text-white">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <span className="text-2xl">🎉</span> UX/UI 대규모 업데이트
+            </h2>
+            <p className="text-blue-100 text-sm mt-2 opacity-90">사용자 여러분의 피드백을 바탕으로 디자인 QA 툴이 더욱 편리해졌습니다!</p>
+          </div>
+          <div className="p-6 space-y-5">
+            <div className="space-y-1.5">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                <span className="bg-blue-100 text-[#0064fa] w-5 h-5 rounded-full flex items-center justify-center text-xs">1</span> 
+                텍스트 에디터 UX 개선 (Notion 스타일)
+              </h3>
+              <p className="text-sm text-slate-600 pl-7 leading-relaxed">
+                시야를 가리던 고정형 툴바 대신, 텍스트를 드래그(블록 지정)했을 때만 나타나는 <strong>플로팅 버블 팝업 툴바</strong>가 적용되었습니다. 읽기 모드에서도 가독성이 대폭 향상되었습니다.
+              </p>
+            </div>
+            
+            <div className="space-y-1.5">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                <span className="bg-blue-100 text-[#0064fa] w-5 h-5 rounded-full flex items-center justify-center text-xs">2</span> 
+                끊김 없는(Seamless) 자동 저장
+              </h3>
+              <p className="text-sm text-slate-600 pl-7 leading-relaxed">
+                작성 도중 저장 버튼을 누를 필요가 없습니다. 내용이 수정되면 백그라운드에서 조용히 <strong>자동 저장(Autosave)</strong>되어 작업 흐름이 끊기지 않습니다.
+              </p>
+            </div>
+            
+            <div className="space-y-1.5">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                <span className="bg-blue-100 text-[#0064fa] w-5 h-5 rounded-full flex items-center justify-center text-xs">3</span> 
+                디바이스(PC/MO) 썸네일 상태 독립 유지
+              </h3>
+              <p className="text-sm text-slate-600 pl-7 leading-relaxed">
+                좌측 사이드바의 각 화면(Screen) 썸네일마다 <strong>PC/MO 보기 상태를 개별적으로 기억</strong>하게 되어, 이리저리 화면을 이동해도 이전 상태가 그대로 유지됩니다.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="bg-slate-50 border-t p-4 flex sm:justify-between items-center w-full">
+            <button 
+              onClick={handleHideUpdateModal}
+              className="text-sm text-slate-500 hover:text-slate-800 transition-colors font-medium px-2 py-1"
+            >
+              7일간 보지 않기
+            </button>
+            <Button onClick={() => setShowUpdateModal(false)} className="bg-[#0064fa] hover:bg-[#0064fa]/90 text-white px-6">
+              확인
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
