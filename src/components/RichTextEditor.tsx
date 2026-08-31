@@ -1,6 +1,7 @@
 "use client";
 
 import { useEditor, EditorContent } from '@tiptap/react'
+import { BubbleMenu } from '@tiptap/react/menus'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import { TextStyle } from '@tiptap/extension-text-style'
@@ -61,51 +62,50 @@ export function RichTextEditor({ value, onChange, readOnly = false, placeholder 
       `}} />
 
       {!readOnly && (
-        <div className="flex flex-wrap items-center gap-1 p-2 border-b border-slate-200 bg-slate-50/50">
+        <BubbleMenu editor={editor} className="flex items-center gap-0.5 p-1 bg-[#2f3437] rounded-lg shadow-xl border border-slate-700">
           <button
             onClick={() => editor.chain().focus().toggleBold().run()}
-            className={`p-1.5 rounded hover:bg-slate-200 ${editor.isActive('bold') ? 'bg-slate-200 text-[#0064fa]' : 'text-slate-600'}`}
+            className={`p-1.5 rounded hover:bg-slate-600 ${editor.isActive('bold') ? 'text-white' : 'text-slate-300'}`}
             title="볼드"
           >
             <Bold className="w-4 h-4" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={`p-1.5 rounded hover:bg-slate-200 ${editor.isActive('italic') ? 'bg-slate-200 text-[#0064fa]' : 'text-slate-600'}`}
+            className={`p-1.5 rounded hover:bg-slate-600 ${editor.isActive('italic') ? 'text-white' : 'text-slate-300'}`}
             title="기울기"
           >
             <Italic className="w-4 h-4" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleUnderline().run()}
-            className={`p-1.5 rounded hover:bg-slate-200 ${editor.isActive('underline') ? 'bg-slate-200 text-[#0064fa]' : 'text-slate-600'}`}
+            className={`p-1.5 rounded hover:bg-slate-600 ${editor.isActive('underline') ? 'text-white' : 'text-slate-300'}`}
             title="하단선"
           >
             <UnderlineIcon className="w-4 h-4" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleStrike().run()}
-            className={`p-1.5 rounded hover:bg-slate-200 ${editor.isActive('strike') ? 'bg-slate-200 text-[#0064fa]' : 'text-slate-600'}`}
+            className={`p-1.5 rounded hover:bg-slate-600 ${editor.isActive('strike') ? 'text-white' : 'text-slate-300'}`}
             title="가로선"
           >
             <Strikethrough className="w-4 h-4" />
           </button>
           
-          <div className="w-px h-4 bg-slate-300 mx-1"></div>
+          <div className="w-px h-4 bg-slate-600 mx-1"></div>
           
-          <div className="flex items-center gap-1">
-            <Palette className="w-4 h-4 text-slate-600 ml-1 mr-1" />
+          <div className="flex items-center gap-1.5 px-1.5 py-0.5">
             {COLORS.map(color => (
               <button
                 key={color}
                 onClick={() => editor.chain().focus().setColor(color).run()}
-                className={`w-4 h-4 rounded-full border border-slate-200 shadow-sm transition-transform hover:scale-110 ${editor.isActive('textStyle', { color }) ? 'ring-2 ring-offset-1 ring-slate-400' : ''}`}
+                className={`w-3 h-3 rounded-full border border-slate-600 shadow-sm transition-transform hover:scale-125 ${editor.isActive('textStyle', { color }) ? 'ring-2 ring-offset-1 ring-offset-[#2f3437] ring-white' : ''}`}
                 style={{ backgroundColor: color }}
                 title="색상"
               />
             ))}
           </div>
-        </div>
+        </BubbleMenu>
       )}
       
       <div className="relative">
