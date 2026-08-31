@@ -262,9 +262,15 @@ export default function UserMetricsPage() {
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${index === 0 ? 'bg-amber-100 text-amber-600' : index === 1 ? 'bg-slate-200 text-slate-600' : index === 2 ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 text-slate-400'}`}>
                           {index + 1}
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-slate-800 truncate">{page.title || '알 수 없는 페이지'}</p>
-                          <p className="text-sm text-slate-500 truncate">{page.path}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-slate-800 truncate">
+                            {page.path === '/' ? '🏠 대시보드 메인' : 
+                             page.path === '/login' ? '🔐 로그인 페이지' :
+                             page.path.includes('/screen/') ? `📱 프로젝트 화면 (${page.path.split('/').pop()})` :
+                             page.path.includes('/analytics') ? '📊 통계 페이지' : 
+                             page.path}
+                          </p>
+                          <p className="text-xs text-slate-400 truncate mt-0.5">{page.path}</p>
                         </div>
                       </div>
                       <div className="text-right shrink-0 ml-4">
