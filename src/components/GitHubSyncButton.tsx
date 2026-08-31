@@ -13,6 +13,8 @@ export function GitHubSyncButton({ pin, screenName }: { pin: any, screenName: st
   const [appRepo, setAppRepo] = useState("");
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [availableRepos, setAvailableRepos] = useState<{id: string, name: string}[]>([]);
+  const [isFetchingRepos, setIsFetchingRepos] = useState(false);
 
   useEffect(() => {
     const savedPlatform = (localStorage.getItem("sync_platform") as "github" | "gitlab") || "github";
@@ -28,6 +30,34 @@ export function GitHubSyncButton({ pin, screenName }: { pin: any, screenName: st
     setAppRepo(savedApp);
     setToken(savedToken);
   }, []);
+
+  const fetchRepos = async () => {
+    if (!token) return toast.error("토큰을 먼저 입력해주세요.");
+    setIsFetchingRepos(true);
+    try {
+      if (platform === "github") {
+        const res = await fetch(`https://api.github.com/user/repos?per_page=100&sort=updated`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("GitHub 토큰 확인 필요");
+        const data = await res.json();
+        setAvailableRepos(data.map((r: any) => ({ id: r.full_name, name: r.full_name })));
+      } else {
+        const domain = gitlabDomain.replace(/\/$/, "");
+        const res = await fetch(`${domain}/api/v4/projects?membership=true&simple=true&order_by=updated_at&per_page=100`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("GitLab 토큰 확인 필요");
+        const data = await res.json();
+        setAvailableRepos(data.map((r: any) => ({ id: r.id.toString(), name: r.name_with_namespace })));
+      }
+      toast.success("내 저장소 목록을 성공적으로 불러왔습니다!");
+    } catch(e) {
+      toast.error("불러오기 실패: 토큰과 도메인을 확인해주세요.");
+    } finally {
+      setIsFetchingRepos(false);
+    }
+  };
 
   const handleSync = async () => {
     const targetRepo = pin.device === "Mobile" && appRepo ? appRepo : (webRepo || appRepo);
@@ -161,20 +191,53 @@ ${pin.devFeedback || '대기중'}
             )}
 
             <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">Personal Access Token</label>
+              <div className="flex gap-2">
+                <Input type="password" placeholder="발급받은 토큰 입력" value={token} onChange={e => setToken(e.target.value)} />
+                <Button variant="secondary" onClick={fetchRepos} disabled={isFetchingRepos} className="shrink-0">
+                  {isFetchingRepos ? "조회중..." : "내 저장소 조회"}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700">
                 웹(Web) 프로젝트 {platform === 'github' ? '(Owner/Repo)' : '(ID 또는 경로)'}
               </label>
-              <Input placeholder={platform === 'github' ? '예: yuhyeon/web' : '예: 1234 또는 group/web'} value={webRepo} onChange={e => setWebRepo(e.target.value)} />
+              {availableRepos.length > 0 ? (
+                <select 
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2"
+                  value={webRepo} 
+                  onChange={e => setWebRepo(e.target.value)}
+                >
+                  <option value="">저장소 선택 (직접입력 시 아래 옵션 선택)</option>
+                  {availableRepos.map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <Input placeholder={platform === 'github' ? '예: yuhyeon/web' : '예: 1234 또는 group/web'} value={webRepo} onChange={e => setWebRepo(e.target.value)} />
+              )}
             </div>
+            
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
                 앱(App) 프로젝트 {platform === 'github' ? '(Owner/Repo)' : '(ID 또는 경로)'} <span className="text-slate-400 font-normal">선택</span>
               </label>
-              <Input placeholder={platform === 'github' ? '예: yuhyeon/app' : '예: 5678 또는 group/app'} value={appRepo} onChange={e => setAppRepo(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Personal Access Token</label>
-              <Input type="password" placeholder="발급받은 토큰 입력" value={token} onChange={e => setToken(e.target.value)} />
+              {availableRepos.length > 0 ? (
+                <select 
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2"
+                  value={appRepo} 
+                  onChange={e => setAppRepo(e.target.value)}
+                >
+                  <option value="">사용안함 (웹 프로젝트에 공통 전송)</option>
+                  {availableRepos.map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <Input placeholder={platform === 'github' ? '예: yuhyeon/app' : '예: 5678 또는 group/app'} value={appRepo} onChange={e => setAppRepo(e.target.value)} />
+              )}
             </div>
             
             <div className="flex gap-2 pt-2">
