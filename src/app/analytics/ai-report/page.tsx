@@ -6,9 +6,19 @@ import { ArrowLeft, Sparkles, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function AiReportPage() {
-  const [selectedWeek, setSelectedWeek] = useState("8월 4주차 (08.24 ~ 08.30)");
+  const weeks = [
+    { label: "9월 1주차 (09.01 ~ 09.07) - 이번 주", value: "w5", isReady: false },
+    { label: "8월 4주차 (08.24 ~ 08.30) - 지난 주", value: "w4", isReady: true },
+    { label: "8월 3주차 (08.17 ~ 08.23)", value: "w3", isReady: true },
+    { label: "8월 2주차 (08.10 ~ 08.16)", value: "w2", isReady: true },
+    { label: "8월 1주차 (08.03 ~ 08.09)", value: "w1", isReady: true },
+  ];
+
+  const [selectedWeek, setSelectedWeek] = useState("w4");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isReportReady, setIsReportReady] = useState(true); // 처음 접속 시 바로 보여주기 위해 true로 변경
+  const [isReportReady, setIsReportReady] = useState(true);
+
+  const selectedWeekData = weeks.find(w => w.value === selectedWeek);
 
   const handleGenerate = () => {
     setIsGenerating(true);
@@ -18,13 +28,6 @@ export default function AiReportPage() {
       setIsReportReady(true);
     }, 2000);
   };
-
-  const weeks = [
-    "8월 4주차 (08.24 ~ 08.30)",
-    "8월 3주차 (08.17 ~ 08.23)",
-    "8월 2주차 (08.10 ~ 08.16)",
-    "8월 1주차 (08.03 ~ 08.09)",
-  ];
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -48,58 +51,57 @@ export default function AiReportPage() {
             <p className="text-sm text-slate-500">과거 주차를 선택하면 해당 주차의 진단 리포트를 불러옵니다.</p>
           </div>
           
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <select 
-                className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg h-11 px-4 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
-                value={selectedWeek}
-                onChange={(e) => {
-                  setSelectedWeek(e.target.value);
-                  // 주차 변경 시 자동으로 로딩 애니메이션 실행
-                  setIsGenerating(true);
-                  setIsReportReady(false);
-                  setTimeout(() => {
-                    setIsGenerating(false);
-                    setIsReportReady(true);
-                  }, 1500);
-                }}
-              >
-                {weeks.map(w => (
-                  <option key={w} value={w}>{w}</option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="relative flex-1 md:w-72">
+                <select 
+                  className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg h-11 px-4 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
+                  value={selectedWeek}
+                  onChange={(e) => {
+                    setSelectedWeek(e.target.value);
+                    const isReady = weeks.find(w => w.value === e.target.value)?.isReady;
+                    setIsReportReady(isReady || false);
+                  }}
+                >
+                  {weeks.map(w => (
+                    <option key={w.value} value={w.value}>{w.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
             
-            <Button 
-              onClick={handleGenerate} 
-              disabled={isGenerating}
-              className="h-11 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg whitespace-nowrap shadow-sm"
-            >
-              {isGenerating ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  분석 중...
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  최신 데이터로 재진단
-                </div>
-              )}
-            </Button>
+            {selectedWeekData?.isReady && (
+              <div className="flex items-center gap-3">
+                <span className="text-[13px] text-slate-400 font-medium bg-slate-50 px-3 py-1.5 rounded-md border border-slate-100">
+                  마지막 업데이트: 8/25(월) 00:03
+                </span>
+                <button 
+                  onClick={handleGenerate}
+                  disabled={isGenerating}
+                  className="text-[13px] font-bold text-slate-400 hover:text-indigo-600 transition-colors flex items-center gap-1.5"
+                >
+                  {isGenerating ? (
+                    <div className="w-3.5 h-3.5 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5" />
+                  )}
+                  다시 분석하기
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {!isGenerating && !isReportReady && (
           <div className="bg-slate-50 rounded-2xl border border-dashed border-slate-200 p-16 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4">
-              <Sparkles className="w-8 h-8 text-indigo-400" />
+              <span className="text-2xl">⏳</span>
             </div>
-            <h3 className="text-lg font-bold text-slate-800 mb-2">AI가 프로젝트의 흐름을 분석해드립니다</h3>
+            <h3 className="text-lg font-bold text-slate-800 mb-2">이번 주 리포트가 아직 생성되지 않았어요</h3>
             <p className="text-slate-500 text-sm max-w-md leading-relaxed">
-              상단의 <strong>진단하기</strong> 버튼을 누르면 해당 주차에 발생한 모든 QA 데이터, 
-              이슈 해결 패턴, 마감일 대비 진행률을 종합적으로 분석합니다.
+              이번 주 리포트는 일요일 밤 11시 59분에 <strong>자동으로 배치 생성</strong>됩니다.
+              <br/>과거 리포트는 상단 드롭다운에서 바로 확인하실 수 있습니다.
             </p>
           </div>
         )}
@@ -119,7 +121,7 @@ export default function AiReportPage() {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center gap-2 mb-2">
               <div className="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">
-                {selectedWeek} 리포트
+                {selectedWeekData?.label.split(' - ')[0]} 리포트
               </div>
             </div>
             
