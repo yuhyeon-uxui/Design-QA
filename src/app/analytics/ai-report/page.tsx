@@ -165,10 +165,10 @@ export default function AiReportPage() {
                 <h3 className="text-lg font-bold text-rose-900 mb-4">정체구간 프로젝트 및 리소스 진단</h3>
                 <div className="space-y-4 flex-1">
                   <p className="text-slate-700 leading-relaxed font-medium">
-                    현재 <strong className="text-rose-600 bg-rose-50 px-1">사내 그룹웨어 리뉴얼 QA</strong> 프로젝트에 미해결 이슈의 65%가 집중되어 있습니다.
+                    현재 <strong className="text-rose-600 bg-rose-50 px-1">피닉스다트 오피셜 웹페이지</strong> 프로젝트에 미해결 이슈의 65%가 집중되어 있습니다.
                   </p>
                   <p className="text-slate-600 text-sm leading-relaxed">
-                    특히 모바일 뷰(Mobile) 관련 이슈의 해결 속도가 눈에 띄게 저하되었습니다. 프론트엔드 개발자 리소스의 정체구간 현상이 의심되므로, 해당 프로젝트에 대한 즉각적인 리소스 재분배 혹은 마감일 연장을 권장합니다.
+                    특히 웹(Web) 해상도 반응형 관련 이슈의 해결 속도가 눈에 띄게 저하되었습니다. 프론트엔드 개발자 리소스의 정체구간 현상이 의심되므로, 해당 프로젝트에 대한 즉각적인 리소스 재분배 혹은 마감일 연장을 권장합니다.
                   </p>
                 </div>
               </div>
