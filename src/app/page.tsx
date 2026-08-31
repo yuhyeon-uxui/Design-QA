@@ -618,17 +618,17 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <DialogFooter className="bg-slate-50/50 border-t p-5 mt-2 flex sm:justify-between items-center w-full">
+          <div className="flex flex-col gap-3 px-7 pb-7 pt-4 w-full mt-2">
+            <Button onClick={() => setShowUpdateModal(false)} className="w-full h-14 bg-[#3b82f6] hover:bg-[#2563eb] text-white text-base rounded-2xl font-bold shadow-sm">
+              확인했어요
+            </Button>
             <button 
               onClick={handleHideUpdateModal}
-              className="text-sm text-slate-400 hover:text-slate-600 transition-colors font-medium px-2 py-1"
+              className="text-[15px] text-slate-400 hover:text-slate-600 transition-colors font-medium py-2 text-center"
             >
               7일간 보지 않기
             </button>
-            <Button onClick={() => setShowUpdateModal(false)} className="bg-slate-900 hover:bg-slate-800 text-white px-6 rounded-xl font-semibold shadow-sm">
-              확인했어요
-            </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
