@@ -577,53 +577,56 @@ export default function Dashboard() {
 
       {/* Update Modal */}
       <Dialog open={showUpdateModal && isMounted} onOpenChange={setShowUpdateModal}>
-        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden">
-          <div className="bg-[#0064fa] p-6 text-white">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <span className="text-2xl">🎉</span> UX/UI 대규모 업데이트
-            </h2>
-            <p className="text-blue-100 text-sm mt-2 opacity-90">사용자 여러분의 피드백을 바탕으로 디자인 QA 툴이 더욱 편리해졌습니다!</p>
+        <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden bg-white gap-0 rounded-2xl shadow-2xl border-slate-200">
+          <div className="p-7 pb-2">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center mb-5 border border-blue-100/50 shadow-sm">
+              <span className="text-2xl">✨</span>
+            </div>
+            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">UX/UI 대규모 업데이트</h2>
+            <p className="text-slate-500 text-sm mt-2 leading-relaxed">사용자 여러분의 피드백을 바탕으로 디자인 QA 툴이 한층 더 쾌적하게 개선되었습니다.</p>
           </div>
-          <div className="p-6 space-y-5">
-            <div className="space-y-1.5">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <span className="bg-blue-100 text-[#0064fa] w-5 h-5 rounded-full flex items-center justify-center text-xs">1</span> 
-                텍스트 에디터 UX 개선 (Notion 스타일)
-              </h3>
-              <p className="text-sm text-slate-600 pl-7 leading-relaxed">
-                시야를 가리던 고정형 툴바 대신, 텍스트를 드래그(블록 지정)했을 때만 나타나는 <strong>플로팅 버블 팝업 툴바</strong>가 적용되었습니다. 읽기 모드에서도 가독성이 대폭 향상되었습니다.
-              </p>
+          
+          <div className="px-7 py-4 space-y-6">
+            <div className="flex gap-4">
+              <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">1</div>
+              <div className="space-y-1.5">
+                <h3 className="font-bold text-slate-900">텍스트 에디터 UX 개선 (Notion 스타일)</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  시야를 가리던 고정 툴바 대신, 텍스트를 드래그할 때만 나타나는 <strong>플로팅 버블 툴바</strong>가 적용되었습니다. 읽기 모드에서도 가독성이 대폭 향상되었습니다.
+                </p>
+              </div>
             </div>
             
-            <div className="space-y-1.5">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <span className="bg-blue-100 text-[#0064fa] w-5 h-5 rounded-full flex items-center justify-center text-xs">2</span> 
-                끊김 없는(Seamless) 자동 저장
-              </h3>
-              <p className="text-sm text-slate-600 pl-7 leading-relaxed">
-                작성 도중 저장 버튼을 누를 필요가 없습니다. 내용이 수정되면 백그라운드에서 조용히 <strong>자동 저장(Autosave)</strong>되어 작업 흐름이 끊기지 않습니다.
-              </p>
+            <div className="flex gap-4">
+              <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">2</div>
+              <div className="space-y-1.5">
+                <h3 className="font-bold text-slate-900">끊김 없는(Seamless) 자동 저장</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  작성 도중 수동으로 저장할 필요가 없습니다. 내용이 수정되면 백그라운드에서 <strong>1초 간격으로 자동 저장</strong>되어 작업 흐름이 끊기지 않습니다.
+                </p>
+              </div>
             </div>
             
-            <div className="space-y-1.5">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <span className="bg-blue-100 text-[#0064fa] w-5 h-5 rounded-full flex items-center justify-center text-xs">3</span> 
-                디바이스(PC/MO) 썸네일 상태 독립 유지
-              </h3>
-              <p className="text-sm text-slate-600 pl-7 leading-relaxed">
-                좌측 사이드바의 각 화면(Screen) 썸네일마다 <strong>PC/MO 보기 상태를 개별적으로 기억</strong>하게 되어, 이리저리 화면을 이동해도 이전 상태가 그대로 유지됩니다.
-              </p>
+            <div className="flex gap-4">
+              <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">3</div>
+              <div className="space-y-1.5">
+                <h3 className="font-bold text-slate-900">썸네일 디바이스(PC/MO) 상태 유지</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  좌측 사이드바의 각 썸네일마다 <strong>PC/MO 보기 상태를 개별적으로 기억</strong>하게 되어, 이리저리 화면을 이동해도 이전 상태가 그대로 유지됩니다.
+                </p>
+              </div>
             </div>
           </div>
-          <DialogFooter className="bg-slate-50 border-t p-4 flex sm:justify-between items-center w-full">
+          
+          <DialogFooter className="bg-slate-50/50 border-t p-5 mt-2 flex sm:justify-between items-center w-full">
             <button 
               onClick={handleHideUpdateModal}
-              className="text-sm text-slate-500 hover:text-slate-800 transition-colors font-medium px-2 py-1"
+              className="text-sm text-slate-400 hover:text-slate-600 transition-colors font-medium px-2 py-1"
             >
               7일간 보지 않기
             </button>
-            <Button onClick={() => setShowUpdateModal(false)} className="bg-[#0064fa] hover:bg-[#0064fa]/90 text-white px-6">
-              확인
+            <Button onClick={() => setShowUpdateModal(false)} className="bg-slate-900 hover:bg-slate-800 text-white px-6 rounded-xl font-semibold shadow-sm">
+              확인했어요
             </Button>
           </DialogFooter>
         </DialogContent>
