@@ -126,12 +126,34 @@ export default function AiReportPage() {
             </div>
             
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white p-8 rounded-2xl border border-rose-100 shadow-sm ring-1 ring-rose-50">
+              
+              {/* 1. 팀 전체 요약 (Banner) */}
+              <div className="md:col-span-2 bg-gradient-to-br from-emerald-50 to-teal-50 p-8 rounded-2xl border border-emerald-100 shadow-sm ring-1 ring-emerald-500/10 flex flex-col md:flex-row gap-8 items-start md:items-center">
+                <div className="flex-1 space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">📈</span>
+                    <h3 className="text-lg font-bold text-emerald-900">팀 전체 업무 효율 및 속도 평가</h3>
+                  </div>
+                  <p className="text-slate-700 leading-relaxed font-medium">
+                    안정적인 해결 속도를 보이고 있으나, 3일 이상 아무런 상태 변화 없이 방치된 "유령 이슈"가 총 8건 존재합니다. 이번 주 금요일을 '버그 픽스 데이(Bug Fix Day)'로 지정하여 묵은 이슈들을 일괄 청산하는 것을 추천합니다.
+                  </p>
+                </div>
+                <div className="bg-white/60 p-5 rounded-xl border border-emerald-100/50 min-w-[240px] flex flex-col justify-center">
+                  <p className="text-sm font-semibold text-emerald-800 mb-1">전체 이슈 해결률</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-black text-emerald-600">72%</span>
+                    <span className="text-sm font-bold text-emerald-500 bg-emerald-100/50 px-2 py-0.5 rounded-full">전주 대비 +5%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. 정체구간 진단 (Left) */}
+              <div className="bg-white p-8 rounded-2xl border border-rose-100 shadow-sm ring-1 ring-rose-50 flex flex-col">
                 <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center mb-6">
                   <span className="text-2xl">🚨</span>
                 </div>
                 <h3 className="text-lg font-bold text-rose-900 mb-4">정체구간 프로젝트 및 리소스 진단</h3>
-                <div className="space-y-4">
+                <div className="space-y-4 flex-1">
                   <p className="text-slate-700 leading-relaxed font-medium">
                     현재 <strong className="text-rose-600 bg-rose-50 px-1">사내 그룹웨어 리뉴얼 QA</strong> 프로젝트에 미해결 이슈의 65%가 집중되어 있습니다.
                   </p>
@@ -140,45 +162,60 @@ export default function AiReportPage() {
                   </p>
                 </div>
               </div>
-              
-              <div className="bg-white p-8 rounded-2xl border border-emerald-100 shadow-sm ring-1 ring-emerald-50">
-                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-6">
-                  <span className="text-2xl">📈</span>
-                </div>
-                <h3 className="text-lg font-bold text-emerald-900 mb-4">팀 전체 업무 효율 및 속도 평가</h3>
-                <div className="space-y-4">
-                  <p className="text-slate-700 leading-relaxed font-medium">
-                    전체 이슈 해결률이 72%로 전주 대비 <span className="text-emerald-600">5% 상승</span>했습니다.
-                  </p>
-                  <p className="text-slate-600 text-sm leading-relaxed">
-                    안정적인 해결 속도를 보이고 있으나, 3일 이상 아무런 상태 변화 없이 방치된 "유령 이슈"가 총 8건 존재합니다. 이번 주 금요일을 '버그 픽스 데이(Bug Fix Day)'로 지정하여 묵은 이슈들을 일괄 청산하는 것을 추천합니다.
-                  </p>
-                </div>
-              </div>
 
-              <div className="md:col-span-2 bg-white p-8 rounded-2xl border border-amber-100 shadow-sm ring-1 ring-amber-50">
+              {/* 3. 자주 발생하는 이슈 패턴 (Right) */}
+              <div className="bg-white p-8 rounded-2xl border border-amber-100 shadow-sm ring-1 ring-amber-50 flex flex-col">
                 <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center mb-6">
                   <span className="text-2xl">🏷️</span>
                 </div>
-                <h3 className="text-lg font-bold text-amber-900 mb-4">자주 발생하는 에러 패턴 분석</h3>
-                <div className="bg-amber-50/50 rounded-xl p-5 mb-4">
-                  <ul className="space-y-3">
-                    <li className="flex items-start gap-3">
-                      <span className="bg-amber-200 text-amber-800 text-xs font-bold px-2 py-0.5 rounded mt-0.5">1위</span>
-                      <p className="text-slate-700 text-sm font-medium">버튼 여백(Padding) 및 컴포넌트 간격 오류 (34건 반려)</p>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <span className="bg-amber-200 text-amber-800 text-xs font-bold px-2 py-0.5 rounded mt-0.5">2위</span>
-                      <p className="text-slate-700 text-sm font-medium">다크모드 색상 반전 누락 (21건 반려)</p>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <span className="bg-amber-200 text-amber-800 text-xs font-bold px-2 py-0.5 rounded mt-0.5">3위</span>
-                      <p className="text-slate-700 text-sm font-medium">글꼴 크기(Font-size) 불일치 (15건 반려)</p>
-                    </li>
-                  </ul>
+                <h3 className="text-lg font-bold text-amber-900 mb-4">자주 발생하는 이슈 패턴</h3>
+                
+                <div className="space-y-5 mb-6 flex-1">
+                  {/* 1위 */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-amber-200 text-amber-800 text-[10px] font-black px-1.5 py-0.5 rounded">1위</span>
+                        <p className="text-slate-700 text-sm font-semibold">버튼 여백 및 컴포넌트 간격</p>
+                      </div>
+                      <span className="text-xs font-bold text-amber-600">34건 (48%)</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div className="bg-amber-400 h-full rounded-full" style={{ width: '48%' }}></div>
+                    </div>
+                  </div>
+
+                  {/* 2위 */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-slate-200 text-slate-600 text-[10px] font-black px-1.5 py-0.5 rounded">2위</span>
+                        <p className="text-slate-700 text-sm font-semibold">다크모드 색상 반전 누락</p>
+                      </div>
+                      <span className="text-xs font-bold text-slate-500">21건 (30%)</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div className="bg-slate-300 h-full rounded-full" style={{ width: '30%' }}></div>
+                    </div>
+                  </div>
+
+                  {/* 3위 */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-amber-100/50 text-amber-700/60 text-[10px] font-black px-1.5 py-0.5 rounded border border-amber-200/50">3위</span>
+                        <p className="text-slate-700 text-sm font-semibold">글꼴 크기(Font-size) 불일치</p>
+                      </div>
+                      <span className="text-xs font-bold text-slate-400">15건 (21%)</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div className="bg-amber-200/60 h-full rounded-full" style={{ width: '21%' }}></div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  이번 주 가장 빈번하게 디자이너에게 반려(Re-open)된 항목들입니다. 공통 UI 컴포넌트의 디자인 시스템 동기화 상태를 프론트엔드 팀과 함께 점검해보는 것이 시급합니다.
+                
+                <p className="text-slate-500 text-xs leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  이번 주 가장 빈번하게 디자이너에게 반려(Re-open)된 항목들입니다. 공통 UI 컴포넌트의 디자인 시스템 동기화 점검이 시급합니다.
                 </p>
               </div>
             </div>
