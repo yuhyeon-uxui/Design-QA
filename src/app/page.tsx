@@ -87,6 +87,9 @@ export default function Dashboard() {
   const [newProjectDueDate, setNewProjectDueDate] = useState("");
   const [newProjectFigmaUrl, setNewProjectFigmaUrl] = useState("");
   const [filter, setFilter] = useState<"all" | "ongoing" | "unresolved" | "resolved">("all");
+  const [isAiReportOpen, setIsAiReportOpen] = useState(false);
+  const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
+  const [aiReportData, setAiReportData] = useState<any>(null);
 
   const filteredProjects = projects.filter(p => {
     if (filter === "all") return true;
@@ -140,6 +143,20 @@ export default function Dashboard() {
       console.error("Error creating project:", e);
       alert("프로젝트 생성 실패");
     }
+  };
+
+  const handleGenerateAiReport = () => {
+    setIsAiReportOpen(true);
+    setIsGeneratingAiReport(true);
+    // Simulate AI thinking and API call
+    setTimeout(() => {
+      setAiReportData({
+        bottleneck: "현재 '사내 그룹웨어 리뉴얼 QA' 프로젝트에 미해결 이슈의 65%가 집중되어 있습니다. 프론트엔드 개발자 리소스의 병목 현상이 의심됩니다.",
+        efficiency: "전체 이슈 해결률이 72%로 안정적이나, 3일 이상 아무런 상태 변화 없이 방치된 이슈가 총 8건 존재합니다. 이번 주 '버그 픽스 데이(Bug Fix Day)'를 지정하는 것을 추천합니다.",
+        patterns: "최근 30일간 '버튼 여백(Padding) 오류'와 '글꼴 크기(Font-size) 불일치'가 가장 많이 반려되었습니다. 공통 UI 컴포넌트의 디자인 시스템 동기화 점검이 필요합니다."
+      });
+      setIsGeneratingAiReport(false);
+    }, 2500);
   };
 
   return (
@@ -440,7 +457,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <Card 
             className={`border shadow-sm bg-white cursor-pointer transition-all hover:shadow-md ${filter === 'all' ? 'ring-2 ring-[#0064fa] border-transparent' : 'border-slate-100 hover:border-slate-200'}`}
             onClick={() => setFilter('all')}
@@ -501,6 +518,23 @@ export default function Dashboard() {
                 </div>
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${filter === 'resolved' ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-600'}`}>
                   <CheckCircle2 className="w-6 h-6" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card 
+            className={`border shadow-sm bg-gradient-to-br from-indigo-50 to-purple-50 cursor-pointer transition-all hover:shadow-md hover:border-purple-200 border-indigo-100 ring-1 ring-purple-100/50`}
+            onClick={handleGenerateAiReport}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-indigo-600">✨ AI QA 리포트</p>
+                  <p className="text-sm font-semibold text-slate-700 mt-2">클릭하여 진단하기</p>
+                </div>
+                <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white text-indigo-500 shadow-sm">
+                  <span className="text-xl">✨</span>
                 </div>
               </div>
             </CardContent>
@@ -670,6 +704,60 @@ export default function Dashboard() {
               7일간 보지 않기
             </button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Report Modal */}
+      <Dialog open={isAiReportOpen} onOpenChange={setIsAiReportOpen}>
+        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden bg-white border-slate-200">
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white flex items-start gap-4">
+            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm shrink-0">
+              <span className="text-2xl">✨</span>
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-bold tracking-tight text-white">AI QA 분석 리포트</DialogTitle>
+              <DialogDescription className="text-indigo-100 text-sm mt-1 leading-relaxed">
+                현재 진행 중인 전체 프로젝트의 마감일, 미해결 이슈, 반려 패턴을 종합하여 병목 현상과 개선점을 진단합니다.
+              </DialogDescription>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            {isGeneratingAiReport ? (
+              <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                <p className="font-semibold text-slate-700">프로젝트 데이터를 분석 중입니다...</p>
+                <p className="text-sm mt-1">마감일과 미해결 이슈의 상관관계를 파악하고 있습니다.</p>
+              </div>
+            ) : aiReportData ? (
+              <div className="space-y-6">
+                <div className="p-4 bg-rose-50 rounded-xl border border-rose-100">
+                  <h3 className="font-bold text-rose-800 flex items-center gap-2 mb-2">
+                    <span>🚨</span> 병목 프로젝트 및 리소스 진단
+                  </h3>
+                  <p className="text-sm text-rose-700 leading-relaxed">{aiReportData.bottleneck}</p>
+                </div>
+                
+                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                  <h3 className="font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                    <span>📈</span> 팀 전체 업무 효율 및 속도 평가
+                  </h3>
+                  <p className="text-sm text-emerald-700 leading-relaxed">{aiReportData.efficiency}</p>
+                </div>
+                
+                <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
+                  <h3 className="font-bold text-amber-800 flex items-center gap-2 mb-2">
+                    <span>🏷️</span> 자주 발생하는 에러 패턴 분석
+                  </h3>
+                  <p className="text-sm text-amber-700 leading-relaxed">{aiReportData.patterns}</p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          
+          <DialogFooter className="bg-slate-50 p-4 border-t border-slate-100 flex justify-end">
+            <Button variant="outline" onClick={() => setIsAiReportOpen(false)} className="px-6 font-semibold">닫기</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
