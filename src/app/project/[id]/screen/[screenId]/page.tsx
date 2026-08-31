@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { GitHubSyncButton } from "@/components/GitHubSyncButton";
+import { RichTextEditor } from "@/components/RichTextEditor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -1697,23 +1698,21 @@ export default function ScreenQA() {
                     <>
                       <div className="space-y-2">
                         <Label className="text-sm font-bold text-slate-800">문제점 설명</Label>
-                        <Textarea 
-                          disabled={!canManagePins}
+                        <RichTextEditor 
+                          readOnly={!canManagePins}
                           placeholder="시안과 다르게 구현된 부분을 적어주세요." 
-                          className="resize-none h-24 text-sm bg-slate-50/50 disabled:opacity-50" 
                           value={localForm.description || ""}
-                          onChange={(e) => setLocalForm({...localForm, description: e.target.value})}
+                          onChange={(html) => setLocalForm({...localForm, description: html})}
                         />
                       </div>
 
                       <div className="space-y-2">
                         <Label className="text-sm font-bold text-slate-800">수정 요청사항</Label>
-                        <Textarea 
-                          disabled={!canManagePins}
+                        <RichTextEditor 
+                          readOnly={!canManagePins}
                           placeholder="어떻게 수정해야 하는지 구체적으로 적어주세요." 
-                          className="resize-none h-24 text-sm bg-slate-50/50 disabled:opacity-50" 
                           value={localForm.request || ""}
-                          onChange={(e) => setLocalForm({...localForm, request: e.target.value})}
+                          onChange={(html) => setLocalForm({...localForm, request: html})}
                         />
                       </div>
                     </>
