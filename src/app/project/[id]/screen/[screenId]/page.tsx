@@ -617,6 +617,28 @@ export default function ScreenQA() {
     }
   }, [activePinId]);
 
+  // Autosave when localForm changes
+  useEffect(() => {
+    if (!activePinId || !activePin) return;
+
+    const isDirty = 
+      (localForm.device !== undefined && localForm.device !== (activePin.device || "PC/Mobile 공통")) ||
+      (localForm.issueType !== undefined && localForm.issueType !== (activePin.issueType || "레이아웃/간격")) ||
+      (localForm.language !== undefined && localForm.language !== (activePin.language || "한국어 (KR)")) ||
+      (localForm.description !== undefined && localForm.description !== (activePin.description || "")) ||
+      (localForm.request !== undefined && localForm.request !== (activePin.request || "")) ||
+      (localForm.devFeedback !== undefined && localForm.devFeedback !== (activePin.devFeedback || "대기중")) ||
+      (localForm.priority !== undefined && localForm.priority !== (activePin.priority || "High (크리티컬)")) ||
+      (localForm.status !== undefined && localForm.status !== (activePin.status || "이슈발생"));
+
+    if (isDirty) {
+      const timeoutId = setTimeout(() => {
+        setPins(prev => prev.map(p => p.id === activePinId ? { ...p, ...localForm } : p));
+      }, 1000); // 1초 뒤 자동저장
+      return () => clearTimeout(timeoutId);
+    }
+  }, [localForm, activePinId, activePin]);
+
   const handleSavePinDetails = () => {
     if (!activePinId) return;
 
