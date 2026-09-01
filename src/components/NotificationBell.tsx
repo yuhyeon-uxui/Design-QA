@@ -65,14 +65,14 @@ export function NotificationBell() {
 
   return (
     <DropdownMenu onOpenChange={(open) => { if (open) handleRead(); }}>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger render={
         <Button variant="ghost" size="icon" className="relative w-9 h-9 text-slate-500 hover:text-slate-800 transition-colors mr-2">
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white animate-pulse" />
           )}
         </Button>
-      </DropdownMenuTrigger>
+      } />
       <DropdownMenuContent className="w-[380px] p-0" align="end" sideOffset={8}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
