@@ -3,8 +3,8 @@
 import * as admin from "firebase-admin";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { assertPermission } from "@/lib/permissions";
 
-// Use environment variables for Firebase Admin. If not present (e.g. mock), bypass initialization gracefully
 if (getApps().length === 0) {
   try {
     initializeApp({
@@ -29,22 +29,24 @@ export async function commitStatusChangeAction(payload: {
   toStatus: string,
   reason: string,
   idempKey: string,
-  userUid: string,
+  token: string,
 }) {
-  const { pinId, projectId, screenId, device, isAppProject, fromStatus, toStatus, reason, idempKey, userUid } = payload;
+  const { pinId, projectId, screenId, device, isAppProject, fromStatus, toStatus, reason, idempKey, token } = payload;
   
-  if (!userUid) return { success: false, error: "Unauthorized" };
-
   try {
+    // 1. Authenticate and authorize via Supabase
+    const { userId } = await assertPermission(token, 'issue.statusChange');
+
     const db = getFirestore();
     
-    // Check Idempotency Key
+    // 2. Check Idempotency Key
     const eventRef = db.collection("issue_events").doc(idempKey);
     const eventDoc = await eventRef.get();
     if (eventDoc.exists) {
       return { success: true, message: "Already processed idempotently" };
     }
 
+    // 3. Execute Firebase Admin Batch Write
     await db.runTransaction(async (t) => {
       const screenRef = db.collection("project_screens").doc(projectId).collection("screens").doc(screenId);
       const projectRef = db.collection("projects").doc(projectId);
@@ -53,7 +55,7 @@ export async function commitStatusChangeAction(payload: {
       if (!screenDoc.exists) throw new Error("Screen not found");
       const screenData = screenDoc.data()!;
 
-      // 1. Update Pin Status
+      // Update Pin Status
       const deviceData = screenData[device] || {};
       const pins = deviceData.pins || [];
       const pinIndex = pins.findIndex((p: any) => p.id === pinId);
@@ -63,7 +65,7 @@ export async function commitStatusChangeAction(payload: {
       deviceData.pins = pins;
       screenData[device] = deviceData;
 
-      // 2. Recalculate Screen Issue Count
+      // Recalculate Screen Issue Count
       const allPins = isAppProject ? [...(screenData.PC?.pins || [])] : [...(screenData.PC?.pins || []), ...(screenData.Mobile?.pins || [])];
       let newIssueCount = -1;
       if (allPins.length > 0) {
@@ -71,7 +73,7 @@ export async function commitStatusChangeAction(payload: {
       }
       screenData.issueCount = newIssueCount;
 
-      // 3. Recalculate Project Stats (Requires fetching all screens)
+      // Recalculate Project Stats
       const allScreensSnapshot = await t.get(db.collection("project_screens").doc(projectId).collection("screens"));
       let totalIssues = 0;
       let totalCompleted = 0;
@@ -80,7 +82,7 @@ export async function commitStatusChangeAction(payload: {
 
       allScreensSnapshot.docs.forEach((doc) => {
         screensCount++;
-        const sData = doc.id === screenId ? screenData : doc.data(); // Use updated screenData for the current screen
+        const sData = doc.id === screenId ? screenData : doc.data(); 
         
         if (sData.issueCount === 0) completedScreensCount++;
         const sAllPins = isAppProject ? [...(sData.PC?.pins || [])] : [...(sData.PC?.pins || []), ...(sData.Mobile?.pins || [])];
@@ -95,7 +97,7 @@ export async function commitStatusChangeAction(payload: {
         completedCount: totalCompleted,
       };
 
-      // 4. Commit all writes in transaction
+      // Commit all writes
       t.set(screenRef, screenData, { merge: true });
       t.set(projectRef, cleanProjectData, { merge: true });
       
@@ -108,8 +110,7 @@ export async function commitStatusChangeAction(payload: {
         fromStatus,
         toStatus,
         reason,
-        actorUid: userUid,
-        // @ts-ignore
+        actorUid: userId,
         changedAt: FieldValue.serverTimestamp(),
         schemaVersion: "v1"
       });
@@ -118,6 +119,7 @@ export async function commitStatusChangeAction(payload: {
     return { success: true, message: "Status changed successfully" };
   } catch (e: any) {
     console.error("Server Action Error:", e);
-    return { success: false, error: e.message };
+    // Return 403-like error to the client
+    return { success: false, error: e.message || "Forbidden" };
   }
 }

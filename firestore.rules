@@ -1,16 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    match /issue_events/{eventId} {
-      allow read: if true;
-      allow write: if false; // Only allow Server Action (Firebase Admin) to write
-    }
-    
-    // Default fallback for other collections
-    // Exclude issue_events explicitly from the catch-all just to be safe
+    // All direct client writes are forbidden
+    // Must go through Next.js API Routes / Server Actions
     match /{document=**} {
-      allow read, write: if !request.path.segments.hasAny(['issue_events']);
+      allow read: if true; // Restrict later if needed
+      allow write: if false; 
     }
   }
 }

@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { db, storage } from "@/lib/firebase";
-import { supabase } from "@/lib/supabase";
-import { commitStatusChangeAction } from "@/app/actions/savePin";
 import { collection, doc, onSnapshot, setDoc, getDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
 import { ref, getDownloadURL } from "firebase/storage";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -590,20 +588,17 @@ export default function ScreenQA() {
   }, [activeDeviceState.testUrl]);
 
   const pins = activeDeviceState.pins;
-  const setPins = (newPins: Pin[] | ((prev: Pin[]) => Pin[])) => {
+  const setPins = (newPins: Pin[] | ((prev: Pin[]) => Pin[]), eventLogData?: any) => {
     updateActiveDeviceState({
       pins: typeof newPins === "function" ? newPins(pins) : newPins
     });
   };
 
   const [activePinId, setActivePinId] = useState<number | null>(null);
-const [reopenModalOpen, setReopenModalOpen] = useState(false);
-const [reopenReason, setReopenReason] = useState("");
-const [isSavingStatus, setIsSavingStatus] = useState(false);
-const [pendingStatusChange, setPendingStatusChange] = useState<{ pinId: number, fromStatus: string, toStatus: string, idempKey: string } | null>(null);
-  
-
-  
+  const [reopenModalOpen, setReopenModalOpen] = useState(false);
+  const [reopenReason, setReopenReason] = useState("");
+  const [isSavingReopen, setIsSavingReopen] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ pinId: number, fromStatus: string, toStatus: string, formState: any } | null>(null);
 
 
   useEffect(() => {
@@ -646,82 +641,16 @@ const [pendingStatusChange, setPendingStatusChange] = useState<{ pinId: number, 
       (localForm.description !== undefined && localForm.description !== (activePin.description || "")) ||
       (localForm.request !== undefined && localForm.request !== (activePin.request || "")) ||
       (localForm.devFeedback !== undefined && localForm.devFeedback !== (activePin.devFeedback || "대기중")) ||
-      (localForm.priority !== undefined && localForm.priority !== (activePin.priority || "High (크리티컬)")) ;
+      (localForm.priority !== undefined && localForm.priority !== (activePin.priority || "High (크리티컬)")) ||
+      (localForm.status !== undefined && localForm.status !== (activePin.status || "이슈발생"));
 
     if (isDirty) {
       const timeoutId = setTimeout(() => {
-        setPins(prev => prev.map(p => p.id === activePinId ? { ...p, ...(({ status, ...rest }) => rest)(localForm) } : p));
+        setPins(prev => prev.map(p => p.id === activePinId ? { ...p, ...localForm } : p));
       }, 1000); // 1초 뒤 자동저장
       return () => clearTimeout(timeoutId);
     }
   }, [localForm, activePinId, activePin]);
-
-  
-  const handleStatusChange = (newStatus: string) => {
-    if (!activePinId || !activePin || !user) return;
-    
-    const fromStatus = activePin.status || "이슈발생";
-    if (fromStatus === newStatus) return;
-
-    const isReopen = (fromStatus === "수정완료" || fromStatus === "완료됨") && (newStatus === "이슈발생" || newStatus === "확인/검토중" || newStatus === "반려");
-
-    const idempKey = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString() + Math.random().toString(36).substring(7);
-
-    if (isReopen) {
-      setPendingStatusChange({ pinId: activePinId, fromStatus, toStatus: newStatus, idempKey });
-      setReopenReason("");
-      setReopenModalOpen(true);
-    } else {
-      commitStatusChange(activePinId, fromStatus, newStatus, "상태 변경", idempKey);
-    }
-  };
-
-  const commitStatusChange = async (pinId: number, fromStatus: string, toStatus: string, reason: string, idempKey: string) => {
-    if (!user || !params.id) return;
-    setIsSavingStatus(true);
-    
-    try {
-      const res = await commitStatusChangeAction({
-        pinId,
-        projectId: params.id as string,
-        screenId: activeScreenId,
-        device,
-        isAppProject,
-        fromStatus,
-        toStatus,
-        reason,
-        idempKey,
-        token: (await supabase.auth.getSession()).data.session?.access_token || ""
-      });
-      
-      if (!res.success) throw new Error(res.error);
-      
-      // Update local state ONLY (no side effects)
-      const targetPin = pins.find(p => p.id === pinId);
-      if (targetPin) {
-        const newPin = { ...targetPin, status: toStatus };
-        const newPins = pins.map(p => p.id === pinId ? newPin : p);
-        
-        // This setScreens will update the UI immediately
-        setScreens(prev => prev.map(s => {
-          if (s.id === activeScreenId) {
-            const updatedDeviceState = { ...s[device], pins: newPins };
-            return { ...s, [device]: updatedDeviceState };
-          }
-          return s;
-        }));
-        setLocalForm(prev => ({ ...prev, status: toStatus }));
-        toast.success(res.message || "상태가 변경되었습니다.");
-      }
-    } catch (e: any) {
-      console.error(e);
-      toast.error("상태 변경 중 오류가 발생했습니다.");
-    } finally {
-      setIsSavingStatus(false);
-      setReopenModalOpen(false);
-      setPendingStatusChange(null);
-    }
-  };
 
   const handleSavePinDetails = () => {
     if (!activePinId) return;
@@ -1859,7 +1788,7 @@ const [pendingStatusChange, setPendingStatusChange] = useState<{ pinId: number, 
                     </div>
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">상태</Label>
-                      <Select disabled={!canManagePins || isSavingStatus} value={localForm.status || "이슈발생"} onValueChange={(val) => val && handleStatusChange(val)}>
+                      <Select disabled={!canManagePins} value={localForm.status || "이슈발생"} onValueChange={(val) => val && setLocalForm({...localForm, status: val})}>
                         <SelectTrigger className="h-10 text-sm bg-white font-medium disabled:opacity-50">
                           <SelectValue placeholder="상태 선택" />
                         </SelectTrigger>
