@@ -595,10 +595,13 @@ export default function ScreenQA() {
   };
 
   const [activePinId, setActivePinId] = useState<number | null>(null);
-  const [reopenModalOpen, setReopenModalOpen] = useState(false);
-  const [reopenReason, setReopenReason] = useState("");
-  const [isSavingReopen, setIsSavingReopen] = useState(false);
-  const [pendingStatusChange, setPendingStatusChange] = useState<{ pinId: number, fromStatus: string, toStatus: string, formState: any } | null>(null);
+const [reopenModalOpen, setReopenModalOpen] = useState(false);
+const [reopenReason, setReopenReason] = useState("");
+const [isSavingStatus, setIsSavingStatus] = useState(false);
+const [pendingStatusChange, setPendingStatusChange] = useState<{ pinId: number, fromStatus: string, toStatus: string, idempKey: string } | null>(null);
+  
+
+  
 
 
   useEffect(() => {
@@ -641,8 +644,7 @@ export default function ScreenQA() {
       (localForm.description !== undefined && localForm.description !== (activePin.description || "")) ||
       (localForm.request !== undefined && localForm.request !== (activePin.request || "")) ||
       (localForm.devFeedback !== undefined && localForm.devFeedback !== (activePin.devFeedback || "대기중")) ||
-      (localForm.priority !== undefined && localForm.priority !== (activePin.priority || "High (크리티컬)")) ||
-      (localForm.status !== undefined && localForm.status !== (activePin.status || "이슈발생"));
+      (localForm.priority !== undefined && localForm.priority !== (activePin.priority || "High (크리티컬)")) ;
 
     if (isDirty) {
       const timeoutId = setTimeout(() => {
@@ -651,6 +653,102 @@ export default function ScreenQA() {
       return () => clearTimeout(timeoutId);
     }
   }, [localForm, activePinId, activePin]);
+
+  
+  const handleStatusChange = (newStatus: string) => {
+    if (!activePinId || !activePin || !user) return;
+    
+    const fromStatus = activePin.status || "이슈발생";
+    if (fromStatus === newStatus) return;
+
+    const isReopen = (fromStatus === "수정완료" || fromStatus === "완료됨") && (newStatus === "이슈발생" || newStatus === "확인/검토중" || newStatus === "반려");
+
+    const idempKey = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString() + Math.random().toString(36).substring(7);
+
+    if (isReopen) {
+      setPendingStatusChange({ pinId: activePinId, fromStatus, toStatus: newStatus, idempKey });
+      setReopenReason("");
+      setReopenModalOpen(true);
+    } else {
+      commitStatusChange(activePinId, fromStatus, newStatus, "상태 변경", idempKey);
+    }
+  };
+
+  const commitStatusChange = async (pinId: number, fromStatus: string, toStatus: string, reason: string, idempKey: string) => {
+    if (!user || !params.id) return;
+    setIsSavingStatus(true);
+    
+    try {
+      const targetPin = pins.find(p => p.id === pinId);
+      if (!targetPin) throw new Error("Pin not found");
+      
+      const newPin = { ...targetPin, status: toStatus };
+      const newPins = pins.map(p => p.id === pinId ? newPin : p);
+      
+      let newIssueCount = 0;
+      let targetScreen = screens.find(s => s.id === activeScreenId);
+      if (!targetScreen) throw new Error("Screen not found");
+      
+      const updatedDeviceState = { ...targetScreen[device], pins: newPins };
+      const newScreen = { ...targetScreen, [device]: updatedDeviceState };
+      
+      const allPins = isAppProject ? [...(newScreen.PC?.pins || [])] : [...(newScreen.PC?.pins || []), ...(newScreen.Mobile?.pins || [])];
+      newIssueCount = allPins.length > 0 ? allPins.filter(p => p.status !== "완료됨" && p.status !== "특이사항 없음").length : -1;
+      newScreen.issueCount = newIssueCount;
+
+      let totalIssues = 0;
+      let totalCompleted = 0;
+      let completedScreensCount = 0;
+      screens.map(s => s.id === activeScreenId ? newScreen : s).forEach(screen => {
+        if (screen.issueCount === 0) completedScreensCount++;
+        const screenPins = isAppProject ? [...(screen.PC?.pins || [])] : [...(screen.PC?.pins || []), ...(screen.Mobile?.pins || [])];
+        totalIssues += screenPins.length;
+        totalCompleted += screenPins.filter(p => (p.status === "완료됨" || p.status === "특이사항 없음")).length;
+      });
+
+      const cleanProjectData = {
+        screensCount: screens.length,
+        completedScreensCount: completedScreensCount,
+        issuesCount: totalIssues,
+        completedCount: totalCompleted,
+      };
+
+      const batch = writeBatch(db);
+      
+      batch.set(doc(db, "project_screens", params.id as string, "screens", newScreen.id), JSON.parse(JSON.stringify(newScreen)), { merge: true });
+      batch.set(doc(db, "projects", params.id as string), cleanProjectData, { merge: true });
+      
+      batch.set(doc(collection(db, "issue_events"), idempKey), {
+        eventId: idempKey,
+        issueId: pinId.toString(),
+        projectId: params.id as string,
+        screenId: activeScreenId,
+        eventType: "STATUS_CHANGE",
+        fromStatus,
+        toStatus,
+        reason,
+        actorUid: user.id || "unknown",
+        changedAt: new Date().toISOString(),
+        schemaVersion: "v1"
+      });
+
+      await batch.commit();
+
+      setLocalForm(prev => ({ ...prev, status: toStatus }));
+      setScreens(prev => prev.map(s => s.id === activeScreenId ? newScreen : s));
+      // update pins locally
+      updateActiveDeviceState({ pins: newPins });
+      
+      toast.success("상태가 변경되었습니다.");
+    } catch (e) {
+      console.error(e);
+      toast.error("상태 변경 중 오류가 발생했습니다.");
+    } finally {
+      setIsSavingStatus(false);
+      setReopenModalOpen(false);
+      setPendingStatusChange(null);
+    }
+  };
 
   const handleSavePinDetails = () => {
     if (!activePinId) return;
@@ -1788,7 +1886,7 @@ export default function ScreenQA() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-sm font-bold text-slate-800">상태</Label>
-                      <Select disabled={!canManagePins} value={localForm.status || "이슈발생"} onValueChange={(val) => val && setLocalForm({...localForm, status: val})}>
+                      <Select disabled={!canManagePins || isSavingStatus} value={localForm.status || "이슈발생"} onValueChange={(val) => val && handleStatusChange(val)}>
                         <SelectTrigger className="h-10 text-sm bg-white font-medium disabled:opacity-50">
                           <SelectValue placeholder="상태 선택" />
                         </SelectTrigger>
