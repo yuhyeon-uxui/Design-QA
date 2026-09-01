@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { db, storage } from "@/lib/firebase";
+import { commitStatusChangeAction } from "@/app/actions/savePin";
 import { collection, doc, onSnapshot, setDoc, getDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
 import { ref, getDownloadURL } from "firebase/storage";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -588,7 +589,7 @@ export default function ScreenQA() {
   }, [activeDeviceState.testUrl]);
 
   const pins = activeDeviceState.pins;
-  const setPins = (newPins: Pin[] | ((prev: Pin[]) => Pin[]), eventLogData?: any) => {
+  const setPins = (newPins: Pin[] | ((prev: Pin[]) => Pin[])) => {
     updateActiveDeviceState({
       pins: typeof newPins === "function" ? newPins(pins) : newPins
     });
@@ -648,7 +649,7 @@ const [pendingStatusChange, setPendingStatusChange] = useState<{ pinId: number, 
 
     if (isDirty) {
       const timeoutId = setTimeout(() => {
-        setPins(prev => prev.map(p => p.id === activePinId ? { ...p, ...localForm } : p));
+        setPins(prev => prev.map(p => p.id === activePinId ? { ...p, ...(({ status, ...rest }) => rest)(localForm) } : p));
       }, 1000); // 1초 뒤 자동저장
       return () => clearTimeout(timeoutId);
     }
@@ -679,68 +680,39 @@ const [pendingStatusChange, setPendingStatusChange] = useState<{ pinId: number, 
     setIsSavingStatus(true);
     
     try {
-      const targetPin = pins.find(p => p.id === pinId);
-      if (!targetPin) throw new Error("Pin not found");
-      
-      const newPin = { ...targetPin, status: toStatus };
-      const newPins = pins.map(p => p.id === pinId ? newPin : p);
-      
-      let newIssueCount = 0;
-      let targetScreen = screens.find(s => s.id === activeScreenId);
-      if (!targetScreen) throw new Error("Screen not found");
-      
-      const updatedDeviceState = { ...targetScreen[device], pins: newPins };
-      const newScreen = { ...targetScreen, [device]: updatedDeviceState };
-      
-      const allPins = isAppProject ? [...(newScreen.PC?.pins || [])] : [...(newScreen.PC?.pins || []), ...(newScreen.Mobile?.pins || [])];
-      newIssueCount = allPins.length > 0 ? allPins.filter(p => p.status !== "완료됨" && p.status !== "특이사항 없음").length : -1;
-      newScreen.issueCount = newIssueCount;
-
-      let totalIssues = 0;
-      let totalCompleted = 0;
-      let completedScreensCount = 0;
-      screens.map(s => s.id === activeScreenId ? newScreen : s).forEach(screen => {
-        if (screen.issueCount === 0) completedScreensCount++;
-        const screenPins = isAppProject ? [...(screen.PC?.pins || [])] : [...(screen.PC?.pins || []), ...(screen.Mobile?.pins || [])];
-        totalIssues += screenPins.length;
-        totalCompleted += screenPins.filter(p => (p.status === "완료됨" || p.status === "특이사항 없음")).length;
-      });
-
-      const cleanProjectData = {
-        screensCount: screens.length,
-        completedScreensCount: completedScreensCount,
-        issuesCount: totalIssues,
-        completedCount: totalCompleted,
-      };
-
-      const batch = writeBatch(db);
-      
-      batch.set(doc(db, "project_screens", params.id as string, "screens", newScreen.id), JSON.parse(JSON.stringify(newScreen)), { merge: true });
-      batch.set(doc(db, "projects", params.id as string), cleanProjectData, { merge: true });
-      
-      batch.set(doc(collection(db, "issue_events"), idempKey), {
-        eventId: idempKey,
-        issueId: pinId.toString(),
+      const res = await commitStatusChangeAction({
+        pinId,
         projectId: params.id as string,
         screenId: activeScreenId,
-        eventType: "STATUS_CHANGE",
+        device,
+        isAppProject,
         fromStatus,
         toStatus,
         reason,
-        actorUid: user.id || "unknown",
-        changedAt: new Date().toISOString(),
-        schemaVersion: "v1"
+        idempKey,
+        userUid: user.id || "unknown"
       });
-
-      await batch.commit();
-
-      setLocalForm(prev => ({ ...prev, status: toStatus }));
-      setScreens(prev => prev.map(s => s.id === activeScreenId ? newScreen : s));
-      // update pins locally
-      updateActiveDeviceState({ pins: newPins });
       
-      toast.success("상태가 변경되었습니다.");
-    } catch (e) {
+      if (!res.success) throw new Error(res.error);
+      
+      // Update local state ONLY (no side effects)
+      const targetPin = pins.find(p => p.id === pinId);
+      if (targetPin) {
+        const newPin = { ...targetPin, status: toStatus };
+        const newPins = pins.map(p => p.id === pinId ? newPin : p);
+        
+        // This setScreens will update the UI immediately
+        setScreens(prev => prev.map(s => {
+          if (s.id === activeScreenId) {
+            const updatedDeviceState = { ...s[device], pins: newPins };
+            return { ...s, [device]: updatedDeviceState };
+          }
+          return s;
+        }));
+        setLocalForm(prev => ({ ...prev, status: toStatus }));
+        toast.success(res.message || "상태가 변경되었습니다.");
+      }
+    } catch (e: any) {
       console.error(e);
       toast.error("상태 변경 중 오류가 발생했습니다.");
     } finally {

@@ -1,22 +1,16 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Other collections can have their own rules
+    
     match /issue_events/{eventId} {
-      // Only authenticated users can create events
-      allow create: if request.auth != null 
-                    && request.resource.data.actorUid == request.auth.uid
-                    && request.resource.data.eventType == "STATUS_CHANGE"
-                    && request.resource.data.reason.size() >= 0;
-      
-      // Events are immutable (cannot be updated or deleted by clients)
-      allow update, delete: if false;
-      allow read: if request.auth != null;
+      allow read: if true;
+      allow write: if false; // Only allow Server Action (Firebase Admin) to write
     }
     
-    // Default fallback (you can restrict this further based on your app's needs)
+    // Default fallback for other collections
+    // Exclude issue_events explicitly from the catch-all just to be safe
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if !request.path.segments.hasAny(['issue_events']);
     }
   }
 }
