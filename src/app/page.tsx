@@ -33,6 +33,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { LogOut, User as UserIcon } from "lucide-react";
 
 import { NavigationSidebar } from "@/components/NavigationSidebar";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export default function Dashboard() {
   const { user, canManageProjects, signOut, isLoading } = useAuthStore();
@@ -169,7 +170,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 shrink-0">
+            <div className="flex items-center gap-4 shrink-0">
             {/* 로그인 / 로그아웃 버튼 */}
             {user ? (
               <div className="flex items-center gap-2 mr-2 border-r pr-4 border-slate-200">
@@ -191,25 +192,27 @@ export default function Dashboard() {
               </Link>
             )}
 
-            <Dialog>
-              <DialogTrigger render={<span className="text-sm font-medium text-slate-500 hover:text-slate-800 cursor-pointer transition-colors px-2 py-1">도움말</span>} />
-              <DialogContent className="sm:max-w-[600px] p-8">
-                <DialogHeader className="mb-4">
-                  <DialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-base shadow-sm border border-blue-100">💡</span>
-                    Design QA Hub 퀵 스타트 가이드
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-8 py-2">
-                  <div className="space-y-3">
-                    <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs">1</span> 
-                      피그마 링크 연동하기
-                    </h3>
-                    <p className="text-sm text-slate-600 leading-relaxed pl-7">
-                      Figma에서 비교할 디자인 프레임을 선택하고 우클릭 &gt; <strong className="text-slate-800">Copy/Paste as</strong> &gt; <strong className="text-slate-800">Copy link</strong>를 클릭하세요. <br/><span className="text-slate-400 text-xs">(Node-id가 포함된 정확한 링크가 필요합니다)</span>
-                    </p>
-                  </div>
+            <div className="flex items-center">
+              <NotificationBell />
+              <Dialog>
+                <DialogTrigger render={<span className="text-sm font-medium text-slate-500 hover:text-slate-800 cursor-pointer transition-colors px-2 py-1">도움말</span>} />
+                <DialogContent className="sm:max-w-[600px] p-8">
+                  <DialogHeader className="mb-4">
+                    <DialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-base shadow-sm border border-blue-100">💡</span>
+                      Design QA Hub 퀵 스타트 가이드
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-8 py-2">
+                    <div className="space-y-3">
+                      <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs">1</span> 
+                        피그마 링크 연동하기
+                      </h3>
+                      <p className="text-sm text-slate-600 leading-relaxed pl-7">
+                        Figma에서 비교할 디자인 프레임을 선택하고 우클릭 &gt; <strong className="text-slate-800">Copy/Paste as</strong> &gt; <strong className="text-slate-800">Copy link</strong>를 클릭하세요. <br/><span className="text-slate-400 text-xs">(Node-id가 포함된 정확한 링크가 필요합니다)</span>
+                      </p>
+                    </div>
                   <div className="space-y-3">
                     <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
                       <span className="w-5 h-5 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs">2</span> 
@@ -239,6 +242,7 @@ export default function Dashboard() {
                 </div>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
         </div>
       </header>

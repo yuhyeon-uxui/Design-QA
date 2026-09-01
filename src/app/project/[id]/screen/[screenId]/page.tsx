@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { NavigationSidebar } from "@/components/NavigationSidebar";
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface Comment {
   id: number;
@@ -990,6 +991,7 @@ export default function ScreenQA() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <NotificationBell />
           {user ? (
             <div className="flex items-center gap-2 mr-2 border-r pr-4 border-slate-200">
               <Link href="/mypage">
