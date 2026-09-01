@@ -588,13 +588,18 @@ export default function ScreenQA() {
   }, [activeDeviceState.testUrl]);
 
   const pins = activeDeviceState.pins;
-  const setPins = (newPins: Pin[] | ((prev: Pin[]) => Pin[])) => {
+  const setPins = (newPins: Pin[] | ((prev: Pin[]) => Pin[]), eventLogData?: any) => {
     updateActiveDeviceState({
       pins: typeof newPins === "function" ? newPins(pins) : newPins
     });
   };
 
   const [activePinId, setActivePinId] = useState<number | null>(null);
+  const [reopenModalOpen, setReopenModalOpen] = useState(false);
+  const [reopenReason, setReopenReason] = useState("");
+  const [isSavingReopen, setIsSavingReopen] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ pinId: number, fromStatus: string, toStatus: string, formState: any } | null>(null);
+
 
   useEffect(() => {
     const pinIdParam = searchParams.get('pinId');
